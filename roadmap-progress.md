@@ -1,7 +1,7 @@
 # پیشرفت پروژه همسو (Hamsou) - وضعیت فیچرها
 
 **آخرین بروزرسانی:** 2025-01-30
-**نسخه پروژه:** 1.4.0-dev
+**نسخه پروژه:** 1.4.1-dev
 **وضعیت کلی:** در حال توسعه (58% تکمیل شده)
 
 ---
@@ -300,8 +300,11 @@
 | 7.3.1 | فید عمومی دستاوردها | ✅ | 2025-01-30 |
 | 7.3.2 | لایک و کامنت | ✅ | 2025-01-30 |
 | 7.3.3 | دنبال کردن کاربران | ✅ | 2025-01-30 |
-| 7.3.4 | چالش‌های گروهی | ✅ | 2025-01-30 |
-| 7.3.5 | لیدربورد | ✅ | 2025-01-30 |
+| 7.3.4 | لیست کاربران با جستجو و فالو/آنفالو | ✅ | 2025-01-30 |
+| 7.3.5 | چالش‌های گروهی | ✅ | 2025-01-30 |
+| 7.3.6 | لیدربورد با توضیح امتیازدهی | ✅ | 2025-01-30 |
+| 7.3.7 | ابزارهای توسعه داده‌های تستی | ✅ | 2025-01-30 |
+| 7.3.8 | سیستم پاکسازی داده‌های تستی | ✅ | 2025-01-30 |
 | 7.4.1 | ارسال درخواست دوستی | ⏳ | - |
 | 7.4.2 | مشاهده پروفایل دوستان | ⏳ | - |
 | 7.4.3 | اشتراک‌گذاری برنامه‌ها | ⏳ | - |
@@ -314,11 +317,17 @@
 | 7.5.5 | POST/DELETE /api/community/posts/[id]/like | ✅ | 2025-01-30 |
 | 7.5.6 | POST /api/community/posts/[id]/comments | ✅ | 2025-01-30 |
 | 7.5.7 | DELETE /api/community/comments/[id] | ✅ | 2025-01-30 |
-| 7.5.8 | POST/DELETE/GET /api/community/follow | ✅ | 2025-01-30 |
-| 7.5.9 | GET/POST /api/community/challenges | ✅ | 2025-01-30 |
-| 7.5.10 | POST/DELETE /api/community/challenges/[id]/join | ✅ | 2025-01-30 |
-| 7.5.11 | GET /api/community/leaderboard | ✅ | 2025-01-30 |
-| 7.5.12 | POST /api/friends | ⏳ | - |
+| 7.5.8 | GET /api/community/users | ✅ | 2025-01-30 |
+| 7.5.9 | POST /api/community/users/[id]/follow | ✅ | 2025-01-30 |
+| 7.5.10 | DELETE /api/community/users/[id]/follow | ✅ | 2025-01-30 |
+| 7.5.11 | POST/DELETE/GET /api/community/follow | ✅ | 2025-01-30 |
+| 7.5.12 | GET/POST /api/community/challenges | ✅ | 2025-01-30 |
+| 7.5.13 | POST/DELETE /api/community/challenges/[id]/join | ✅ | 2025-01-30 |
+| 7.5.14 | GET /api/community/leaderboard | ✅ | 2025-01-30 |
+| 7.5.15 | POST /api/dev/create-leaderboard-test-data | ✅ | 2025-01-30 |
+| 7.5.16 | DELETE /api/dev/clear-leaderboard-test-data | ✅ | 2025-01-30 |
+| 7.5.17 | GET /api/dev/check-leaderboard-test-data | ✅ | 2025-01-30 |
+| 7.5.18 | POST /api/friends | ⏳ | - |
 
 **فایل‌های کلیدی:**
 - `/src/app/profile/page.tsx`
@@ -335,14 +344,21 @@
 - `/src/app/api/community/posts/[id]/like/route.ts`
 - `/src/app/api/community/posts/[id]/comments/route.ts`
 - `/src/app/api/community/comments/[id]/route.ts`
+- `/src/app/api/community/users/route.ts`
+- `/src/app/api/community/users/[id]/follow/route.ts`
 - `/src/app/api/community/follow/route.ts`
 - `/src/app/api/community/challenges/route.ts`
 - `/src/app/api/community/challenges/[id]/join/route.ts`
 - `/src/app/api/community/leaderboard/route.ts`
+- `/src/app/api/dev/create-leaderboard-test-data/route.ts`
+- `/src/app/api/dev/clear-leaderboard-test-data/route.ts`
+- `/src/app/api/dev/check-leaderboard-test-data/route.ts`
 - `/src/components/community/CommunityFeed.tsx`
 - `/src/components/community/PostCard.tsx`
 - `/src/components/community/Leaderboard.tsx`
 - `/src/components/community/ChallengesList.tsx`
+- `/src/components/community/UsersList.tsx`
+- `/scripts/cleanup-old-test-users.ts`
 - `/prisma/schema.prisma` (مدل User, Post, Like, Comment, Follow, Challenge, ChallengeParticipant)
 
 ---
@@ -477,7 +493,35 @@
 
 ## 📝 لاگ تغییرات (Changelog)
 
-### 2025-01-30
+### 2025-01-30 (نسخه 1.4.1)
+- ✅ بهبود فاز 7.3: جامعه کاربران (Community)
+  - افزودن تب "کاربران" با قابلیت جستجو و فالو/آنفالو
+  - API: GET /api/community/users - لیست کاربران با جستجو
+  - API: POST /api/community/users/[id]/follow - فالو کردن کاربر
+  - API: DELETE /api/community/users/[id]/follow - آنفالو کردن کاربر
+  - کامپوننت UsersList.tsx با UI کامل (آواتار، شمارش فالوور/فالوینگ/پست)
+  - API: POST /api/dev/create-leaderboard-test-data - ایجاد داده‌های تستی جامعه با چالش‌ها
+  - API: DELETE /api/dev/clear-leaderboard-test-data - حذف کامل داده‌های تستی
+  - API: GET /api/dev/check-leaderboard-test-data - بررسی وجود داده‌های تستی
+  - اضافه شدن توضیح نحوه محاسبه امتیاز در لیدربورد:
+    * هر پست: ۱۰ امتیاز
+    * هر لایک دریافتی: ۲ امتیاز
+    * هر کامنت دریافتی: ۳ امتیاز
+    * هر فالوور: ۱ امتیاز
+  - اصلاح مشکلات فیلد نام در Prisma Schema:
+    * Challenge: userId → creatorId, target → targetValue
+    * Like: userId → likerId
+    * Comment: userId → authorId
+    * اضافه کردن فیلدهای type و category برای مدل Challenge
+  - اسکریپت پاکسازی داده‌های تستی قدیمی (cleanup-old-test-users.ts)
+  - ابزارهای توسعه در DevToolsPanel برای مدیریت داده‌های تستی
+  - ایجاد 2 چالش نمونه برای کاربران تستی
+  - حل مشکل کاربران تکراری در تب "کاربران"
+  - بهبود مدیریت دکمه‌های ایجاد/حذف داده‌های تستی
+- ✅ به‌روزرسانی نسخه به 1.4.1-dev
+- ✅ پروژه در 58% پیشرفت باقی مانده
+
+### 2025-01-30 (نسخه 1.4.0)
 - ✅ تکمیل فاز 7.3: جامعه کاربران (Community)
   - فید عمومی دستاوردها با فیلتر (همه، دنبال‌شده‌ها، دستاوردها)
   - ایجاد و مدیریت پست‌ها (ایجاد، حذف)
@@ -589,5 +633,5 @@
 ---
 
 **آخرین بروزرسانی:** 2025-01-30
-**نسخه:** 1.4.0-dev
+**نسخه:** 1.4.1-dev
 **توسعه‌دهنده:** Z.ai Code

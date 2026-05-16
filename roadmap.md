@@ -313,8 +313,11 @@ model Notification {
 - [x] فید عمومی دستاوردها
 - [x] لایک و کامنت روی پست‌ها
 - [x] دنبال کردن کاربران
+- [x] لیست کاربران با قابلیت جستجو و فالو/آنفالو
 - [x] چالش‌های گروهی
-- [x] لیدربورد هفتگی/ماهانه
+- [x] لیدربورد هفتگی/ماهانه با توضیح امتیازدهی
+- [x] ابزارهای توسعه برای داده‌های تستی جامعه
+- [x] سیستم پاکسازی داده‌های تستی قدیمی
 
 ### 7.4 سیستم دوستی و هم‌تیمی
 - [ ] ارسال درخواست دوستی
@@ -333,10 +336,16 @@ model Notification {
 - [x] POST/DELETE /api/community/posts/[id]/like - لایک/آنلایک
 - [x] POST /api/community/posts/[id]/comments - ایجاد کامنت
 - [x] DELETE /api/community/comments/[id] - حذف کامنت
-- [x] POST/DELETE/GET /api/community/follow - مدیریت فالو
+- [x] GET /api/community/users - لیست کاربران با جستجو
+- [x] POST /api/community/users/[id]/follow - فالو کردن کاربر
+- [x] DELETE /api/community/users/[id]/follow - آنفالو کردن کاربر
+- [x] POST/DELETE/GET /api/community/follow - مدیریت فالو (قدیمی)
 - [x] GET/POST /api/community/challenges - لیست و ایجاد چالش
 - [x] POST/DELETE /api/community/challenges/[id]/join - پیوستن/خروج از چالش
 - [x] GET /api/community/leaderboard - لیدربورد
+- [x] POST /api/dev/create-leaderboard-test-data - ایجاد داده‌های تستی جامعه
+- [x] DELETE /api/dev/clear-leaderboard-test-data - حذف داده‌های تستی جامعه
+- [x] GET /api/dev/check-leaderboard-test-data - بررسی وجود داده‌های تستی
 - [ ] GET /api/friends - مدیریت دوستان
 
 ---
@@ -832,8 +841,32 @@ model Notification {
 ---
 
 **آخرین بروزرسانی:** 2025-01-30
-**نسخه:** 1.4.0
+**نسخه:** 1.4.1
 **وضعیت پروژه:** در حال توسعه (Development)
+**تغییرات نسخه 1.4.1:**
+- بهبود فاز 7.3: جامعه کاربران (Community)
+  - افزودن تب "کاربران" با قابلیت جستجو و فالو/آنفالو
+  - API: GET /api/community/users - لیست کاربران با جستجو
+  - API: POST /api/community/users/[id]/follow - فالو کردن کاربر
+  - API: DELETE /api/community/users/[id]/follow - آنفالو کردن کاربر
+  - کامپوننت UsersList.tsx با UI کامل
+  - API: POST /api/dev/create-leaderboard-test-data - ایجاد داده‌های تستی جامعه با چالش‌ها
+  - API: DELETE /api/dev/clear-leaderboard-test-data - حذف کامل داده‌های تستی
+  - API: GET /api/dev/check-leaderboard-test-data - بررسی وجود داده‌های تستی
+  - اضافه شدن توضیح نحوه محاسبه امتیاز در لیدربورد:
+    * هر پست: ۱۰ امتیاز
+    * هر لایک دریافتی: ۲ امتیاز
+    * هر کامنت دریافتی: ۳ امتیاز
+    * هر فالوور: ۱ امتیاز
+  - اصلاح مشکلات فیلد نام در Prisma Schema:
+    * Challenge: userId → creatorId, target → targetValue
+    * Like: userId → likerId
+    * Comment: userId → authorId
+    * اضافه کردن فیلدهای type و category برای مدل Challenge
+  - اسکریپت پاکسازی داده‌های تستی قدیمی (cleanup-old-test-users.ts)
+  - ابزارهای توسعه در DevToolsPanel برای مدیریت داده‌های تستی
+- پروژه به 58% پیشرفت رسیده
+
 **تغییرات نسخه 1.4.0:**
 - تکمیل فاز 7.3: جامعه کاربران (Community)
   - فید عمومی دستاوردها با فیلتر (همه، دنبال‌شده‌ها، دستاوردها)
