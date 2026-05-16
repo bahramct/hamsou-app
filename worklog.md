@@ -91,3 +91,43 @@ Stage Summary:
 
 Files Modified:
 - `src/components/chat/chat-widget.tsx` - Added Quick Prompts feature
+
+---
+
+## Task ID: 6
+Agent: Z.ai Code
+Task: Add Persian Numbers and Voice Input to Chat Widget
+
+Work Log:
+- Applied `toPersianText()` to welcome message for converting English numbers to Persian
+- Applied `toPersianText()` to timestamp display for all messages
+- Added `isRecording` state for tracking voice input status
+- Imported Mic and MicOff icons from lucide-react
+- Implemented `handleVoiceInput()` function:
+  - Checks for SpeechRecognition browser support
+  - Shows toast error if not supported
+  - Uses Web Speech API with 'fa-IR' language
+  - Handles recording start/end events
+  - Appends transcribed text to input value
+  - Shows error toast on recognition failure
+- Added voice input button to input area:
+  - Located before Textarea (right side in RTL)
+  - Shows Mic icon when not recording
+  - Shows MicOff icon with red background when recording
+  - Tooltip changes based on recording state
+  - Disabled during loading
+- Updated placeholder to show "در حال ضبط..." when recording
+- Updated helper text to show "🎤 صدا هم می‌تونی بفرستی"
+- Ran `bun run lint` - no errors
+
+Stage Summary:
+- Successfully implemented voice input feature using Web Speech API
+- All numbers in chat are now displayed in Persian (۰-۹)
+- Voice input supports Persian language (fa-IR)
+- Recording state is visually indicated with red button and different icon
+- Error handling for unsupported browsers and recognition failures
+- Seamless integration with existing chat functionality
+- No breaking changes to existing features
+
+Files Modified:
+- `src/components/chat/chat-widget.tsx` - Added Persian numbers and voice input

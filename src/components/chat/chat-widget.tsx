@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, X, Send, Loader2, Trash2, Sparkles, Minimize2, BarChart3, Target, Lightbulb, FileText, Star } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Trash2, Sparkles, Minimize2, BarChart3, Target, Lightbulb, FileText, Star, Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { toPersianText } from '@/lib/utils/persian';
 
 interface Message {
   id: string;
@@ -67,6 +68,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -215,6 +217,61 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
     }
   };
 
+  // Voice Input handler
+  const handleVoiceInput = () => {
+    if (typeof window === 'undefined') return;
+
+    // چک کردن پشتیبانی مرورگر
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      toast({
+        title: 'مرورگر پشتیبانی نمی‌کند',
+        description: 'مرورگر شما از ورودی صوتی پشتیبانی نمی‌کند. لطفاً از Chrome یا Edge استفاده کنید.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (isRecording) {
+      // اگر در حال ضبط هست، متوقف می‌کنیم
+      setIsRecording(false);
+      return;
+    }
+
+    // شروع ضبط
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'fa-IR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInputValue(prev => prev + (prev ? ' ' : '') + transcript);
+      setIsRecording(false);
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
+      toast({
+        title: 'خطا در تشخیص صدا',
+        description: 'متاسفانه در تشخیص صدای شما مشکلی پیش آمد. لطفاً دوباره تلاش کنید.',
+        variant: 'destructive',
+      });
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -314,7 +371,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                     {welcomeMessage && messages.length === 0 && (
                       <div className="bg-muted/50 p-3 rounded-lg border border-border/50 text-right">
                         <p className="text-sm whitespace-pre-line leading-relaxed text-foreground">
-                          {welcomeMessage}
+                          {toPersianText(welcomeMessage)}
                         </p>
                       </div>
                     )}
@@ -337,10 +394,12 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                             {message.content}
                           </p>
                           <p className="text-xs mt-1.5 opacity-70">
-                            {new Date(message.timestamp).toLocaleTimeString('fa-IR', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {toPersianText(
+                              new Date(message.timestamp).toLocaleTimeString('fa-IR', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            )}
                           </p>
                         </div>
                       </div>
@@ -385,11 +444,25 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
               {/* Input Area - همیشه نمایش داده می‌شود */}
               <div className="p-3 border-t bg-background" dir="rtl">
                 <div className="flex gap-2">
+                  <Button
+                    onClick={handleVoiceInput}
+                    variant={isRecording ? "default" : "ghost"}
+                    size="icon"
+                    className={`h-[44px] w-[44px] shrink-0 ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                    disabled={isLoading}
+                    title={isRecording ? 'توقف ضبط' : 'ورودی صوتی'}
+                  >
+                    {isRecording ? (
+                      <MicOff className="h-4 w-4" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
+                  </Button>
                   <Textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="پیام خود را بنویسید..."
+                    placeholder={isRecording ? 'در حال ضبط...' : 'پیام خود را بنویسید...'}
                     className="min-h-[44px] max-h-[80px] resize-none text-sm text-right"
                     disabled={isLoading}
                     rows={1}
@@ -408,7 +481,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                   </Button>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-1.5 text-right">
-                  Enter برای ارسال پیام
+                  Enter برای ارسال پیام • 🎤 صدا هم می‌تونی بفرستی
                 </p>
               </div>
             </CardContent>
