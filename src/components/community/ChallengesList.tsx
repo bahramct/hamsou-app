@@ -224,153 +224,160 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                   ایجاد چالش
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>ایجاد چالش جدید</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="title">عنوان چالش</Label>
-                    <Input
-                      id="title"
-                      value={newChallenge.title}
-                      onChange={(e) =>
-                        setNewChallenge({ ...newChallenge, title: e.target.value })
-                      }
-                      placeholder="مثال: ۳۰ روز تمرین روزانه"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="description">توضیحات چالش</Label>
-                    <Textarea
-                      id="description"
-                      value={newChallenge.description}
-                      onChange={(e) =>
-                        setNewChallenge({
-                          ...newChallenge,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="توضیحات کامل چالش و هدف آن"
-                      className="min-h-[80px]"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="type">نوع چالش</Label>
-                    <Select
-                      value={newChallenge.type}
-                      onValueChange={(value) =>
-                        setNewChallenge({ ...newChallenge, type: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily_commitment">
-                          تعهد روزانه (انجام یک کار هر روز)
-                        </SelectItem>
-                        <SelectItem value="weekly_streak">
-                          استریک هفتگی (انجام مداوم در طول هفته)
-                        </SelectItem>
-                        <SelectItem value="monthly_goal">
-                          هدف ماهانه (دستیابی به یک هدف در یک ماه)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="category">دسته‌بندی چالش</Label>
-                    <Select
-                      value={newChallenge.category}
-                      onValueChange={(value) =>
-                        setNewChallenge({ ...newChallenge, category: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="general">عمومی</SelectItem>
-                        <SelectItem value="fitness">تناسب اندام و ورزش</SelectItem>
-                        <SelectItem value="learning">یادگیری و مطالعه</SelectItem>
-                        <SelectItem value="productivity">بهره‌وری و کار</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <PersianDatePicker
-                      label="تاریخ شروع"
-                      value={newChallenge.startDate}
-                      onChange={(value) =>
-                        setNewChallenge({ ...newChallenge, startDate: value })
-                      }
-                      placeholder="روز/ماه/سال"
-                      required
-                    />
-                    <PersianDatePicker
-                      label="تاریخ پایان"
-                      value={newChallenge.endDate}
-                      onChange={(value) =>
-                        setNewChallenge({ ...newChallenge, endDate: value })
-                      }
-                      placeholder="روز/ماه/سال"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="targetValue">
-                      تعداد روز / مقدار هدف (اختیاری)
-                    </Label>
-                    <Input
-                      id="targetValue"
-                      type="text"
-                      value={newChallenge.targetValue}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        // Only allow numbers
-                        if (value === '' || /^\d+$/.test(value)) {
-                          setNewChallenge({
-                            ...newChallenge,
-                            targetValue: value,
-                          });
-                          setTargetValueError('');
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* ستون چپ */}
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="title">عنوان چالش</Label>
+                        <Input
+                          id="title"
+                          value={newChallenge.title}
+                          onChange={(e) =>
+                            setNewChallenge({ ...newChallenge, title: e.target.value })
+                          }
+                          placeholder="مثال: ۳۰ روز تمرین روزانه"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="type">نوع چالش</Label>
+                        <Select
+                          value={newChallenge.type}
+                          onValueChange={(value) =>
+                            setNewChallenge({ ...newChallenge, type: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="daily_commitment">
+                              تعهد روزانه
+                            </SelectItem>
+                            <SelectItem value="weekly_streak">
+                              استریک هفتگی
+                            </SelectItem>
+                            <SelectItem value="monthly_goal">
+                              هدف ماهانه
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="category">دسته‌بندی چالش</Label>
+                        <Select
+                          value={newChallenge.category}
+                          onValueChange={(value) =>
+                            setNewChallenge({ ...newChallenge, category: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">عمومی</SelectItem>
+                            <SelectItem value="fitness">تناسب اندام و ورزش</SelectItem>
+                            <SelectItem value="learning">یادگیری و مطالعه</SelectItem>
+                            <SelectItem value="productivity">بهره‌وری و کار</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <PersianDatePicker
+                        label="تاریخ شروع"
+                        value={newChallenge.startDate}
+                        onChange={(value) =>
+                          setNewChallenge({ ...newChallenge, startDate: value })
                         }
-                      }}
-                      placeholder="مثال: ۳۰"
-                      inputMode="numeric"
-                      dir="ltr"
-                    />
-                    {targetValueError && (
-                      <p className="text-sm text-destructive mt-1">
-                        {targetValueError}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-1">
-                      تعداد روزی که می‌خواهید این چالش را ادامه دهید (مثال: ۳۰)
-                    </p>
+                        placeholder="روز/ماه/سال"
+                        required
+                      />
+                      <PersianDatePicker
+                        label="تاریخ پایان"
+                        value={newChallenge.endDate}
+                        onChange={(value) =>
+                          setNewChallenge({ ...newChallenge, endDate: value })
+                        }
+                        placeholder="روز/ماه/سال"
+                        required
+                      />
+                    </div>
+
+                    {/* ستون راست */}
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="description">توضیحات چالش</Label>
+                        <Textarea
+                          id="description"
+                          value={newChallenge.description}
+                          onChange={(e) =>
+                            setNewChallenge({
+                              ...newChallenge,
+                              description: e.target.value,
+                            })
+                          }
+                          placeholder="توضیحات کامل چالش و هدف آن..."
+                          className="min-h-[150px]"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="targetValue">
+                          تعداد روز / مقدار هدف (اختیاری)
+                        </Label>
+                        <Input
+                          id="targetValue"
+                          type="text"
+                          value={newChallenge.targetValue}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Only allow numbers
+                            if (value === '' || /^\d+$/.test(value)) {
+                              setNewChallenge({
+                                ...newChallenge,
+                                targetValue: value,
+                              });
+                              setTargetValueError('');
+                            }
+                          }}
+                          placeholder="مثال: ۳۰"
+                          inputMode="numeric"
+                          dir="ltr"
+                        />
+                        {targetValueError && (
+                          <p className="text-sm text-destructive mt-1">
+                            {targetValueError}
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          تعداد روزی که می‌خواهید این چالش را ادامه دهید
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-end gap-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setShowCreateDialog(false);
-                        setTargetValueError('');
-                      }}
-                    >
-                      انصراف
-                    </Button>
-                    <Button
-                      onClick={handleCreateChallenge}
-                      disabled={
-                        !newChallenge.title ||
-                        !newChallenge.startDate ||
-                        !newChallenge.endDate
-                      }
-                    >
-                      ایجاد چالش
-                    </Button>
-                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-4 border-t mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateDialog(false);
+                      setTargetValueError('');
+                    }}
+                  >
+                    انصراف
+                  </Button>
+                  <Button
+                    onClick={handleCreateChallenge}
+                    disabled={
+                      !newChallenge.title ||
+                      !newChallenge.startDate ||
+                      !newChallenge.endDate
+                    }
+                  >
+                    ایجاد چالش
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
