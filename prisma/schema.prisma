@@ -12,6 +12,12 @@ model User {
   id        String   @id @default(cuid())
   phone     String   @unique
   name      String?
+  bio       String?
+  profileImage String?
+
+  // تنظیمات حریم خصوصی (JSON)
+  privacySettings String? @default("{}")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
