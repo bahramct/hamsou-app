@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, X, Send, Loader2, Trash2, Sparkles } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Trash2, Sparkles, Minimize2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
@@ -21,6 +21,7 @@ interface ChatWidgetProps {
 
 export function ChatWidget({ userId }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,11 +31,11 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
 
   // دریافت پیام خوش‌آمدگویی
   useEffect(() => {
-    if (userId && isOpen) {
+    if (userId && isOpen && !isMinimized) {
       fetchWelcomeMessage();
       fetchChatHistory();
     }
-  }, [userId, isOpen]);
+  }, [userId, isOpen, isMinimized]);
 
   // اسکرول به پایین وقتی پیام جدید اضافه می‌شود
   useEffect(() => {
@@ -176,11 +177,21 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
     }
   };
 
+  const toggleChat = () => {
+    if (isOpen) {
+      setIsOpen(false);
+      setIsMinimized(false);
+    } else {
+      setIsOpen(true);
+      setIsMinimized(false);
+    }
+  };
+
   return (
-    <>
+    <div dir="rtl">
       {/* دکمه شناور */}
       <Button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={toggleChat}
         className="fixed bottom-6 left-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 bg-primary hover:bg-primary/90"
         size="icon"
       >
@@ -191,106 +202,152 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
         )}
       </Button>
 
-      {/* پنجره چت */}
+      {/* پنجره چت - با انیمیشن iPhone style */}
       {isOpen && (
-        <Card className="fixed bottom-24 left-6 right-6 md:left-6 md:right-auto md:w-96 h-[500px] z-50 shadow-2xl flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">دستیار هوشمند همسو</CardTitle>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleClearHistory}
-              className="h-8 w-8"
-              title="پاک کردن تاریخچه"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </CardHeader>
+        <div
+          className="fixed bottom-24 left-6 right-6 md:left-6 md:right-auto md:w-[380px] z-50"
+          style={{
+            animation: 'chatOpen 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
+        >
+          <style jsx>{`
+            @keyframes chatOpen {
+              0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+              }
+              100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+            @keyframes chatClose {
+              0% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+              100% {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+              }
+            }
+          `}</style>
 
-          <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              <div className="space-y-4">
-                {welcomeMessage && messages.length === 0 && (
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm whitespace-pre-line leading-relaxed">
-                      {welcomeMessage}
-                    </p>
-                  </div>
-                )}
-
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.role === 'user' ? 'justify-start' : 'justify-end'
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-                        message.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-line leading-relaxed">
-                        {message.content}
-                      </p>
-                      <p className="text-xs mt-2 opacity-70">
-                        {new Date(message.timestamp).toLocaleTimeString('fa-IR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-
-                {isLoading && (
-                  <div className="flex justify-end">
-                    <div className="bg-muted rounded-2xl px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm">در حال نوشتن...</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+          <Card className="shadow-2xl flex flex-col overflow-hidden" dir="rtl">
+            {/* Header */}
+            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b bg-gradient-to-l from-primary/10 to-transparent">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base font-semibold">دستیار هوشمند همسو</CardTitle>
               </div>
-            </ScrollArea>
-
-            <div className="p-4 border-t">
-              <div className="flex gap-2">
-                <Textarea
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="پیام خود را بنویسید..."
-                  className="min-h-[60px] max-h-[120px] resize-none"
-                  disabled={isLoading}
-                />
+              <div className="flex items-center gap-1">
                 <Button
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isLoading}
+                  variant="ghost"
                   size="icon"
-                  className="h-[60px] w-[60px] shrink-0"
+                  onClick={handleClearHistory}
+                  className="h-7 w-7"
+                  title="پاک کردن تاریخچه"
                 >
-                  {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <Send className="h-5 w-5" />
-                  )}
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsOpen(false)}
+                  className="h-7 w-7"
+                >
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                Enter برای ارسال پیام
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+
+            <CardContent className="flex flex-col p-0 overflow-hidden">
+              {/* Messages Area */}
+              {!isMinimized && (
+                <ScrollArea className="h-[280px] p-3" ref={scrollRef}>
+                  <div className="space-y-3">
+                    {welcomeMessage && messages.length === 0 && (
+                      <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
+                        <p className="text-sm whitespace-pre-line leading-relaxed text-foreground">
+                          {welcomeMessage}
+                        </p>
+                      </div>
+                    )}
+
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${
+                          message.role === 'user' ? 'justify-start' : 'justify-end'
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-3 py-2.5 ${
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-line leading-relaxed">
+                            {message.content}
+                          </p>
+                          <p className="text-xs mt-1.5 opacity-70">
+                            {new Date(message.timestamp).toLocaleTimeString('fa-IR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+
+                    {isLoading && (
+                      <div className="flex justify-end">
+                        <div className="bg-muted rounded-2xl px-3 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span className="text-xs">در حال نوشتن...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              )}
+
+              {/* Input Area - همیشه نمایش داده می‌شود */}
+              <div className="p-3 border-t bg-background">
+                <div className="flex gap-2">
+                  <Textarea
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="پیام خود را بنویسید..."
+                    className="min-h-[44px] max-h-[80px] resize-none text-sm"
+                    disabled={isLoading}
+                    rows={1}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!inputValue.trim() || isLoading}
+                    size="icon"
+                    className="h-[44px] w-[44px] shrink-0"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                  Enter برای ارسال پیام
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
-    </>
+    </div>
   );
 }
