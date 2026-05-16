@@ -102,7 +102,14 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
         setChallenges(
           challenges.map((challenge) =>
             challenge.id === challengeId
-              ? { ...challenge, isJoined: true }
+              ? {
+                  ...challenge,
+                  isJoined: true,
+                  _count: {
+                    ...challenge._count,
+                    participants: challenge._count.participants + 1,
+                  },
+                }
               : challenge
           )
         );
@@ -132,7 +139,14 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
         setChallenges(
           challenges.map((challenge) =>
             challenge.id === challengeId
-              ? { ...challenge, isJoined: false }
+              ? {
+                  ...challenge,
+                  isJoined: false,
+                  _count: {
+                    ...challenge._count,
+                    participants: challenge._count.participants - 1,
+                  },
+                }
               : challenge
           )
         );
@@ -165,6 +179,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
+      // ایجاد چالش
       const response = await fetch('/api/community/challenges', {
         method: 'POST',
         headers,
@@ -175,6 +190,15 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        const createdChallenge = result.data;
+
+        // خود به خود به چالش پیوسته شود
+        await fetch(`/api/community/challenges/${createdChallenge.id}/join`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
         setShowCreateDialog(false);
         setNewChallenge({
           title: '',

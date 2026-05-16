@@ -147,9 +147,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // خود به خود کاربر را به چالش اضافه می‌کنیم (در حال حاضر در frontend انجام می‌شود)
+    // اما برای پاسخ یکسان با لیست، فیلدهای اضافی را اضافه می‌کنیم
+    const responseChallenge = {
+      ...challenge,
+      isJoined: false, // در frontend بلافاصله بعد از ایجاد عضو می‌شود
+      userProgress: 0,
+      isCompleted: false,
+    };
+
     return NextResponse.json({
       success: true,
-      data: challenge,
+      data: responseChallenge,
     });
   } catch (error: any) {
     console.error('Error creating challenge:', error);
