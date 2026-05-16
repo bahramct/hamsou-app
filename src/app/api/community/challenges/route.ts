@@ -117,18 +117,11 @@ export async function POST(request: NextRequest) {
 
     const validatedData = createChallengeSchema.parse(body);
 
-    // اعتبارسنجی تاریخ‌ها
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const startDate = new Date(validatedData.startDate);
-    startDate.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(validatedData.endDate);
-    endDate.setHours(0, 0, 0, 0);
+    // اعتبارسنجی تاریخ‌ها (مقایسه به صورت string برای جلوگیری از مشکل timezone)
+    const today = new Date().toISOString().split('T')[0];
 
     // تاریخ شروع نباید قبل از امروز باشد
-    if (startDate < today) {
+    if (validatedData.startDate < today) {
       return NextResponse.json(
         { success: false, error: 'تاریخ شروع نمی‌تواند قبل از امروز باشد' },
         { status: 400 }
@@ -136,7 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     // تاریخ پایان باید بعد از تاریخ شروع باشد
-    if (endDate <= startDate) {
+    if (validatedData.endDate <= validatedData.startDate) {
       return NextResponse.json(
         { success: false, error: 'تاریخ پایان باید بعد از تاریخ شروع باشد' },
         { status: 400 }

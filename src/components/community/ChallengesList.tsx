@@ -66,14 +66,6 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
     return diffDays > 0 ? diffDays : 0;
   };
 
-  // دریافت تاریخ امروز به صورت ISO
-  const getTodayISO = (): string => {
-    const today = new Date();
-    // تنظیم ساعت به 00:00:00 برای مقایسه دقیق
-    today.setHours(0, 0, 0, 0);
-    return today.toISOString().split('T')[0];
-  };
-
   const fetchChallenges = async () => {
     setLoading(true);
     try {
@@ -201,16 +193,17 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
   };
 
   const handleCreateChallenge = async () => {
-    const today = getTodayISO();
+    // تاریخ امروز به فرمت YYYY-MM-DD (بدون timezone)
+    const today = new Date().toISOString().split('T')[0];
 
-    // اعتبارسنجی تاریخ شروع
+    // اعتبارسنجی تاریخ شروع (نباید قبل از امروز باشد)
     if (newChallenge.startDate < today) {
       alert('تاریخ شروع نمی‌تواند قبل از امروز باشد');
       return;
     }
 
-    // اعتبارسنجی تاریخ پایان
-    if (newChallenge.endDate < newChallenge.startDate) {
+    // اعتبارسنجی تاریخ پایان (باید بعد از تاریخ شروع باشد)
+    if (newChallenge.endDate <= newChallenge.startDate) {
       alert('تاریخ پایان باید بعد از تاریخ شروع باشد');
       return;
     }
@@ -390,7 +383,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                         }
                         placeholder="روز/ماه/سال"
                         required
-                        minDate={getTodayISO()}
+                        minDate={new Date().toISOString().split('T')[0]}
                         maxDate={newChallenge.endDate || undefined}
                       />
                       <PersianDatePicker
@@ -401,7 +394,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                         }
                         placeholder="روز/ماه/سال"
                         required
-                        minDate={newChallenge.startDate || getTodayISO()}
+                        minDate={newChallenge.startDate || new Date().toISOString().split('T')[0]}
                       />
                     </div>
 
