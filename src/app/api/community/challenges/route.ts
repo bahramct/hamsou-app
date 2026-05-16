@@ -140,11 +140,6 @@ export async function POST(request: NextRequest) {
             profileImage: true,
           },
         },
-        _count: {
-          select: {
-            participants: true,
-          },
-        },
       },
     });
 
@@ -156,8 +151,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // خواندن مجدد چالش با _count صحیح
+    const challengeWithCount = await freshDb.challenge.findUnique({
+      where: { id: challenge.id },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            profileImage: true,
+          },
+        },
+        _count: {
+          select: {
+            participants: true,
+          },
+        },
+      },
+    });
+
     const responseChallenge = {
-      ...challenge,
+      ...challengeWithCount,
       isJoined: true, // ایجاد‌کننده به صورت خودکار عضو شده است
       userProgress: 0,
       isCompleted: false,

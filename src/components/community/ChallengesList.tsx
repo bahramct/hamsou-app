@@ -542,9 +542,9 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                             {challenge._count.participants > 1 ? (
                               <div className="space-y-2">
                                 <p>این چالش دارای {formatPersianNumber(challenge._count.participants)} شرکت‌کننده است.</p>
-                                <p className="text-destructive font-medium">
+                                <div className="text-destructive font-medium">
                                   با حذف این چالش، آن از پنل همه شرکت‌کنندگان دیگر نیز حذف خواهد شد.
-                                </p>
+                                </div>
                                 <p>این عملیات قابل بازگشت نیست.</p>
                               </div>
                             ) : (
