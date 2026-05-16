@@ -601,7 +601,7 @@ export function DevToolsPanel() {
             variant="outline"
             size="sm"
             onClick={createLeaderboardTestData}
-            disabled={creatingLeaderboardData || clearingLeaderboardData}
+            disabled={creatingLeaderboardData || clearingLeaderboardData || hasLeaderboardTestData}
             className="flex-1"
           >
             <Trophy className="w-4 h-4 ml-2" />
@@ -621,6 +621,7 @@ export function DevToolsPanel() {
         <p className="text-xs text-gray-500 mt-2">
           کاربران، پست‌ها، لایک‌ها، کامنت‌ها و فالووینگ‌ها ایجاد می‌شوند
           {!hasLeaderboardTestData && ' - ابتدا داده تستی ایجاد کنید تا بتوانید حذف کنید'}
+          {hasLeaderboardTestData && ' - داده‌های تستی قبلاً ایجاد شده‌اند'}
         </p>
       </div>
     </Card>
