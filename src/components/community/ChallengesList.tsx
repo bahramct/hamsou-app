@@ -538,18 +538,20 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                           <AlertDialogTitle>
                             آیا مطمئن هستید که می‌خواهید این چالش را حذف کنید؟
                           </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {challenge._count?.participants && challenge._count.participants > 1 ? (
-                              <div className="space-y-2">
-                                <p>این چالش دارای {formatPersianNumber(challenge._count.participants)} شرکت‌کننده است.</p>
-                                <div className="text-destructive font-medium">
-                                  با حذف این چالش، آن از پنل همه شرکت‌کنندگان دیگر نیز حذف خواهد شد.
-                                </div>
+                          <AlertDialogDescription asChild>
+                            <div className="space-y-2">
+                              {challenge._count?.participants && challenge._count.participants > 1 ? (
+                                <>
+                                  <p>این چالش دارای {formatPersianNumber(challenge._count.participants)} شرکت‌کننده است.</p>
+                                  <p className="text-destructive font-medium">
+                                    با حذف این چالش، آن از پنل همه شرکت‌کنندگان دیگر نیز حذف خواهد شد.
+                                  </p>
+                                  <p>این عملیات قابل بازگشت نیست.</p>
+                                </>
+                              ) : (
                                 <p>این عملیات قابل بازگشت نیست.</p>
-                              </div>
-                            ) : (
-                              <p>این عملیات قابل بازگشت نیست.</p>
-                            )}
+                              )}
+                            </div>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
