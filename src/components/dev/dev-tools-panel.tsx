@@ -45,12 +45,15 @@ export function DevToolsPanel() {
   const [currentPlan, setCurrentPlan] = useState<'FREE' | 'PLUS' | 'PRO'>('FREE');
   const [changingPlan, setChangingPlan] = useState(false);
   const [creatingLeaderboardData, setCreatingLeaderboardData] = useState(false);
+  const [clearingLeaderboardData, setClearingLeaderboardData] = useState(false);
+  const [hasLeaderboardTestData, setHasLeaderboardTestData] = useState(false);
 
   // Check if test data exists on mount
   useEffect(() => {
     checkTestData();
     loadNotificationTypes();
     loadCurrentPlan();
+    checkLeaderboardTestData();
   }, []);
 
   const loadCurrentPlan = () => {
@@ -229,6 +232,9 @@ export function DevToolsPanel() {
           text: result.message || 'داده‌های تستی لیدربورد با موفقیت ایجاد شد!',
         });
 
+        // Refresh leaderboard test data status
+        await checkLeaderboardTestData();
+
         // Auto-hide message after 4 seconds
         setTimeout(() => setMessage(null), 4000);
       } else {
@@ -244,6 +250,57 @@ export function DevToolsPanel() {
       });
     } finally {
       setCreatingLeaderboardData(false);
+    }
+  };
+
+  const checkLeaderboardTestData = async () => {
+    try {
+      const response = await fetch('/api/dev/check-leaderboard-test-data');
+      const result = await response.json();
+      setHasLeaderboardTestData(result.hasTestData || false);
+    } catch (error) {
+      console.log('Leaderboard test data check not available:', error);
+    }
+  };
+
+  const clearLeaderboardTestData = async () => {
+    if (!confirm('آیا مطمئن هستید که می‌خواهید همه داده‌های تستی جامعه را حذف کنید؟')) {
+      return;
+    }
+
+    try {
+      setClearingLeaderboardData(true);
+      setMessage(null);
+
+      const response = await fetch('/api/dev/clear-leaderboard-test-data', {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage({
+          type: 'success',
+          text: result.message || 'داده‌های تستی جامعه با موفقیت حذف شد!',
+        });
+
+        // Refresh leaderboard test data status
+        await checkLeaderboardTestData();
+
+        // Auto-hide message after 4 seconds
+        setTimeout(() => setMessage(null), 4000);
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.error || 'خطا در حذف داده‌های تستی جامعه',
+        });
+      }
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.message || 'خطا در حذف داده‌های تستی جامعه',
+      });
+    } finally {
+      setClearingLeaderboardData(false);
     }
   };
 
@@ -532,10 +589,24 @@ export function DevToolsPanel() {
 
       {/* Community Testing Section */}
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          <Users className="w-4 h-4" />
-          تست جامعه
-        </h4>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            تست جامعه
+          </h4>
+          {hasLeaderboardTestData && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearLeaderboardTestData}
+              disabled={clearingLeaderboardData || creatingLeaderboardData}
+              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+            >
+              <Trash2 className="w-4 h-4 ml-2" />
+              {clearingLeaderboardData ? 'در حال حذف...' : 'حذف داده‌های تستی'}
+            </Button>
+          )}
+        </div>
         <p className="text-xs text-gray-600 mb-3">
           برای تست لیدربورد و جامعه، داده‌های تستی ایجاد کنید:
         </p>
@@ -543,7 +614,7 @@ export function DevToolsPanel() {
           variant="outline"
           size="sm"
           onClick={createLeaderboardTestData}
-          disabled={creatingLeaderboardData}
+          disabled={creatingLeaderboardData || clearingLeaderboardData}
           className="w-full"
         >
           <Trophy className="w-4 h-4 ml-2" />
