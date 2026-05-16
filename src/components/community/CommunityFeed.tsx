@@ -316,11 +316,25 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
               <CardContent className="p-8 text-center">
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">
-                  هنوز پستی وجود ندارد
+                  {filter === 'following' && 'شما هنوز کسی را دنبال نکرده‌اید'}
+                  {filter === 'achievements' && 'هنوز دستاوردی به اشتراک گذاشته نشده است'}
+                  {filter === 'all' && 'هنوز پستی وجود ندارد'}
                 </p>
-                <Button onClick={() => setShowCreatePost(true)}>
-                  اولین پست را شما ارسال کنید
-                </Button>
+                {filter === 'all' && (
+                  <Button onClick={() => setShowCreatePost(true)}>
+                    اولین پست را شما ارسال کنید
+                  </Button>
+                )}
+                {filter === 'following' && (
+                  <div className="text-sm text-muted-foreground">
+                    برای دیدن پست‌های دوستان خود، ابتدا آن‌ها را دنبال کنید
+                  </div>
+                )}
+                {filter === 'achievements' && (
+                  <Button onClick={() => setShowCreatePost(true)}>
+                    اولین دستاورد را به اشتراک بگذارید
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (

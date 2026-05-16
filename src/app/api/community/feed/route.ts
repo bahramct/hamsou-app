@@ -30,6 +30,21 @@ export async function GET(request: NextRequest) {
         where: { followerId: user.userId },
         select: { followingId: true },
       });
+
+      // اگر کاربر کسی را دنبال نکرده باشد، آرایه خالی برگردان
+      if (following.length === 0) {
+        return NextResponse.json({
+          success: true,
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+          },
+        });
+      }
+
       where.userId = { in: following.map(f => f.followingId) };
     }
 
