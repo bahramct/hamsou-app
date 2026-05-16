@@ -43,7 +43,7 @@ feat: complete phase 7.3 - Community Features
 
 ### توکن گیت‌هاب
 ```
-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
+[احراز هویت از طریق GitHub CLI انجام می‌شود - توکن در اینجا ذخیره نمی‌شود]
 ```
 
 ### ریپوزیتوری
