@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
 import { getToken } from '@/lib/api';
-import { formatPersianNumber } from '@/lib/utils/persian';
+import { formatPersianNumber, toPersianText } from '@/lib/utils/persian';
 
 interface PostCardProps {
   post: {
@@ -167,10 +167,12 @@ export function PostCard({
             <div>
               <p className="font-medium text-sm">{post.user.name || 'کاربر'}</p>
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(post.createdAt), {
-                  addSuffix: true,
-                  locale: faIR,
-                })}
+                {toPersianText(
+                  formatDistanceToNow(new Date(post.createdAt), {
+                    addSuffix: true,
+                    locale: faIR,
+                  })
+                )}
               </p>
             </div>
           </div>
@@ -283,10 +285,12 @@ export function PostCard({
                           {comment.user.name || 'کاربر'}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(comment.createdAt), {
-                            addSuffix: true,
-                            locale: faIR,
-                          })}
+                          {toPersianText(
+                            formatDistanceToNow(new Date(comment.createdAt), {
+                              addSuffix: true,
+                              locale: faIR,
+                            })
+                          )}
                         </span>
                       </div>
                       <p className="text-sm">{comment.content}</p>

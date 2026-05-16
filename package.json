@@ -61,6 +61,7 @@
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.14.0",
     "input-otp": "^1.4.2",
+    "jalaali-js": "^1.2.8",
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",

@@ -19,3 +19,13 @@ export function formatPersianNumber(num: number | string): string {
   const withCommas = number.toLocaleString('en-US');
   return toPersianNumber(withCommas);
 }
+
+/**
+ * تبدیل تمام اعداد انگلیسی در یک متن به فارسی
+ */
+export function toPersianText(text: string): string {
+  return text.replace(/\d/g, (digit) => {
+    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return persianDigits[parseInt(digit, 10)];
+  });
+}

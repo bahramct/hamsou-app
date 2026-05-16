@@ -1,0 +1,201 @@
+'use client';
+
+import { useState } from 'react';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toJalaali, toGregorian } from 'jalaali-js';
+import { toPersianNumber, toPersianText } from '@/lib/utils/persian';
+
+interface PersianDatePickerProps {
+  label?: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+}
+
+const persianMonths = [
+  'فروردین',
+  'اردیبهشت',
+  'خرداد',
+  'تیر',
+  'مرداد',
+  'شهریور',
+  'مهر',
+  'آبان',
+  'آذر',
+  'دی',
+  'بهمن',
+  'اسفند',
+];
+
+export function PersianDatePicker({
+  label,
+  value,
+  onChange,
+  placeholder = 'روز/ماه/سال',
+  required = false,
+}: PersianDatePickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+
+  // Convert ISO date to Persian date
+  const getJalaaliFromDate = (dateStr: string) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    const jalaali = toJalaali(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate()
+    );
+    return jalaali;
+  };
+
+  // Convert Persian date to ISO date
+  const getGregorianFromJalaali = (jy: number, jm: number, jd: number) => {
+    const gregorian = toGregorian(jy, jm, jd);
+    return new Date(gregorian.gy, gregorian.gm - 1, gregorian.gd).toISOString().split('T')[0];
+  };
+
+  const jalaaliDate = getJalaaliFromDate(value);
+
+  const handleDateSelect = (day: number) => {
+    const isoDate = getGregorianFromJalaali(selectedYear, selectedMonth + 1, day);
+    onChange(isoDate);
+    setIsOpen(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Parse Persian date format: dd/mm/yyyy
+    const value = e.target.value;
+    const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+    if (match) {
+      const [, d, m, y] = match.map((v) => parseInt(v, 10));
+      const isoDate = getGregorianFromJalaali(y, m, d);
+      onChange(isoDate);
+    } else {
+      onChange('');
+    }
+  };
+
+  const formatPersianDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const jalaali = getJalaaliFromDate(dateStr);
+    if (!jalaali) return '';
+    return `${toPersianNumber(jalaali.jd)}/${toPersianNumber(jalaali.jm)}/${toPersianNumber(jalaali.jy)}`;
+  };
+
+  const getDaysInMonth = (year: number, month: number) => {
+    const isLeap = (y: number) => {
+      const jy = y - 979;
+      const d = (jy % 33 * 8 + 21) % 33;
+      return d < 10;
+    };
+
+    if (month < 6) return 31;
+    if (month < 11) return 30;
+    return isLeap(year) ? 30 : 29;
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+    const days = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isSelected =
+        jalaaliDate &&
+        jalaaliDate.jy === selectedYear &&
+        jalaaliDate.jm === selectedMonth + 1 &&
+        jalaaliDate.jd === day;
+
+      days.push(
+        <button
+          key={day}
+          type="button"
+          onClick={() => handleDateSelect(day)}
+          className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors
+            ${isSelected
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-muted'
+            }`}
+        >
+          {toPersianNumber(day)}
+        </button>
+      );
+    }
+
+    return days;
+  };
+
+  return (
+    <div className="relative">
+      {label && (
+        <Label htmlFor={label} className="block mb-2">
+          {label}
+          {required && <span className="text-destructive mr-1">*</span>}
+        </Label>
+      )}
+      <div className="relative">
+        <Input
+          id={label}
+          type="text"
+          value={formatPersianDate(value)}
+          onChange={handleInputChange}
+          placeholder={placeholder}
+          className="pl-10"
+          dir="ltr"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <CalendarIcon className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-2 p-4 bg-background border rounded-lg shadow-lg w-72">
+          {/* Month/Year Selector */}
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedMonth((prev) => (prev > 0 ? prev - 1 : 11))}
+            >
+              {'<'}
+            </Button>
+            <div className="text-center">
+              <div className="font-semibold text-sm">
+                {persianMonths[selectedMonth]} {toPersianNumber(selectedYear)}
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedMonth((prev) => (prev < 11 ? prev + 1 : 0))}
+            >
+              {'>'}
+            </Button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground mb-2">
+            {['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'].map((day) => (
+              <div key={day}>{day}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
+        </div>
+      )}
+    </div>
+  );
+}
