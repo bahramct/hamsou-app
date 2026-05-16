@@ -5,11 +5,11 @@ import { db, getFreshDb } from '@/lib/db';
 // POST /api/community/posts/[id]/like - لایک کردن پست
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: postId } = await params;
     const user = await verifyToken(request);
-    const postId = params.id;
 
     // بررسی وجود پست
     const freshDb = getFreshDb();
@@ -75,11 +75,11 @@ export async function POST(
 // DELETE /api/community/posts/[id]/like - حذف لایک
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: postId } = await params;
     const user = await verifyToken(request);
-    const postId = params.id;
     const freshDb = getFreshDb();
 
     // حذف لایک

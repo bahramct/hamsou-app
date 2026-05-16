@@ -5,14 +5,15 @@ import { db, getFreshDb } from '@/lib/db';
 // DELETE /api/community/comments/[id] - حذف کامنت
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
-    const commentId = params.id;
+    const { id: commentId } = await params;
 
     // بررسی وجود کامنت و مالکیت
-    const comment = await db.comment.findUnique({
+    const freshDb = getFreshDb();
+    const comment = await freshDb.comment.findUnique({
       where: { id: commentId },
     });
 
@@ -32,18 +33,17 @@ export async function DELETE(
     }
 
     // حذف تمام پاسخ‌های این کامنت
-    await db.comment.deleteMany({
+    await freshDb.comment.deleteMany({
       where: { parentId: commentId },
     });
 
     // حذف کامنت
-    await db.comment.delete({
+    await freshDb.comment.delete({
       where: { id: commentId },
     });
 
     // بروزرسانی تعداد کامنت‌های پست (اگر کامنت اصلی است)
     if (!comment.parentId) {
-      const freshDb = getFreshDb();
       await freshDb.post.update({
         where: { id: comment.postId },
         data: {

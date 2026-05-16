@@ -52,6 +52,7 @@ export function PostCard({
   const [loadingComments, setLoadingComments] = useState(false);
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
+  const [commentError, setCommentError] = useState('');
 
   // بارگذاری کامنت‌ها وقتی بخش کامنت باز می‌شود
   useEffect(() => {
@@ -108,6 +109,7 @@ export function PostCard({
     if (!newComment.trim()) return;
 
     setLoadingComment(true);
+    setCommentError('');
     try {
       const token = getToken();
       const headers: HeadersInit = {
@@ -131,7 +133,12 @@ export function PostCard({
       if (result.success) {
         setComments([result.data, ...comments]);
         setNewComment('');
+      } else {
+        setCommentError(result.error || 'خطا در ارسال کامنت');
       }
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      setCommentError('خطا در ارتباط با سرور');
     } finally {
       setLoadingComment(false);
     }
@@ -225,7 +232,10 @@ export function PostCard({
               <Textarea
                 placeholder="نوشتن نظر..."
                 value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
+                onChange={(e) => {
+                  setNewComment(e.target.value);
+                  setCommentError('');
+                }}
                 className="min-h-[60px]"
               />
               <Button
@@ -233,9 +243,12 @@ export function PostCard({
                 disabled={loadingComment || !newComment.trim()}
                 className="self-end"
               >
-                ارسال
+                {loadingComment ? 'در حال ارسال...' : 'ارسال'}
               </Button>
             </div>
+            {commentError && (
+              <p className="text-sm text-destructive mb-4">{commentError}</p>
+            )}
 
             {/* لیست کامنت‌ها */}
             <div className="space-y-3">

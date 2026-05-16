@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 import { z } from 'zod';
 
 // Schema برای ایجاد کامنت
@@ -12,13 +12,14 @@ const createCommentSchema = z.object({
 // GET /api/community/posts/[id]/comments - دریافت کامنت‌های پست
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
-    const postId = params.id;
+    const { id: postId } = await params;
 
-    const comments = await db.comment.findMany({
+    const freshDb = getFreshDb();
+    const comments = await freshDb.comment.findMany({
       where: {
         postId: postId,
         parentId: null, // فقط کامنت‌های اصلی
@@ -63,17 +64,18 @@ export async function GET(
 // POST /api/community/posts/[id]/comments - ایجاد کامنت جدید
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
-    const postId = params.id;
+    const { id: postId } = await params;
 
     const body = await request.json();
     const validatedData = createCommentSchema.parse(body);
 
     // بررسی وجود پست
-    const post = await db.post.findUnique({
+    const freshDb = getFreshDb();
+    const post = await freshDb.post.findUnique({
       where: { id: postId },
     });
 
@@ -86,7 +88,7 @@ export async function POST(
 
     // اگر parentId وجود دارد، بررسی وجود کامنت والد
     if (validatedData.parentId) {
-      const parentComment = await db.comment.findUnique({
+      const parentComment = await freshDb.comment.findUnique({
         where: { id: validatedData.parentId },
       });
 
@@ -99,7 +101,7 @@ export async function POST(
     }
 
     // ایجاد کامنت
-    const comment = await db.comment.create({
+    const comment = await freshDb.comment.create({
       data: {
         userId: user.userId,
         postId: postId,
@@ -119,7 +121,7 @@ export async function POST(
 
     // بروزرسانی تعداد کامنت‌های پست
     if (!validatedData.parentId) {
-      await db.post.update({
+      await freshDb.post.update({
         where: { id: postId },
         data: {
           commentsCount: {

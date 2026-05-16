@@ -5,14 +5,15 @@ import { db, getFreshDb } from '@/lib/db';
 // DELETE /api/community/posts/[id] - حذف پست
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
-    const postId = params.id;
+    const { id: postId } = await params;
 
     // بررسی وجود پست و مالکیت
-    const post = await db.post.findUnique({
+    const freshDb = getFreshDb();
+    const post = await freshDb.post.findUnique({
       where: { id: postId },
     });
 
@@ -32,17 +33,17 @@ export async function DELETE(
     }
 
     // حذف لایک‌های پست
-    await db.like.deleteMany({
+    await freshDb.like.deleteMany({
       where: { postId: postId },
     });
 
     // حذف کامنت‌های پست
-    await db.comment.deleteMany({
+    await freshDb.comment.deleteMany({
       where: { postId: postId },
     });
 
     // حذف پست
-    await db.post.delete({
+    await freshDb.post.delete({
       where: { id: postId },
     });
 

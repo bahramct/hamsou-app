@@ -5,11 +5,11 @@ import { db, getFreshDb } from '@/lib/db';
 // POST /api/community/challenges/[id]/join - پیوستن به چالش
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
-    const challengeId = params.id;
+    const { id: challengeId } = await params;
 
     // بررسی وجود چالش
     const freshDb = getFreshDb();
@@ -97,11 +97,11 @@ export async function POST(
 // DELETE /api/community/challenges/[id]/join - خروج از چالش
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyToken(request);
-    const challengeId = params.id;
+    const { id: challengeId } = await params;
 
     // حذف رابطه شرکت‌کننده
     const deletedParticipant = await db.challengeParticipant.deleteMany({
