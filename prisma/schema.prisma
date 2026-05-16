@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../db/hamsou.db"
+}
+
+// کاربران
+model User {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // تنظیمات نوتیفیکیشن
+  notificationTime    String  @default("09:00") // HH:mm format
+  notificationEnabled Boolean @default(true)
+
+  // اشتراک
+  subscriptionPlan  String   @default("free") // free, plus, pro
+  subscriptionStart DateTime @default(now())
+  subscriptionEnd   DateTime?
+
+  // روابط
+  commitments    Commitment[]
+  weeklyReports  WeeklyReport[]
+  plans          Plan[]
+  settings       UserSettings?
+  notifications  Notification[]
+  sharedReports  SharedReport[]
+
+  @@map("users")
+}
+
+// تنظیمات کاربر
+model UserSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  theme    String @default("light") // light, dark, system
+  language String @default("fa")
+  timeZone String @default("Asia/Tehran")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_settings")
+}
+
+// تعهدات روزانه
+model Commitment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  text String
+  date DateTime @default(now()) // روز ثبت تعهد
+
+  planId      String?
+  plan        Plan?    @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  reflection Reflection?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@map("commitments")
+}
+
+// بازتاب‌ها
+model Reflection {
+  id           String     @id @default(cuid())
+  commitmentId String     @unique
+  commitment   Commitment @relation(fields: [commitmentId], references: [id], onDelete: Cascade)
+
+  completed Boolean // آیا تعهد انجام شد؟
+  reason    String? // دلیل عدم انجام (اگر completed = false)
+
+  reflectedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reflections")
+}
+
+// گزارش‌های هفتگی AI
+model WeeklyReport {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  weekStart DateTime // شروع هفته
+  weekEnd   DateTime // پایان هفته
+
+  // داده‌های گزارش
+  consistencyScore     Float?  // نمره一致性 (0-1)
+  completionPattern    String? // JSON string
+  behavioralFriction   String? // JSON string
+  emotionalTone        String? // JSON string
+  weeklySummary        String? // خلاصه هفتگی
+  behavioralInsight    String? // Insight رفتاری
+  suggestedDirection   String? // جهت پیشنهادی آگاهی
+
+  // محتوای کامل گزارش
+  reportContent String // JSON
+
+  generatedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, weekStart])
+  @@map("weekly_reports")
+}
+
+// برنامه‌ریزی‌ها و اهداف
+model Plan {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title       String   // عنوان برنامه
+  description String?  // توضیحات
+
+  // نوع برنامه
+  type        String   @default("daily") // daily, weekly, monthly, custom
+  category    String   @default("personal") // personal, work, health, learning, etc.
+
+  // بازه زمانی
+  startDate   DateTime // تاریخ شروع
+  endDate     DateTime? // تاریخ پایان (برای برنامه‌های محدود)
+
+  // اهداف و متریک‌ها
+  targetDays  Int?     // تعداد روز هدف (مثلاً 30 روز متوالی)
+  currentDays Int      @default(0) // تعداد روزهای انجام شده
+
+  // وضعیت
+  status      String   @default("active") // active, paused, completed, archived
+
+  // اولویت
+  priority    String   @default("medium") // low, medium, high
+
+  commitments Commitment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("plans")
+}
+
+// نوتیفیکیشن‌ها
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // نوع نوتیفیکیشن
+  type      String // commitment_reminder, plan_completed, reflection_reminder, weekly_report, achievement, etc.
+
+  // محتوا
+  title     String
+  message   String
+
+  // وضعیت
+  read      Boolean  @default(false)
+  readAt    DateTime?
+
+  // اقدام (اختیاری)
+  actionUrl String?  // URL برای وقتی روی نوتیفیکیشن کلیک می‌شود
+  actionLabel String? // متن دکمه اقدام
+
+  // داده‌های اضافی (JSON)
+  metadata   String? // برای ذخیره داده‌های اضافی مثل planId, commitmentId, etc.
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+// گزارش‌های اشتراک‌گذاری شده
+model SharedReport {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // اطلاعات گزارش
+  shareToken  String   @unique // توکن یکتا برای اشتراک‌گذاری
+  title       String?  // عنوان گزارش
+  description String?  // توضیحات
+  reportType  String   @default("analytics") // analytics, weekly, monthly
+
+  // محتوای گزارش (JSON)
+  data        String   // داده‌های گزارش به صورت JSON
+
+  // تنظیمات اشتراک
+  expiresAt   DateTime? // زمان انقضا
+  password    String?   // رمز عبور (اختیاری)
+  views       Int      @default(0) // تعداد بازدیدها
+  maxViews    Int?     // حداکثر تعداد بازدید
+
+  // وضعیت
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, isActive])
+  @@index([shareToken])
+  @@map("shared_reports")
+}

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Hamsou Product Brief</title>
+
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+
+<style>
+
+:root{
+    --bg:#f5f7fb;
+    --card:#ffffff;
+    --text:#1f2937;
+    --muted:#6b7280;
+    --primary:#111827;
+    --border:#e5e7eb;
+    --accent:#0f766e;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:var(--bg);
+    font-family:'Vazirmatn', sans-serif;
+    color:var(--text);
+    line-height:2.1;
+}
+
+.container{
+    width:90%;
+    max-width:1100px;
+    margin:60px auto;
+}
+
+.hero{
+    direction: ltr;
+    background:linear-gradient(135deg,#111827,#1f2937);
+    color:white;
+    padding:70px 60px;
+    border-radius:28px;
+    margin-bottom:40px;
+    box-shadow:0 20px 50px rgba(0,0,0,.12);
+}
+
+.hero h1{
+    margin:0;
+    font-size:48px;
+    font-weight:800;
+}
+
+.hero p{
+    margin-top:20px;
+    color:#d1d5db;
+    font-size:20px;
+    max-width:800px;
+}
+
+.card{
+    background:var(--card);
+    border-radius:24px;
+    padding:45px;
+    margin-bottom:30px;
+    box-shadow:0 10px 30px rgba(0,0,0,.05);
+    border:1px solid var(--border);
+}
+
+h2{
+    font-size:30px;
+    margin-top:0;
+    margin-bottom:25px;
+    color:var(--primary);
+    direction: ltr;
+}
+
+h3{
+    margin-top:35px;
+    color:var(--primary);
+    font-size:22px;
+}
+
+p{
+    color:var(--text);
+    font-size:17px;
+}
+
+ul{
+    padding-right:22px;
+}
+
+li{
+    margin-bottom:10px;
+}
+
+.highlight{
+    background:#f0fdfa;
+    border-right:5px solid var(--accent);
+    padding:22px;
+    border-radius:14px;
+    margin:25px 0;
+    direction: ltr;
+}
+
+.highlight-fa{
+    background:#f0fdfa;
+    border-right:5px solid var(--accent);
+    padding:22px;
+    border-radius:14px;
+    margin:25px 0;
+}
+
+.quote{
+    background:#111827;
+    color:white;
+    padding:28px;
+    border-radius:18px;
+    margin:25px 0;
+    font-size:20px;
+    line-height:2;
+    direction: ltr;
+}
+
+.quote-fa{
+    background:#111827;
+    color:white;
+    padding:28px;
+    border-radius:18px;
+    margin:25px 0;
+    font-size:20px;
+    line-height:2;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.mini-card{
+    background:#f9fafb;
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:25px;
+}
+
+.footer{
+    text-align:center;
+    color:var(--muted);
+    padding:20px;
+    font-size:14px;
+}
+
+@media(max-width:768px){
+
+    .hero{
+        padding:45px 30px;
+    }
+
+    .hero h1{
+        font-size:34px;
+    }
+
+    .card{
+        padding:30px;
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="hero">
+    <h1>Hamsou - همسو</h1>
+    <p>
+        Product Strategy & Vision Brief
+        <br>
+        A minimal platform for rebuilding personal alignment and trust through intentional daily commitments.
+    </p>
+</div>
+
+<div class="card">
+
+<h2>Executive Summary</h2>
+
+<p>
+همسو یک پلتفرم مینیمال خودآگاهی و انسجام فردی است که به کاربران کمک می‌کند
+رابطه‌ای صادقانه‌تر و پایدارتر با تصمیم‌ها، نیت‌ها و تعهدات شخصی خود بسازند.
+</p>
+
+<p>
+محصول بر پایه یک رفتار بسیار ساده طراحی شده است:
+ثبت یک تعهد کوتاه روزانه و بازتاب صادقانه نسبت به انجام یا عدم انجام آن.
+</p>
+
+<p>
+برخلاف اغلب اپلیکیشن‌های توسعه فردی، همسو بر پایه انگیزه لحظه‌ای،
+گیمیفیکیشن، رقابت، فشار روانی یا افزایش بهره‌وری افراطی ساخته نشده است.
+هسته اصلی محصول، بازسازی اعتماد به خود از طریق استمرار، آگاهی و صداقت فردی است.
+</p>
+
+<div class="quote-fa">
+هدف همسو ایجاد وابستگی به اپلیکیشن نیست؛
+بلکه کمک به کاربر برای کاهش فاصله میان نیت و عمل است.
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Problem Statement</h2>
+
+<p>
+بسیاری از افراد با کمبود انگیزه مواجه نیستند؛
+بلکه به‌مرور توانایی اعتماد به تصمیم‌ها و قول‌های شخصی خود را از دست داده‌اند.
+</p>
+
+<p>
+تکرار تصمیم‌های ناتمام، وعده‌های انجام‌نشده و تعهدهای فراموش‌شده،
+به‌تدریج باعث شکل‌گیری احساس فرسودگی ذهنی، تعویق مزمن و کاهش انسجام درونی می‌شود.
+</p>
+
+<p>
+در دنیایی که اغلب محصولات دیجیتال با فشار، نوتیفیکیشن، دوپامین و اعتیاد طراحی می‌شوند،
+فضای کمی برای بازگشت آرام و بدون قضاوت به خود واقعی وجود دارد.
+</p>
+
+</div>
+
+<div class="card">
+
+<h2>Product Positioning</h2>
+
+<div class="highlight">
+Hamsou is a personal alignment platform.
+A quiet daily system that helps people rebuild trust in themselves through intentional commitments and reflective awareness.
+</div>
+
+<p>
+همسو نه یک Task Manager است،
+نه Habit Tracker،
+نه اپ انگیزشی،
+و نه شبکه اجتماعی توسعه فردی.
+</p>
+
+<p>
+این محصول در دسته‌ای جدید قرار می‌گیرد:
+</p>
+
+<div class="quote-fa">
+همسو یک پلتفرم انسجام و همسویی فردی است.
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Core Product Philosophy</h2>
+
+<div class="grid">
+
+<div class="mini-card">
+<h3>سادگی</h3>
+<p>
+محصول باید تا حد ممکن سبک، آرام و بدون پیچیدگی باقی بماند.
+</p>
+</div>
+
+<div class="mini-card">
+<h3>عدم قضاوت</h3>
+<p>
+کاربر نباید در فضای محصول احساس شکست، شرم یا فشار کند.
+</p>
+</div>
+
+<div class="mini-card">
+<h3>عدم بهره‌کشی روانی</h3>
+<p>
+محصول برای افزایش اعتیاد، engagement مصنوعی یا وابستگی طراحی نمی‌شود.
+</p>
+</div>
+
+<div class="mini-card">
+<h3>بازتاب به‌جای اجبار</h3>
+<p>
+هدف محصول آگاهی رفتاری است، نه کنترل رفتار.
+</p>
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Target Users</h2>
+
+<h3>Primary Audience</h3>
+
+<ul>
+<li>افراد 22 تا 38 سال</li>
+<li>خودآگاه و اهل رشد فردی</li>
+<li>دارای خستگی ذهنی یا ناپایداری در تصمیم‌ها</li>
+<li>متنفر از اپلیکیشن‌های شلوغ و فشارمحور</li>
+<li>دارای تجربه مصرف محتوای توسعه فردی</li>
+<li>به‌دنبال بازسازی اعتماد به خود</li>
+</ul>
+
+<h3>Behavioral Traits</h3>
+
+<ul>
+<li>تصمیم‌های متعدد اما ناپایدار</li>
+<li>احساس فاصله میان نیت و عمل</li>
+<li>تمایل به تغییر آرام و واقعی</li>
+<li>گریز از فضای رقابتی و toxic productivity</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h2>Core User Flow</h2>
+
+<h3>1. Daily Commitment</h3>
+
+<p>
+کاربر هر روز تنها یک تعهد کوتاه برای خود ثبت می‌کند.
+</p>
+
+<ul>
+<li>حداکثر 180 کاراکتر</li>
+<li>متن آزاد</li>
+<li>بدون دسته‌بندی</li>
+<li>بدون اولویت‌بندی</li>
+<li>بدون checklist</li>
+</ul>
+
+<h3>2. Daily Reflection</h3>
+
+<p>
+روز بعد، پیش از ثبت تعهد جدید،
+اپلیکیشن از کاربر می‌پرسد:
+</p>
+
+<div class="highlight-fa">
+آیا تعهد دیروز انجام شد؟
+اگر نه، دلیل اصلی چه بود؟
+</div>
+
+<h3>3. Weekly Insight Report</h3>
+
+<p>
+در پایان هفته،
+سیستم با استفاده از تحلیل رفتاری،
+گزارشی مینیمال و قابل فهم از الگوهای کاربر ارائه می‌دهد.
+</p>
+
+</div>
+
+<div class="card">
+
+<h2>AI Layer</h2>
+
+<p>
+هوش مصنوعی در همسو نقش «تحلیلگر بازتابی» دارد،
+نه درمانگر، نه کوچ و نه مرجع روان‌شناختی.
+</p>
+
+<h3>Weekly Report Structure</h3>
+
+<ul>
+<li>Consistency Score</li>
+<li>Commitment Completion Pattern</li>
+<li>Behavioral Friction Analysis</li>
+<li>Emotional Tone Recognition</li>
+<li>Weekly Reflection Summary</li>
+<li>Behavioral Insight</li>
+<li>Suggested Awareness Direction</li>
+</ul>
+
+<div class="highlight">
+AI should help users see themselves more clearly,
+not tell them who they should become.
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>Design Principles</h2>
+
+<ul>
+<li>مینیمال و بدون شلوغی بصری</li>
+<li>فضای آرام و بالغ</li>
+<li>عدم استفاده از Gamification افراطی</li>
+<li>عدم استفاده از Streak Addiction</li>
+<li>نوتیفیکیشن حداقلی و غیرتهاجمی</li>
+<li>تمرکز بر clarity به‌جای engagement</li>
+<li>تعامل سریع و بدون اصطکاک</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h2>Non-Goals</h2>
+
+<ul>
+<li>همسو ابزار مدیریت پروژه نیست</li>
+<li>همسو اپلیکیشن درمان روان‌شناختی نیست</li>
+<li>همسو شبکه اجتماعی نیست</li>
+<li>همسو ابزار افزایش بهره‌وری نیست</li>
+<li>همسو برای ایجاد وابستگی طراحی نشده است</li>
+<li>همسو قرار نیست زندگی کاربر را gamify کند</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h2>MVP Scope</h2>
+
+<ul>
+<li>ثبت روزانه یک تعهد</li>
+<li>Reflection روز بعد</li>
+<li>تاریخچه غیرقابل ویرایش</li>
+<li>گزارش هفتگی AI</li>
+<li>نوتیفیکیشن ملایم روزانه</li>
+<li>پروفایل مینیمال</li>
+</ul>
+
+<h3>Excluded From MVP</h3>
+
+<ul>
+<li>Social Features</li>
+<li>Community</li>
+<li>Challenges</li>
+<li>Habit Systems</li>
+<li>Leaderboards</li>
+<li>Advanced Analytics</li>
+<li>Voice Features</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h2>Success Metrics</h2>
+
+<ul>
+<li>Day-7 Retention</li>
+<li>Weekly Return Rate</li>
+<li>Reflection Completion Rate</li>
+<li>User Self-Trust Improvement</li>
+<li>Average Weekly Engagement</li>
+<li>Consistency Growth Over Time</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h2>Business Model</h2>
+
+<p>
+مدل درآمدی همسو بر پایه اشتراک سبک و کم‌اصطکاک طراحی می‌شود.
+</p>
+
+<ul>
+<li>ثبت روزانه رایگان</li>
+<li>نسخه محدود گزارش AI در Free Tier</li>
+<li>Insight عمیق‌تر در نسخه Pro</li>
+<li>گزارش‌های پیشرفته در اشتراک پولی</li>
+<li>اشتراک ماهانه و سالانه</li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h2>Long-Term Vision</h2>
+
+<p>
+همسو تلاش می‌کند نسل جدیدی از محصولات توسعه فردی را شکل دهد؛
+محصولاتی که به‌جای بهره‌برداری از اضطراب، مقایسه و اعتیاد دیجیتال،
+بر پایه سکوت، صداقت، خودآگاهی و انسجام انسانی ساخته می‌شوند.
+</p>
+
+<div class="quote">
+The future of personal growth is not more pressure.
+It is deeper alignment.
+</div>
+
+</div>
+
+<div class="footer">
+Hamsou Product Brief — Strategic Draft
+</div>
+
+</div>
+
+</body>
+</html>
