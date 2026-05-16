@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db, getFreshDb } from '@/lib/db';
+import { db } from '@/lib/db';
 import { z } from 'zod';
 
 // Schema برای ایجاد کامنت
@@ -73,8 +73,7 @@ export async function POST(
     const validatedData = createCommentSchema.parse(body);
 
     // بررسی وجود پست
-    const freshDb = getFreshDb();
-    const post = await freshDb.post.findUnique({
+    const post = await db.post.findUnique({
       where: { id: postId },
     });
 
@@ -120,7 +119,7 @@ export async function POST(
 
     // بروزرسانی تعداد کامنت‌های پست
     if (!validatedData.parentId) {
-      await freshDb.post.update({
+      await db.post.update({
         where: { id: postId },
         data: {
           commentsCount: {

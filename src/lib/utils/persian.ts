@@ -1,22 +1,21 @@
 /**
- * Utility functions for Persian (Farsi) text and number formatting
- */
-
-/**
- * Convert English numbers to Persian numbers
- * @param num - The number or string to convert
- * @returns String with Persian numbers
+ * تبدیل اعداد انگلیسی به فارسی
  */
 export function toPersianNumber(num: number | string): string {
   const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return String(num).replace(/\d/g, (d) => persianDigits[parseInt(d)]);
+  const str = String(num);
+  return str.replace(/\d/g, (digit) => persianDigits[parseInt(digit, 10)]);
 }
 
 /**
- * Format a number with Persian thousands separator
- * @param num - The number to format
- * @returns Formatted Persian number string
+ * فرمت کردن عدد با جداکننده هزارگان فارسی
  */
-export function formatPersianNumber(num: number): string {
-  return toPersianNumber(num.toLocaleString('en-US'));
+export function formatPersianNumber(num: number | string): string {
+  const numStr = String(num).replace(/,/g, '');
+  const number = parseInt(numStr, 10);
+  if (isNaN(number)) return toPersianNumber(numStr);
+
+  // جدا کردن هزارگان
+  const withCommas = number.toLocaleString('en-US');
+  return toPersianNumber(withCommas);
 }

@@ -5,6 +5,7 @@ import { Trophy, Medal, Crown, Award } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatPersianNumber } from '@/lib/utils/persian';
 
 interface LeaderboardProps {
   currentUserId: string;
@@ -43,7 +44,7 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
     if (rank === 1) return <Crown className="h-6 w-6 text-yellow-500" />;
     if (rank === 2) return <Medal className="h-6 w-6 text-gray-400" />;
     if (rank === 3) return <Medal className="h-6 w-6 text-amber-600" />;
-    return <span className="font-bold text-lg">#{rank}</span>;
+    return <span className="font-bold text-lg">#{formatPersianNumber(rank)}</span>;
   };
 
   const getRankBadge = (rank: number) => {
@@ -123,12 +124,12 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
                   <div className="flex-1">
                     <p className="font-medium">{user.name || 'کاربر'}</p>
                     <p className="text-sm text-muted-foreground">
-                      {user.followersCount} دنبال‌کننده • {user.postsCount} پست
+                      {formatPersianNumber(user.followersCount)} دنبال‌کننده • {formatPersianNumber(user.postsCount)} پست
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-primary">
-                      {user.score}
+                      {formatPersianNumber(user.score)}
                     </p>
                     <p className="text-xs text-muted-foreground">امتیاز</p>
                   </div>
@@ -146,7 +147,7 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
                   }`}
                 >
                   <div className="w-8 text-center font-bold text-muted-foreground">
-                    #{user.rank}
+                    #{formatPersianNumber(user.rank)}
                   </div>
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.profileImage || undefined} />
@@ -158,7 +159,7 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
                     <p className="text-sm font-medium">{user.name || 'کاربر'}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold">{user.score}</p>
+                    <p className="font-bold">{formatPersianNumber(user.score)}</p>
                     <p className="text-xs text-muted-foreground">امتیاز</p>
                   </div>
                 </div>
@@ -174,11 +175,11 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
                 <div className="flex-1">
                   <p className="font-medium">رتبه شما</p>
                   <p className="text-sm text-muted-foreground">
-                    کاربر شماره {currentUserRank} در لیدربورد
+                    کاربر شماره {formatPersianNumber(currentUserRank)} در لیدربورد
                   </p>
                 </div>
                 <div className="text-2xl font-bold text-primary">
-                  #{currentUserRank}
+                  #{formatPersianNumber(currentUserRank)}
                 </div>
               </div>
             </div>

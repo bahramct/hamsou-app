@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
 import { getToken } from '@/lib/api';
+import { formatPersianNumber } from '@/lib/utils/persian';
 
 interface PostCardProps {
   post: {
@@ -198,7 +199,7 @@ export function PostCard({
                 post.isLiked ? 'fill-current' : ''
               }`}
             />
-            {post._count.likes}
+            {formatPersianNumber(post._count.likes)}
           </Button>
 
           <Button
@@ -207,7 +208,7 @@ export function PostCard({
             onClick={() => setShowComments(!showComments)}
           >
             <MessageCircle className="h-4 w-4 ml-1" />
-            {post._count.comments}
+            {formatPersianNumber(post._count.comments)}
           </Button>
 
           <Button variant="ghost" size="sm">

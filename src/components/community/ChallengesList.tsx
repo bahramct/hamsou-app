@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/select';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
+import { getToken } from '@/lib/api';
+import { formatPersianNumber } from '@/lib/utils/persian';
 
 interface ChallengesListProps {
   currentUserId: string;
@@ -41,7 +43,13 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
   const fetchChallenges = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/community/challenges');
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('/api/community/challenges', { headers });
       const result = await response.json();
 
       if (result.success) {
@@ -60,10 +68,17 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
 
   const handleJoinChallenge = async (challengeId: string) => {
     try {
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `/api/community/challenges/${challengeId}/join`,
         {
           method: 'POST',
+          headers,
         }
       );
 
@@ -83,10 +98,17 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
 
   const handleLeaveChallenge = async (challengeId: string) => {
     try {
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `/api/community/challenges/${challengeId}/join`,
         {
           method: 'DELETE',
+          headers,
         }
       );
 
@@ -106,11 +128,17 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
 
   const handleCreateChallenge = async () => {
     try {
+      const token = getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/community/challenges', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           ...newChallenge,
           targetValue: newChallenge.targetValue
@@ -369,12 +397,12 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        <span>{challenge._count.participants} شرکت‌کننده</span>
+                        <span>{formatPersianNumber(challenge._count.participants)} شرکت‌کننده</span>
                       </div>
                       {challenge.targetValue && (
                         <div className="flex items-center gap-1">
                           <Target className="h-4 w-4" />
-                          <span>هدف: {challenge.targetValue}</span>
+                          <span>هدف: {formatPersianNumber(challenge.targetValue)}</span>
                         </div>
                       )}
                     </div>
