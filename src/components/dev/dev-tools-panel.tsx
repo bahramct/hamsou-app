@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Code2, Database, RefreshCw, CheckCircle2, AlertTriangle, Calendar, Trash2, Bell, Crown, Zap } from 'lucide-react';
+import { Code2, Database, RefreshCw, CheckCircle2, AlertTriangle, Calendar, Trash2, Bell, Crown, Zap, Users, Trophy } from 'lucide-react';
 import { authApiPost, authApiGet, authApiDelete, getUser, setToken, getToken } from '@/lib/api';
 
 /**
@@ -44,6 +44,7 @@ export function DevToolsPanel() {
   const [weeks, setWeeks] = useState<WeekData[]>([]);
   const [currentPlan, setCurrentPlan] = useState<'FREE' | 'PLUS' | 'PRO'>('FREE');
   const [changingPlan, setChangingPlan] = useState(false);
+  const [creatingLeaderboardData, setCreatingLeaderboardData] = useState(false);
 
   // Check if test data exists on mount
   useEffect(() => {
@@ -209,6 +210,40 @@ export function DevToolsPanel() {
       });
     } finally {
       setCreatingNotification(false);
+    }
+  };
+
+  const createLeaderboardTestData = async () => {
+    try {
+      setCreatingLeaderboardData(true);
+      setMessage(null);
+
+      const response = await fetch('/api/dev/create-leaderboard-test-data', {
+        method: 'POST',
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        setMessage({
+          type: 'success',
+          text: result.message || 'داده‌های تستی لیدربورد با موفقیت ایجاد شد!',
+        });
+
+        // Auto-hide message after 4 seconds
+        setTimeout(() => setMessage(null), 4000);
+      } else {
+        setMessage({
+          type: 'error',
+          text: result.error || 'خطا در ایجاد داده‌های تستی لیدربورد',
+        });
+      }
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.message || 'خطا در ایجاد داده‌های تستی لیدربورد',
+      });
+    } finally {
+      setCreatingLeaderboardData(false);
     }
   };
 
@@ -494,6 +529,30 @@ export function DevToolsPanel() {
           </div>
         </div>
       )}
+
+      {/* Community Testing Section */}
+      <div className="mt-6 pt-6 border-t border-gray-200">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          تست جامعه
+        </h4>
+        <p className="text-xs text-gray-600 mb-3">
+          برای تست لیدربورد و جامعه، داده‌های تستی ایجاد کنید:
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={createLeaderboardTestData}
+          disabled={creatingLeaderboardData}
+          className="w-full"
+        >
+          <Trophy className="w-4 h-4 ml-2" />
+          {creatingLeaderboardData ? 'در حال ایجاد...' : 'ایجاد داده‌های تستی لیدربورد'}
+        </Button>
+        <p className="text-xs text-gray-500 mt-2">
+          کاربران، پست‌ها، لایک‌ها، کامنت‌ها و فالووینگ‌ها ایجاد می‌شوند
+        </p>
+      </div>
     </Card>
   );
 }
