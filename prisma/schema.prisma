@@ -47,6 +47,7 @@ model User {
   followers Follow[] @relation("FollowerUser")
   challengesChallenge Challenge[] @relation("ChallengeCreator")
   challengesParticipated ChallengeParticipant[]
+  chatMessages ChatMessage[]
 
   @@map("users")
 }
@@ -409,4 +410,32 @@ model ChallengeParticipant {
   @@index([challengeId])
   @@index([userId])
   @@map("challenge_participants")
+}
+
+// ============= مدل‌های AI Chat =============
+
+// پیام‌های چت با AI
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // نقش فرستنده
+  role      String   // user, assistant, system
+
+  // محتوای پیام
+  content   String   // متن پیام
+
+  // نوع چت
+  chatType  String   @default("general") // general, analytics, planning, sentiment, etc.
+
+  // متادیتای اضافی (JSON)
+  metadata  String?  // برای ذخیره داده‌های اضافی مثل AI model, tokens, etc.
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([userId, chatType])
+  @@map("chat_messages")
 }

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { DevToolsPanel } from '@/components/dev/dev-tools-panel';
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown';
+import { ChatWidget } from '@/components/chat/chat-widget';
 import { Settings, LogOut, Target, BarChart3, User, Users } from 'lucide-react';
 import {
   Select,
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { authApiPost, authApiGet, setToken, setUser, getToken, clearToken } from '@/lib/api';
+import { authApiPost, authApiGet, setToken, setUser, getToken, clearToken, getUser } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { toPersianNumber } from '@/lib/utils/persian';
 
@@ -504,6 +505,9 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {/* Chat Widget - دستیار هوشمند */}
+      {getUser() && <ChatWidget userId={getUser().id} />}
     </div>
   );
 }
