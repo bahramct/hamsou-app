@@ -27,8 +27,3 @@ export {
   buildWeeklyReportContext,
   buildMonthlyReportContext,
 } from './context-builders';
-
-// Re-export for convenience
-import { aiClient } from './ai-client';
-import { aiService } from './ai-service';
-export { aiClient, aiService };
