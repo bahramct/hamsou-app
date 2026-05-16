@@ -147,7 +147,7 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
             <Dialog open={showCreatePost} onOpenChange={setShowCreatePost}>
               <DialogTrigger asChild>
                 <Button>
-                  <Plus className="h-4 w-4 ml-2" />
+                  <Plus className="h-4 w-4 mr-2" />
                   پست جدید
                 </Button>
               </DialogTrigger>
@@ -181,25 +181,24 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
       {/* تب‌ها */}
       <Tabs defaultValue="feed" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="feed">
-            <Users className="h-4 w-4 ml-2" />
-            فید
+          <TabsTrigger value="leaderboard">
+            <Trophy className="h-4 w-4 mr-2" />
+            لیدربورد
           </TabsTrigger>
           <TabsTrigger value="challenges">
-            <Trophy className="h-4 w-4 ml-2" />
+            <Trophy className="h-4 w-4 mr-2" />
             چالش‌ها
           </TabsTrigger>
-          <TabsTrigger value="leaderboard">
-            <Trophy className="h-4 w-4 ml-2" />
-            لیدربورد
+          <TabsTrigger value="feed">
+            <Users className="h-4 w-4 mr-2" />
+            فید
           </TabsTrigger>
         </TabsList>
 
         {/* فید */}
         <TabsContent value="feed" className="space-y-4">
           {/* فیلتر */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center gap-2" dir="rtl">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               size="sm"
@@ -221,6 +220,7 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
             >
               دستاوردها
             </Button>
+            <Filter className="h-4 w-4 text-muted-foreground" />
           </div>
 
           {/* لیست پست‌ها */}
