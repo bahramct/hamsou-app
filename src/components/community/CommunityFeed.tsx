@@ -186,6 +186,22 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
     }
   };
 
+  const handleCommentAdded = (postId: string) => {
+    setPosts(
+      posts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              _count: {
+                ...post._count,
+                comments: post._count.comments + 1,
+              },
+            }
+          : post
+      )
+    );
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6" dir="rtl">
       {/* هدر */}
@@ -317,6 +333,7 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
                   onLike={handleLike}
                   onUnlike={handleUnlike}
                   onDelete={handleDeletePost}
+                  onCommentAdded={handleCommentAdded}
                 />
               ))}
             </div>

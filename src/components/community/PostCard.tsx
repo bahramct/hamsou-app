@@ -37,6 +37,7 @@ interface PostCardProps {
   onLike: (postId: string) => void;
   onUnlike: (postId: string) => void;
   onDelete?: (postId: string) => void;
+  onCommentAdded?: (postId: string) => void;
 }
 
 export function PostCard({
@@ -45,6 +46,7 @@ export function PostCard({
   onLike,
   onUnlike,
   onDelete,
+  onCommentAdded,
 }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -133,6 +135,10 @@ export function PostCard({
       if (result.success) {
         setComments([result.data, ...comments]);
         setNewComment('');
+        // آپدیت کردن تعداد کامنت در لیست پست‌ها
+        if (onCommentAdded) {
+          onCommentAdded(post.id);
+        }
       } else {
         setCommentError(result.error || 'خطا در ارسال کامنت');
       }

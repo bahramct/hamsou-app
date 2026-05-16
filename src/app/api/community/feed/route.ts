@@ -77,16 +77,6 @@ export async function GET(request: NextRequest) {
     // دریافت تعداد کل
     const total = await freshDb.post.count({ where });
 
-    // لاگ برای دیباگ
-    console.log('Feed API Response:', JSON.stringify({
-      success: true,
-      data: postsWithCounts.map(p => ({
-        id: p.id,
-        isLiked: p.isLiked,
-        _count: p._count,
-      })),
-    }, null, 2));
-
     return NextResponse.json({
       success: true,
       data: postsWithCounts,
