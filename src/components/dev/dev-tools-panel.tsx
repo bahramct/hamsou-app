@@ -589,39 +589,38 @@ export function DevToolsPanel() {
 
       {/* Community Testing Section */}
       <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            تست جامعه
-          </h4>
-          {hasLeaderboardTestData && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearLeaderboardTestData}
-              disabled={clearingLeaderboardData || creatingLeaderboardData}
-              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-            >
-              <Trash2 className="w-4 h-4 ml-2" />
-              {clearingLeaderboardData ? 'در حال حذف...' : 'حذف داده‌های تستی'}
-            </Button>
-          )}
-        </div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <Users className="w-4 h-4" />
+          تست جامعه
+        </h4>
         <p className="text-xs text-gray-600 mb-3">
           برای تست لیدربورد و جامعه، داده‌های تستی ایجاد کنید:
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={createLeaderboardTestData}
-          disabled={creatingLeaderboardData || clearingLeaderboardData}
-          className="w-full"
-        >
-          <Trophy className="w-4 h-4 ml-2" />
-          {creatingLeaderboardData ? 'در حال ایجاد...' : 'ایجاد داده‌های تستی لیدربورد'}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={createLeaderboardTestData}
+            disabled={creatingLeaderboardData || clearingLeaderboardData}
+            className="flex-1"
+          >
+            <Trophy className="w-4 h-4 ml-2" />
+            {creatingLeaderboardData ? 'در حال ایجاد...' : 'ایجاد داده‌های تستی'}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearLeaderboardTestData}
+            disabled={clearingLeaderboardData || creatingLeaderboardData || !hasLeaderboardTestData}
+            className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+          >
+            <Trash2 className="w-4 h-4 ml-2" />
+            {clearingLeaderboardData ? 'در حال حذف...' : 'حذف داده‌های تستی'}
+          </Button>
+        </div>
         <p className="text-xs text-gray-500 mt-2">
           کاربران، پست‌ها، لایک‌ها، کامنت‌ها و فالووینگ‌ها ایجاد می‌شوند
+          {!hasLeaderboardTestData && ' - ابتدا داده تستی ایجاد کنید تا بتوانید حذف کنید'}
         </p>
       </div>
     </Card>
