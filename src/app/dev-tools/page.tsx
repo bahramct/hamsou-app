@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Home, Crown, Zap, RefreshCw, CheckCircle2, XCircle, Bell, BellRing } from 'lucide-react';
+import { AlertTriangle, Home, Crown, Zap, RefreshCw, CheckCircle2, XCircle, Bell, BellRing, Users, Trophy } from 'lucide-react';
 import { getToken, getUser, setToken, authApiPost } from '@/lib/api';
 
 type PlanType = 'free' | 'plus' | 'pro';
@@ -42,6 +42,8 @@ export default function DevToolsPage() {
   const [updateStatus, setUpdateStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [notificationStatus, setNotificationStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+  const [leaderboardStatus, setLeaderboardStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     // Check if in development mode
@@ -124,6 +126,44 @@ export default function DevToolsPage() {
 
   const handleRefresh = () => {
     loadCurrentPlan();
+  };
+
+  const handleCreateLeaderboardTestData = async () => {
+    try {
+      setLeaderboardLoading(true);
+      setLeaderboardStatus('idle');
+
+      const response = await fetch('/api/dev/create-leaderboard-test-data', {
+        method: 'POST',
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        setLeaderboardStatus('success');
+
+        // Reset status after 3 seconds
+        setTimeout(() => {
+          setLeaderboardStatus('idle');
+        }, 3000);
+      } else {
+        setLeaderboardStatus('error');
+
+        // Reset status after 3 seconds
+        setTimeout(() => {
+          setLeaderboardStatus('idle');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error creating leaderboard test data:', error);
+      setLeaderboardStatus('error');
+
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        setLeaderboardStatus('idle');
+      }, 3000);
+    } finally {
+      setLeaderboardLoading(false);
+    }
   };
 
   if (!isDevMode) {
@@ -307,6 +347,50 @@ export default function DevToolsPage() {
           </CardContent>
         </Card>
 
+        {/* Community Testing Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-purple-600" />
+              تست جامعه
+            </CardTitle>
+            <CardDescription>
+              ایجاد داده‌های تستی برای جامعه و لیدربورد
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              variant="outline"
+              onClick={handleCreateLeaderboardTestData}
+              disabled={leaderboardLoading}
+              className="justify-start h-auto py-3 w-full"
+            >
+              <Trophy className="w-4 h-4 ml-2" />
+              <div className="text-right flex-1">
+                <div className="font-medium">ایجاد داده‌های تستی لیدربورد</div>
+                <div className="text-xs text-muted-foreground">
+                  ایجاد کاربران، پست‌ها، لایک‌ها، کامنت‌ها و فالووینگ‌ها برای تست لیدربورد
+                </div>
+              </div>
+              {leaderboardLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
+            </Button>
+
+            {leaderboardStatus === 'success' && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
+                <CheckCircle2 className="w-5 h-5" />
+                <span className="text-sm">داده‌های تستی لیدربورد با موفقیت ایجاد شد!</span>
+              </div>
+            )}
+
+            {leaderboardStatus === 'error' && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                <XCircle className="w-5 h-5" />
+                <span className="text-sm">خطا در ایجاد داده‌های تستی. لطفاً دوباره تلاش کنید.</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Current Plan Display */}
         <Card>
           <CardHeader>
@@ -424,6 +508,14 @@ export default function DevToolsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                className="justify-start"
+                onClick={() => router.push('/community')}
+              >
+                <Users className="w-4 h-4 ml-2" />
+                جامعه و لیدربورد
+              </Button>
               <Button
                 variant="outline"
                 className="justify-start"
