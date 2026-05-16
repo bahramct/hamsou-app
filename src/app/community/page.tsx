@@ -40,6 +40,27 @@ export default function CommunityPage() {
     router.push('/login');
   };
 
+  // ایجاد داده‌های تستی لیدربورد
+  const handleCreateLeaderboardTestData = async () => {
+    try {
+      const response = await fetch('/api/dev/create-leaderboard-test-data', {
+        method: 'POST',
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        alert(result.message);
+        // رفرش صفحه برای نمایش داده‌های جدید
+        setTimeout(() => window.location.reload(), 500);
+      } else {
+        alert(result.error || 'خطا در ایجاد داده‌های تستی');
+      }
+    } catch (error) {
+      console.error('Error creating leaderboard test data:', error);
+      alert('خطا در ایجاد داده‌های تستی');
+    }
+  };
+
   if (!currentUserId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -73,6 +94,16 @@ export default function CommunityPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCreateLeaderboardTestData}
+                className="text-xs"
+              >
+                ایجاد داده تست
+              </Button>
+            )}
             <NotificationsDropdown />
             <Button
               variant="ghost"
