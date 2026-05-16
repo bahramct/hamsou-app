@@ -293,7 +293,7 @@ model Notification {
 ---
 
 ## 🎯 فاز 7: قابلیت‌های اجتماعی (Social Features)
-**وضعیت: 🔄 40% تکمیل شده (7.1 و 7.2)**
+**وضعیت: 🔄 60% تکمیل شده (7.1, 7.2, 7.3)**
 
 ### 7.1 پروفایل کاربری
 - [x] صفحه پروفایل (/profile)
@@ -310,11 +310,11 @@ model Notification {
 - [x] لینک اشتراک‌گذاری عمومی
 
 ### 7.3 جامعه کاربران (Community) - اختیاری
-- [ ] فید عمومی دستاوردها
-- [ ] لایک و کامنت روی پست‌ها
-- [ ] دنبال کردن کاربران
-- [ ] چالش‌های گروهی
-- [ ] لیدربورد هفتگی/ماهانه
+- [x] فید عمومی دستاوردها
+- [x] لایک و کامنت روی پست‌ها
+- [x] دنبال کردن کاربران
+- [x] چالش‌های گروهی
+- [x] لیدربورد هفتگی/ماهانه
 
 ### 7.4 سیستم دوستی و هم‌تیمی
 - [ ] ارسال درخواست دوستی
@@ -328,10 +328,16 @@ model Notification {
 - [x] POST /api/achievements/share - اشتراک‌گذاری دستاورد
 - [x] GET /api/achievements/generate-image - تولید تصویر دستاورد
 - [x] GET /api/achievements/share-info - دریافت اطلاعات دستاورد
-- [ ] GET /api/community/feed - فید عمومی
-- [ ] POST /api/community/posts - ایجاد پست
-- [ ] POST /api/friends - مدیریت دوستان
-- [ ] GET /api/leaderboard - لیدربورد
+- [x] GET /api/community/feed - فید عمومی
+- [x] POST /api/community/posts - ایجاد پست
+- [x] POST/DELETE /api/community/posts/[id]/like - لایک/آنلایک
+- [x] POST /api/community/posts/[id]/comments - ایجاد کامنت
+- [x] DELETE /api/community/comments/[id] - حذف کامنت
+- [x] POST/DELETE/GET /api/community/follow - مدیریت فالو
+- [x] GET/POST /api/community/challenges - لیست و ایجاد چالش
+- [x] POST/DELETE /api/community/challenges/[id]/join - پیوستن/خروج از چالش
+- [x] GET /api/community/leaderboard - لیدربورد
+- [ ] GET /api/friends - مدیریت دوستان
 
 ---
 
@@ -790,14 +796,14 @@ model Notification {
 | 4 | سیستم برنامه‌ریزی | ✅ تکمیل شده | 100% |
 | 5 | سیستم نوتیفیکیشن | ✅ تکمیل شده (MVP) | 90% |
 | 6 | گزارش‌دهی و تحلیل | 🔄 85% (PDF موکوف) | 85% |
-| 7 | قابلیت‌های اجتماعی | 🔄 40% (7.1, 7.2) | 40% |
+| 7 | قابلیت‌های اجتماعی | 🔄 60% (7.1, 7.2, 7.3) | 60% |
 | 8 | AI پیشرفته | ⏳ شروع نشده | 0% |
 | 9 | بهینه‌سازی | ⏳ شروع نشده | 0% |
 | 10 | دیپلوی | ⏳ شروع نشده | 0% |
 | 11 | اپلیکیشن موبایل | ⏳ شروع نشده | 0% |
 | 12 | پنل مدیریت ادمین | ⏳ شروع نشده | 0% |
 
-**پیشرفت کلی پروژه:** **~56%** (6 فاز از 12 فاز اصلی)
+**پیشرفت کلی پروژه:** **~58%** (7.1 فاز از 12 فاز اصلی)
 
 ---
 
@@ -826,8 +832,21 @@ model Notification {
 ---
 
 **آخرین بروزرسانی:** 2025-01-30
-**نسخه:** 1.3.0
+**نسخه:** 1.4.0
 **وضعیت پروژه:** در حال توسعه (Development)
+**تغییرات نسخه 1.4.0:**
+- تکمیل فاز 7.3: جامعه کاربران (Community)
+  - فید عمومی دستاوردها با فیلتر (همه، دنبال‌شده‌ها، دستاوردها)
+  - ایجاد و مدیریت پست‌ها (ایجاد، حذف)
+  - سیستم لایک و آنلایک پست‌ها
+  - سیستم کامنت‌گذاری با قابلیت پاسخ
+  - سیستم فالو/آنفالو کاربران
+  - چالش‌های گروهی (ایجاد، پیوستن، خروج)
+  - لیدربورد هفتگی/ماهانه/همیشه با امتیازدهی
+  - کامپوننت‌های UI: CommunityFeed, PostCard, Leaderboard, ChallengesList
+  - API routes: /api/community/feed, /api/community/posts, /api/community/posts/[id]/like, /api/community/posts/[id]/comments, /api/community/comments/[id], /api/community/follow, /api/community/challenges, /api/community/challenges/[id]/join, /api/community/leaderboard
+- پروژه به 58% پیشرفت رسیده
+
 **تغییرات نسخه 1.3.0:**
 - تکمیل فاز 7.1: پروفایل کاربری (User Profile)
   - صفحه پروفایل (/profile) با طراحی ریسپانسیو

@@ -39,6 +39,15 @@ model User {
   sharedReports  SharedReport[]
   sharedAchievements SharedAchievement[]
 
+  // روابط اجتماعی
+  posts Post[]
+  likes Like[]
+  comments Comment[]
+  following Follow[] @relation("FollowingUser")
+  followers Follow[] @relation("FollowerUser")
+  challengesChallenge Challenge[] @relation("ChallengeCreator")
+  challengesParticipated ChallengeParticipant[]
+
   @@map("users")
 }
 
@@ -252,4 +261,152 @@ model SharedAchievement {
   @@index([userId, isActive])
   @@index([shareToken])
   @@map("shared_achievements")
+}
+
+// ============= مدل‌های جامعه (Community) =============
+
+// پست‌های جامعه
+model Post {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // محتوای پست
+  content     String   // متن پست
+  postType    String   @default("achievement") // achievement, reflection, update, challenge
+
+  // داده‌های اضافی (JSON)
+  metadata    String?  // برای ذخیره داده‌های اضافی مثل achievementData, stats, etc.
+
+  // تنظیمات نمایش
+  visibility  String   @default("public") // public, followers, private
+  isPinned    Boolean  @default(false)
+
+  // آمار
+  likesCount  Int      @default(0)
+  commentsCount Int    @default(0)
+  viewsCount  Int      @default(0)
+
+  // روابط
+  likes       Like[]
+  comments    Comment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+// لایک‌ها
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@map("likes")
+}
+
+// کامنت‌ها
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // محتوا
+  content   String
+
+  // پاسخ به کامنت دیگر
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+  @@map("comments")
+}
+
+// دنبال کردن کاربران
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("FollowingUser", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+// چالش‌های گروهی
+model Challenge {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  creatorId   String
+  creator     User     @relation("ChallengeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // نوع و دسته‌بندی
+  type        String   // daily_commitment, weekly_streak, monthly_goal
+  category    String   @default("general") // fitness, learning, productivity, etc.
+
+  // تنظیمات چالش
+  startDate   DateTime
+  endDate     DateTime
+  targetValue Int?     // مقدار هدف (مثلاً 30 روز متوالی)
+  participantLimit Int? // محدودیت تعداد شرکت‌کنندگان
+
+  // وضعیت
+  status      String   @default("active") // active, completed, cancelled
+
+  // آمار
+  participantCount Int @default(0)
+
+  // روابط
+  participants ChallengeParticipant[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, startDate])
+  @@index([category])
+  @@map("challenges")
+}
+
+// شرکت‌کنندگان چالش
+model ChallengeParticipant {
+  id          String   @id @default(cuid())
+  challengeId String
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // پیشرفت کاربر در چالش
+  currentValue Int   @default(0) // مقدار فعلی
+  isCompleted   Boolean @default(false)
+  completedAt   DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([challengeId, userId])
+  @@index([challengeId])
+  @@index([userId])
+  @@map("challenge_participants")
 }

@@ -1,8 +1,8 @@
 # پیشرفت پروژه همسو (Hamsou) - وضعیت فیچرها
 
 **آخرین بروزرسانی:** 2025-01-30
-**نسخه پروژه:** 1.3.0-dev
-**وضعیت کلی:** در حال توسعه (56% تکمیل شده)
+**نسخه پروژه:** 1.4.0-dev
+**وضعیت کلی:** در حال توسعه (58% تکمیل شده)
 
 ---
 
@@ -15,13 +15,13 @@
 فاز 4: ████████████████████ 100% ✅
 فاز 5: ██████████████████░░  90% ✅
 فاز 6: ██████████████████░░  85% ⚠️ (PDF موکوف)
-فاز 7: ████████████░░░░░░░░  40% ✅ (7.1, 7.2)
+فاز 7: ████████████████░░░░░  60% ✅ (7.1, 7.2, 7.3)
 فاز 8: ░░░░░░░░░░░░░░░░░░░░   0% ⏳
 فاز 9: ░░░░░░░░░░░░░░░░░░░░   0% ⏳
 فاز10: ░░░░░░░░░░░░░░░░░░░░   0% ⏳
 فاز11: ░░░░░░░░░░░░░░░░░░░░   0% ⏳
 ─────────────────────────────────
-کل:  ███████████████████░░  56%
+کل:  ████████████████████░  58%
 ```
 
 ---
@@ -283,7 +283,7 @@
 ---
 
 ## ✅ فاز 7: قابلیت‌های اجتماعی (Social Features)
-**وضعیت: ✅ 40% تکمیل شده (7.1 و 7.2)**
+**وضعیت: ✅ 60% تکمیل شده (7.1, 7.2, 7.3)**
 
 | # | فیچر | وضعیت | تاریخ تکمیل |
 |---|-------|-------|-------------|
@@ -297,11 +297,11 @@
 | 7.2.3 | تولید تصویر برای سوشال مدیا | ✅ | 2025-01-30 |
 | 7.2.4 | دکمه‌های اشتراک‌گذاری | ✅ | 2025-01-30 |
 | 7.2.5 | لینک اشتراک‌گذاری عمومی | ✅ | 2025-01-30 |
-| 7.3.1 | فید عمومی دستاوردها | ⏳ | - |
-| 7.3.2 | لایک و کامنت | ⏳ | - |
-| 7.3.3 | دنبال کردن کاربران | ⏳ | - |
-| 7.3.4 | چالش‌های گروهی | ⏳ | - |
-| 7.3.5 | لیدربورد | ⏳ | - |
+| 7.3.1 | فید عمومی دستاوردها | ✅ | 2025-01-30 |
+| 7.3.2 | لایک و کامنت | ✅ | 2025-01-30 |
+| 7.3.3 | دنبال کردن کاربران | ✅ | 2025-01-30 |
+| 7.3.4 | چالش‌های گروهی | ✅ | 2025-01-30 |
+| 7.3.5 | لیدربورد | ✅ | 2025-01-30 |
 | 7.4.1 | ارسال درخواست دوستی | ⏳ | - |
 | 7.4.2 | مشاهده پروفایل دوستان | ⏳ | - |
 | 7.4.3 | اشتراک‌گذاری برنامه‌ها | ⏳ | - |
@@ -309,10 +309,16 @@
 | 7.4.5 | یادآوری متقابل | ⏳ | - |
 | 7.5.1 | GET/PUT /api/profile | ✅ | 2025-01-30 |
 | 7.5.2 | POST /api/achievements/share | ✅ | 2025-01-30 |
-| 7.5.3 | GET /api/community/feed | ⏳ | - |
-| 7.5.4 | POST /api/community/posts | ⏳ | - |
-| 7.5.5 | POST /api/friends | ⏳ | - |
-| 7.5.6 | GET /api/leaderboard | ⏳ | - |
+| 7.5.3 | GET /api/community/feed | ✅ | 2025-01-30 |
+| 7.5.4 | POST /api/community/posts | ✅ | 2025-01-30 |
+| 7.5.5 | POST/DELETE /api/community/posts/[id]/like | ✅ | 2025-01-30 |
+| 7.5.6 | POST /api/community/posts/[id]/comments | ✅ | 2025-01-30 |
+| 7.5.7 | DELETE /api/community/comments/[id] | ✅ | 2025-01-30 |
+| 7.5.8 | POST/DELETE/GET /api/community/follow | ✅ | 2025-01-30 |
+| 7.5.9 | GET/POST /api/community/challenges | ✅ | 2025-01-30 |
+| 7.5.10 | POST/DELETE /api/community/challenges/[id]/join | ✅ | 2025-01-30 |
+| 7.5.11 | GET /api/community/leaderboard | ✅ | 2025-01-30 |
+| 7.5.12 | POST /api/friends | ⏳ | - |
 
 **فایل‌های کلیدی:**
 - `/src/app/profile/page.tsx`
@@ -320,11 +326,24 @@
 - `/src/app/api/profile/stats/route.ts`
 - `/src/app/api/profile/upload/route.ts`
 - `/src/components/share/share-button.tsx`
-- `/src/app/achievements/share/route.ts`
-- `/src/app/achievements/generate-image/route.ts`
-- `/src/app/achievements/share-info/route.ts`
+- `/src/app/api/achievements/share/route.ts`
+- `/src/app/api/achievements/generate-image/route.ts`
+- `/src/app/api/achievements/share-info/route.ts`
 - `/src/app/share/achievement/[token]/page.tsx`
-- `/prisma/schema.prisma` (مدل User با bio, profileImage, privacySettings)
+- `/src/app/api/community/feed/route.ts`
+- `/src/app/api/community/posts/route.ts`
+- `/src/app/api/community/posts/[id]/like/route.ts`
+- `/src/app/api/community/posts/[id]/comments/route.ts`
+- `/src/app/api/community/comments/[id]/route.ts`
+- `/src/app/api/community/follow/route.ts`
+- `/src/app/api/community/challenges/route.ts`
+- `/src/app/api/community/challenges/[id]/join/route.ts`
+- `/src/app/api/community/leaderboard/route.ts`
+- `/src/components/community/CommunityFeed.tsx`
+- `/src/components/community/PostCard.tsx`
+- `/src/components/community/Leaderboard.tsx`
+- `/src/components/community/ChallengesList.tsx`
+- `/prisma/schema.prisma` (مدل User, Post, Like, Comment, Follow, Challenge, ChallengeParticipant)
 
 ---
 
@@ -459,6 +478,22 @@
 ## 📝 لاگ تغییرات (Changelog)
 
 ### 2025-01-30
+- ✅ تکمیل فاز 7.3: جامعه کاربران (Community)
+  - فید عمومی دستاوردها با فیلتر (همه، دنبال‌شده‌ها، دستاوردها)
+  - ایجاد و مدیریت پست‌ها (ایجاد، حذف)
+  - سیستم لایک و آنلایک پست‌ها
+  - سیستم کامنت‌گذاری با قابلیت پاسخ
+  - سیستم فالو/آنفالو کاربران
+  - چالش‌های گروهی (ایجاد، پیوستن، خروج)
+  - لیدربورد هفتگی/ماهانه/همیشه با امتیازدهی
+  - کامپوننت‌های UI: CommunityFeed, PostCard, Leaderboard, ChallengesList
+  - API routes: /api/community/feed, /api/community/posts, /api/community/posts/[id]/like, /api/community/posts/[id]/comments, /api/community/comments/[id], /api/community/follow, /api/community/challenges, /api/community/challenges/[id]/join, /api/community/leaderboard
+  - مدل‌های دیتابیس: Post, Like, Comment, Follow, Challenge, ChallengeParticipant
+- ✅ به‌روزرسانی فاز 7 به 60% تکمیل شده (7.1, 7.2, 7.3)
+- ✅ پروژه به 58% پیشرفت رسیده
+- ✅ نسخه 1.4.0
+
+### 2025-01-30 (فازهای قبلی)
 - ✅ تکمیل فاز 7.1: پروفایل کاربری (User Profile)
   - صفحه پروفایل (/profile) با طراحی ریسپانسیو
   - آپلود تصویر پروفایل (حداکثر 5MB)
@@ -554,5 +589,5 @@
 ---
 
 **آخرین بروزرسانی:** 2025-01-30
-**نسخه:** 1.3.0-dev
+**نسخه:** 1.4.0-dev
 **توسعه‌دهنده:** Z.ai Code
