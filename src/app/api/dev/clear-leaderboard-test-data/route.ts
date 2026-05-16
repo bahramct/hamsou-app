@@ -54,7 +54,7 @@ export async function DELETE(request: NextRequest) {
     // شمارش و حذف چالش‌های کاربران تستی
     const challenges = await db.challenge.findMany({
       where: {
-        userId: { in: testUserIds },
+        creatorId: { in: testUserIds },
       },
     });
     const challengesCount = challenges.length;

@@ -244,11 +244,14 @@ export async function POST(request: NextRequest) {
         data: {
           title: challenge.title,
           description: challenge.description,
-          target: challenge.target,
-          startDate: startDate.toISOString().split('T')[0],
-          endDate: endDate.toISOString().split('T')[0],
-          duration: 30,
-          userId: user.id,
+          creatorId: user.id,
+          type: 'daily_commitment',
+          category: 'general',
+          startDate: startDate,
+          endDate: endDate,
+          targetValue: 30,
+          status: 'active',
+          participantCount: createdUsers.length + 1, // +1 for current user
         },
       });
 
