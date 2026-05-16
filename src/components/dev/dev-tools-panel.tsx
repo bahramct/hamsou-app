@@ -225,6 +225,7 @@ export function DevToolsPanel() {
         method: 'POST',
       });
       const result = await response.json();
+      console.log('createLeaderboardTestData result:', result);
 
       if (result.success) {
         setMessage({
@@ -232,8 +233,12 @@ export function DevToolsPanel() {
           text: result.message || 'داده‌های تستی لیدربورد با موفقیت ایجاد شد!',
         });
 
-        // Refresh leaderboard test data status
-        await checkLeaderboardTestData();
+        // Immediately update state to avoid UI lag
+        setHasLeaderboardTestData(true);
+        console.log('Set hasLeaderboardTestData to true');
+
+        // Refresh leaderboard test data status (async, for verification)
+        checkLeaderboardTestData();
 
         // Auto-hide message after 4 seconds
         setTimeout(() => setMessage(null), 4000);
@@ -244,6 +249,7 @@ export function DevToolsPanel() {
         });
       }
     } catch (error: any) {
+      console.error('Error in createLeaderboardTestData:', error);
       setMessage({
         type: 'error',
         text: error.message || 'خطا در ایجاد داده‌های تستی لیدربورد',
@@ -257,6 +263,7 @@ export function DevToolsPanel() {
     try {
       const response = await fetch('/api/dev/check-leaderboard-test-data');
       const result = await response.json();
+      console.log('checkLeaderboardTestData result:', result);
       setHasLeaderboardTestData(result.hasTestData || false);
     } catch (error) {
       console.log('Leaderboard test data check not available:', error);
@@ -276,6 +283,7 @@ export function DevToolsPanel() {
         method: 'DELETE',
       });
       const result = await response.json();
+      console.log('clearLeaderboardTestData result:', result);
 
       if (result.success) {
         setMessage({
@@ -283,8 +291,12 @@ export function DevToolsPanel() {
           text: result.message || 'داده‌های تستی جامعه با موفقیت حذف شد!',
         });
 
-        // Refresh leaderboard test data status
-        await checkLeaderboardTestData();
+        // Immediately update state to avoid UI lag
+        setHasLeaderboardTestData(false);
+        console.log('Set hasLeaderboardTestData to false');
+
+        // Refresh leaderboard test data status (async, for verification)
+        checkLeaderboardTestData();
 
         // Auto-hide message after 4 seconds
         setTimeout(() => setMessage(null), 4000);
@@ -295,6 +307,7 @@ export function DevToolsPanel() {
         });
       }
     } catch (error: any) {
+      console.error('Error in clearLeaderboardTestData:', error);
       setMessage({
         type: 'error',
         text: error.message || 'خطا در حذف داده‌های تستی جامعه',
