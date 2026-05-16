@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     const freshDb = getFreshDb();
     const post = await freshDb.post.create({
       data: {
-        userId: user.id,
+        userId: user.userId,
         content: validatedData.content,
         postType: validatedData.postType,
         metadata: validatedData.metadata,

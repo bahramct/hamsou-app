@@ -51,7 +51,7 @@ export async function POST(
       where: {
         challengeId_userId: {
           challengeId: challengeId,
-          userId: user.id,
+          userId: user.userId,
         },
       },
     });
@@ -67,7 +67,7 @@ export async function POST(
     await db.challengeParticipant.create({
       data: {
         challengeId: challengeId,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 
@@ -107,7 +107,7 @@ export async function DELETE(
     const deletedParticipant = await db.challengeParticipant.deleteMany({
       where: {
         challengeId: challengeId,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 

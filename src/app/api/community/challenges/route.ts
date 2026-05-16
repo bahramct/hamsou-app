@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           where: {
             challengeId_userId: {
               challengeId: challenge.id,
-              userId: user.id,
+              userId: user.userId,
             },
           },
         });
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       data: {
         title: validatedData.title,
         description: validatedData.description,
-        creatorId: user.id,
+        creatorId: user.userId,
         type: validatedData.type,
         category: validatedData.category,
         startDate: new Date(validatedData.startDate),

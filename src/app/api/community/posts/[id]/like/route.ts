@@ -28,7 +28,7 @@ export async function POST(
     const existingLike = await db.like.findUnique({
       where: {
         userId_postId: {
-          userId: user.id,
+          userId: user.userId,
           postId: postId,
         },
       },
@@ -44,7 +44,7 @@ export async function POST(
     // ایجاد لایک
     await db.like.create({
       data: {
-        userId: user.id,
+        userId: user.userId,
         postId: postId,
       },
     });
@@ -85,7 +85,7 @@ export async function DELETE(
     // حذف لایک
     const deletedLike = await db.like.deleteMany({
       where: {
-        userId: user.id,
+        userId: user.userId,
         postId: postId,
       },
     });

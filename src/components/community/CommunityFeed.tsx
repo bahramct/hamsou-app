@@ -10,12 +10,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PostCard } from './PostCard';
 import { Leaderboard } from './Leaderboard';
 import { ChallengesList } from './ChallengesList';
+import { getToken } from '@/lib/api';
 
 export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPostContent, setNewPostContent] = useState('');
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [creatingPost, setCreatingPost] = useState(false);
+  const [createPostError, setCreatePostError] = useState('');
   const [filter, setFilter] = useState<'all' | 'following' | 'achievements'>('all');
 
   const fetchPosts = async () => {
@@ -28,8 +31,18 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
         queryParams.append('type', 'achievement');
       }
 
+      const token = getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
-        `/api/community/feed?${queryParams.toString()}`
+        `/api/community/feed?${queryParams.toString()}`,
+        { headers }
       );
       const result = await response.json();
 
@@ -50,12 +63,22 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
 
+    setCreatingPost(true);
+    setCreatePostError('');
+
     try {
+      const token = getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch('/api/community/posts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           content: newPostContent,
           postType: 'achievement',
@@ -69,16 +92,28 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
         setPosts([result.data, ...posts]);
         setNewPostContent('');
         setShowCreatePost(false);
+      } else {
+        setCreatePostError(result.error || 'خطا در ایجاد پست');
       }
     } catch (error) {
       console.error('Error creating post:', error);
+      setCreatePostError('خطا در ارتباط با سرور');
+    } finally {
+      setCreatingPost(false);
     }
   };
 
   const handleLike = async (postId: string) => {
     try {
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       await fetch(`/api/community/posts/${postId}/like`, {
         method: 'POST',
+        headers,
       });
       setPosts(
         posts.map((post) =>
@@ -101,8 +136,15 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
 
   const handleUnlike = async (postId: string) => {
     try {
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       await fetch(`/api/community/posts/${postId}/like`, {
         method: 'DELETE',
+        headers,
       });
       setPosts(
         posts.map((post) =>
@@ -125,8 +167,15 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
 
   const handleDeletePost = async (postId: string) => {
     try {
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/community/posts/${postId}`, {
         method: 'DELETE',
+        headers,
       });
 
       if (response.ok) {
@@ -159,17 +208,33 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
                   <Textarea
                     placeholder="دستاورد خود را با جامعه به اشتراک بگذارید..."
                     value={newPostContent}
-                    onChange={(e) => setNewPostContent(e.target.value)}
+                    onChange={(e) => {
+                      setNewPostContent(e.target.value);
+                      setCreatePostError('');
+                    }}
                     className="min-h-[120px]"
+                    disabled={creatingPost}
                   />
+                  {createPostError && (
+                    <p className="text-sm text-destructive">{createPostError}</p>
+                  )}
                   <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
-                      onClick={() => setShowCreatePost(false)}
+                      onClick={() => {
+                        setShowCreatePost(false);
+                        setCreatePostError('');
+                      }}
+                      disabled={creatingPost}
                     >
                       انصراف
                     </Button>
-                    <Button onClick={handleCreatePost}>انتشار</Button>
+                    <Button 
+                      onClick={handleCreatePost}
+                      disabled={creatingPost || !newPostContent.trim()}
+                    >
+                      {creatingPost ? 'در حال انتشار...' : 'انتشار'}
+                    </Button>
                   </div>
                 </div>
               </DialogContent>

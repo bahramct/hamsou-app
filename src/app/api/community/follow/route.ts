@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // کاربر نمی‌تونه خودش رو فالو کنه
-    if (followingId === user.id) {
+    if (followingId === user.userId) {
       return NextResponse.json(
         { success: false, error: 'نمی‌توانید خود را فالو کنید' },
         { status: 400 }
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const existingFollow = await db.follow.findUnique({
       where: {
         followerId_followingId: {
-          followerId: user.id,
+          followerId: user.userId,
           followingId: followingId,
         },
       },
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     // ایجاد رابطه فالو
     await db.follow.create({
       data: {
-        followerId: user.id,
+        followerId: user.userId,
         followingId: followingId,
       },
     });
@@ -98,7 +98,7 @@ export async function DELETE(request: NextRequest) {
     // حذف رابطه فالو
     const deletedFollow = await db.follow.deleteMany({
       where: {
-        followerId: user.id,
+        followerId: user.userId,
         followingId: followingId,
       },
     });
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
     const follow = await db.follow.findUnique({
       where: {
         followerId_followingId: {
-          followerId: user.id,
+          followerId: user.userId,
           followingId: followingId,
         },
       },

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (followingOnly) {
       const following = await db.follow.findMany({
-        where: { followerId: user.id },
+        where: { followerId: user.userId },
         select: { followingId: true },
       });
       where.userId = { in: following.map(f => f.followingId) };
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     // افزودن اطلاعات لایک کاربر جاری
     const postsWithLikeStatus = posts.map(post => ({
       ...post,
-      isLiked: post.likes.some(like => like.userId === user.id),
+      isLiked: post.likes.some(like => like.userId === user.userId),
       likes: undefined, // حذف آرایه لایک‌ها
     }));
 

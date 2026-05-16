@@ -102,7 +102,7 @@ export async function POST(
     // ایجاد کامنت
     const comment = await db.comment.create({
       data: {
-        userId: user.id,
+        userId: user.userId,
         postId: postId,
         content: validatedData.content,
         parentId: validatedData.parentId,

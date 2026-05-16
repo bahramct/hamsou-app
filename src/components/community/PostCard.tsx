@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, MessageCircle, Share2, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +14,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { formatDistanceToNow } from 'date-fns';
 import { faIR } from 'date-fns/locale';
+import { getToken } from '@/lib/api';
 
 interface PostCardProps {
   post: {
@@ -47,8 +48,41 @@ export function PostCard({
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [comments, setComments] = useState<any[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingComment, setLoadingComment] = useState(false);
+
+  // بارگذاری کامنت‌ها وقتی بخش کامنت باز می‌شود
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!showComments) return;
+
+      setLoadingComments(true);
+      try {
+        const token = getToken();
+        const headers: HeadersInit = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(
+          `/api/community/posts/${post.id}/comments`,
+          { headers }
+        );
+        const result = await response.json();
+
+        if (result.success) {
+          setComments(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching comments:', error);
+      } finally {
+        setLoadingComments(false);
+      }
+    };
+
+    fetchComments();
+  }, [showComments, post.id]);
 
   const handleLike = async () => {
     setLoadingLike(true);
@@ -74,13 +108,19 @@ export function PostCard({
 
     setLoadingComment(true);
     try {
+      const token = getToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(
         `/api/community/posts/${post.id}/comments`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({ content: newComment }),
         }
       );
@@ -198,37 +238,42 @@ export function PostCard({
 
             {/* لیست کامنت‌ها */}
             <div className="space-y-3">
-              {comments.length === 0 && (
+              {loadingComments ? (
+                <p className="text-sm text-muted-foreground text-center">
+                  در حال بارگذاری...
+                </p>
+              ) : comments.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center">
                   هنوز نظری ثبت نشده است
                 </p>
-              )}
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={comment.user.profileImage || undefined}
-                    />
-                    <AvatarFallback>
-                      {comment.user.name?.[0] || '؟'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 bg-muted rounded-lg p-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-medium">
-                        {comment.user.name || 'کاربر'}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.createdAt), {
-                          addSuffix: true,
-                          locale: faIR,
-                        })}
-                      </span>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src={comment.user.profileImage || undefined}
+                      />
+                      <AvatarFallback>
+                        {comment.user.name?.[0] || '؟'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 bg-muted rounded-lg p-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium">
+                          {comment.user.name || 'کاربر'}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDistanceToNow(new Date(comment.createdAt), {
+                            addSuffix: true,
+                            locale: faIR,
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-sm">{comment.content}</p>
                     </div>
-                    <p className="text-sm">{comment.content}</p>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}

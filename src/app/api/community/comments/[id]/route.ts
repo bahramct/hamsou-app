@@ -24,7 +24,7 @@ export async function DELETE(
     }
 
     // فقط کاربر می‌تونه کامنت خودش رو حذف کنه
-    if (comment.userId !== user.id) {
+    if (comment.userId !== user.userId) {
       return NextResponse.json(
         { success: false, error: 'اجازه حذف این کامنت را ندارید' },
         { status: 403 }

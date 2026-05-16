@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     });
 
     // پیدا کردن رتبه کاربر جاری
-    const currentUserRank = userScores.find(u => u.id === user.id)?.rank || null;
+    const currentUserRank = userScores.find(u => u.id === user.userId)?.rank || null;
 
     // محدود کردن نتایج
     const leaderboard = userScores.slice(0, limit);

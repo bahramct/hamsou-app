@@ -10,29 +10,27 @@ import { NotificationsDropdown } from '@/components/notifications/notifications-
 
 export default function CommunityPage() {
   const router = useRouter();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [currentUserId] = useState<string | null>(() => {
+    // Initialize state directly from localStorage
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('user');
+      if (user) {
+        try {
+          const userData = JSON.parse(user);
+          return userData.id;
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+        }
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
     const token = getToken();
     if (!token) {
       router.push('/login');
-      return;
     }
-
-    // دریافت اطلاعات کاربر جاری
-    // برای سادگی، از localStorage استفاده می‌کنیم
-    const user = localStorage.getItem('user');
-    if (user) {
-      try {
-        const userData = JSON.parse(user);
-        setCurrentUserId(userData.id);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-      }
-    }
-
-    setLoading(false);
   }, [router]);
 
   // خروج
@@ -41,17 +39,6 @@ export default function CommunityPage() {
     setUser(null);
     router.push('/login');
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">در حال بارگذاری...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!currentUserId) {
     return (
