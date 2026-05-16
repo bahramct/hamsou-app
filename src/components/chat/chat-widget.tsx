@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, X, Send, Loader2, Trash2, Sparkles, Minimize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Trash2, Sparkles, Minimize2, BarChart3, Target, Lightbulb, FileText, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Message {
@@ -15,9 +15,50 @@ interface Message {
   timestamp: Date;
 }
 
+interface QuickPrompt {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  message: string;
+}
+
 interface ChatWidgetProps {
   userId: string;
 }
+
+// لیست Quick Prompts
+const quickPrompts: QuickPrompt[] = [
+  {
+    id: 'weekly-analysis',
+    label: 'تحلیل هفته',
+    icon: <BarChart3 className="h-3.5 w-3.5" />,
+    message: 'لطفاً تحلیلی از پیشرفت من در هفته گذشته بده، شامل نقاط قوت و ضعف.',
+  },
+  {
+    id: 'goal-suggestion',
+    label: 'پیشنهاد هدف',
+    icon: <Target className="h-3.5 w-3.5" />,
+    message: 'بر اساس سابقه من، چند هدف مناسب و قابل‌دستیابی پیشنهاد بده.',
+  },
+  {
+    id: 'improvement-guide',
+    label: 'راهنمایی بهبود',
+    icon: <Lightbulb className="h-3.5 w-3.5" />,
+    message: 'چطور می‌تونم بهتر شدم و تعهدم رو بهتر انجام بدم؟',
+  },
+  {
+    id: 'today-summary',
+    label: 'خلاصه امروز',
+    icon: <FileText className="h-3.5 w-3.5" />,
+    message: 'خلاصه‌ای از تعهدات امروز و وضعیت اون‌ها بهم بده.',
+  },
+  {
+    id: 'motivation',
+    label: 'انگیزه',
+    icon: <Star className="h-3.5 w-3.5" />,
+    message: 'یه جمله انگیزشی برام بگو و راهکارهایی برای حفظ انگیزه.',
+  },
+];
 
 export function ChatWidget({ userId }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,18 +115,22 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+  const handleSendMessage = async (messageContent?: string) => {
+    const messageToSend = messageContent || inputValue;
+
+    if (!messageToSend.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue,
+      content: messageToSend,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
+    if (!messageContent) {
+      setInputValue('');
+    }
     setIsLoading(true);
 
     try {
@@ -313,6 +358,28 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                     )}
                   </div>
                 </ScrollArea>
+              )}
+
+              {/* Quick Prompts - فقط در شروع چت نمایش داده می‌شود */}
+              {messages.length === 0 && !isLoading && (
+                <div className="px-3 py-2 border-b bg-muted/30" dir="rtl">
+                  <p className="text-xs text-muted-foreground mb-2 font-medium">
+                    سوالات پرکاربرد:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {quickPrompts.map((prompt) => (
+                      <button
+                        key={prompt.id}
+                        onClick={() => handleSendMessage(prompt.message)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background border border-border hover:border-primary/50 hover:bg-primary/5 rounded-full text-xs font-medium transition-all duration-200 text-foreground hover:text-primary"
+                        disabled={isLoading}
+                      >
+                        {prompt.icon}
+                        <span>{prompt.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Input Area - همیشه نمایش داده می‌شود */}

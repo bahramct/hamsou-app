@@ -56,3 +56,38 @@ Next Steps:
 - Consider adding chat widget to other pages (analytics, community, etc.)
 - Implement chat export feature
 - Add chat type selector (general, analytics, planning, etc.)
+
+---
+
+## Task ID: 5
+Agent: Z.ai Code
+Task: Add Quick Prompts Feature to Chat Widget
+
+Work Log:
+- Added QuickPrompts interface with id, label, icon, and message fields
+- Created quickPrompts array with 5 quick prompts:
+  - 📊 تحلیل هفته - "لطفاً تحلیلی از پیشرفت من در هفته گذشته بده، شامل نقاط قوت و ضعف."
+  - 🎯 پیشنهاد هدف - "بر اساس سابقه من، چند هدف مناسب و قابل‌دستیابی پیشنهاد بده."
+  - 💡 راهنمایی بهبود - "چطور می‌تونم بهتر شدم و تعهدم رو بهتر انجام بدم؟"
+  - 📝 خلاصه امروز - "خلاصه‌ای از تعهدات امروز و وضعیت اون‌ها بهم بده."
+  - ⭐ انگیزه - "یه جمله انگیزشی برام بگو و راهکارهایی برای حفظ انگیزه."
+- Modified handleSendMessage to accept optional messageContent parameter
+- Added Quick Prompts UI section:
+  - Displays only at the start of chat (when messages.length === 0)
+  - Pill-style buttons with icons and labels
+  - Hover effects with primary color
+  - RTL support
+  - Disabled state during loading
+- Imported additional icons: BarChart3, Target, Lightbulb, FileText, Star
+- Ran `bun run lint` - no errors
+
+Stage Summary:
+- Successfully implemented Quick Prompts feature for faster and easier AI interactions
+- Users can now quickly ask common questions with a single click
+- Quick prompts appear at the beginning of each chat session
+- Clean, modern chip-style UI with proper RTL support
+- Seamless integration with existing chat functionality
+- No breaking changes to existing features
+
+Files Modified:
+- `src/components/chat/chat-widget.tsx` - Added Quick Prompts feature
