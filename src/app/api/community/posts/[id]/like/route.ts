@@ -50,7 +50,6 @@ export async function POST(
     });
 
     // بروزرسانی تعداد لایک‌ها
-    const freshDb = getFreshDb();
     await freshDb.post.update({
       where: { id: postId },
       data: {
@@ -81,6 +80,7 @@ export async function DELETE(
   try {
     const user = await verifyToken(request);
     const postId = params.id;
+    const freshDb = getFreshDb();
 
     // حذف لایک
     const deletedLike = await db.like.deleteMany({
@@ -98,7 +98,6 @@ export async function DELETE(
     }
 
     // بروزرسانی تعداد لایک‌ها
-    const freshDb = getFreshDb();
     await freshDb.post.update({
       where: { id: postId },
       data: {
