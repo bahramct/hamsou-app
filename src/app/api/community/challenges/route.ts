@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
         endDate: new Date(validatedData.endDate),
         targetValue: validatedData.targetValue,
         participantLimit: validatedData.participantLimit,
+        participantCount: 1, // ایجاد‌کننده به صورت خودکار عضو می‌شود
       },
       include: {
         creator: {
@@ -147,11 +148,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // خود به خود کاربر را به چالش اضافه می‌کنیم (در حال حاضر در frontend انجام می‌شود)
-    // اما برای پاسخ یکسان با لیست، فیلدهای اضافی را اضافه می‌کنیم
+    // ایجاد‌کننده به صورت خودکار به چالش اضافه می‌شود
+    await freshDb.challengeParticipant.create({
+      data: {
+        challengeId: challenge.id,
+        userId: user.userId,
+      },
+    });
+
     const responseChallenge = {
       ...challenge,
-      isJoined: false, // در frontend بلافاصله بعد از ایجاد عضو می‌شود
+      isJoined: true, // ایجاد‌کننده به صورت خودکار عضو شده است
       userProgress: 0,
       isCompleted: false,
     };

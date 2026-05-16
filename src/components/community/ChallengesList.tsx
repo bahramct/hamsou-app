@@ -1,12 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trophy, Users, Clock, Target, Plus, Check } from 'lucide-react';
+import { Trophy, Users, Clock, Target, Plus, Check, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,7 +33,6 @@ import { faIR } from 'date-fns/locale';
 import { getToken } from '@/lib/api';
 import { formatPersianNumber, toPersianText } from '@/lib/utils/persian';
 import { PersianDatePicker } from '@/components/ui/persian-date-picker';
-import { toJalaali } from 'jalaali-js';
 
 interface ChallengesListProps {
   currentUserId: string;
@@ -156,6 +166,32 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
     }
   };
 
+  const handleDeleteChallenge = async (challengeId: string) => {
+    try {
+      const token = getToken();
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`/api/community/challenges/${challengeId}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (response.ok) {
+        // حذف چالش از لیست
+        setChallenges(challenges.filter((challenge) => challenge.id !== challengeId));
+      } else {
+        const result = await response.json();
+        alert(result.error || 'خطا در حذف چالش');
+      }
+    } catch (error) {
+      console.error('Error deleting challenge:', error);
+      alert('خطا در حذف چالش');
+    }
+  };
+
   const handleCreateChallenge = async () => {
     // محاسبه تعداد روز از تاریخ‌ها
     const daysBetween = calculateDaysBetween(newChallenge.startDate, newChallenge.endDate);
@@ -179,7 +215,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      // ایجاد چالش
+      // ایجاد چالش (backend به صورت خودکار ایجاد‌کننده را عضو می‌کند)
       const response = await fetch('/api/community/challenges', {
         method: 'POST',
         headers,
@@ -193,11 +229,8 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
         const result = await response.json();
         const createdChallenge = result.data;
 
-        // خود به خود به چالش پیوسته شود
-        await fetch(`/api/community/challenges/${createdChallenge.id}/join`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // اضافه کردن چالش جدید به لیست با وضعیت صحیح
+        setChallenges([createdChallenge, ...challenges]);
 
         setShowCreateDialog(false);
         setNewChallenge({
@@ -209,7 +242,6 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
           endDate: '',
           targetValue: '',
         });
-        fetchChallenges();
       } else {
         const result = await response.json();
         alert(result.error || 'خطا در ایجاد چالش');
@@ -491,7 +523,45 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                       )}
                     </span>
                   </div>
-                  {challenge.isJoined ? (
+
+                  {/* اگر کاربر ایجاد‌کننده چالش است */}
+                  {challenge.creator.id === currentUserId ? (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                          <Trash2 className="h-4 w-4 ml-2" />
+                          حذف چالش
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            آیا مطمئن هستید که می‌خواهید این چالش را حذف کنید؟
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {challenge._count.participants > 1 ? (
+                              <div className="space-y-2">
+                                <p>این چالش دارای {formatPersianNumber(challenge._count.participants)} شرکت‌کننده است.</p>
+                                <p className="text-destructive font-medium">
+                                  با حذف این چالش، آن از پنل همه شرکت‌کنندگان دیگر نیز حذف خواهد شد.
+                                </p>
+                                <p>این عملیات قابل بازگشت نیست.</p>
+                              </div>
+                            ) : (
+                              <p>این عملیات قابل بازگشت نیست.</p>
+                            )}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>انصراف</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteChallenge(challenge.id)}>
+                            بله، حذف کن
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : challenge.isJoined ? (
+                    /* اگر کاربر عضو شده است */
                     <Button
                       variant="outline"
                       onClick={() => handleLeaveChallenge(challenge.id)}
@@ -500,6 +570,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                       شرکت‌کرده
                     </Button>
                   ) : (
+                    /* اگر کاربر هنوز عضو نشده است */
                     <Button
                       onClick={() => handleJoinChallenge(challenge.id)}
                     >
