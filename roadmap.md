@@ -863,8 +863,9 @@ model Notification {
     * Like: userId → likerId
     * Comment: userId → authorId
     * اضافه کردن فیلدهای type و category برای مدل Challenge
-  - اسکریپت پاکسازی داده‌های تستی قدیمی (cleanup-old-test-users.ts)
+  - پاکسازی داده‌های تستی قدیمی از دیتابیس
   - ابزارهای توسعه در DevToolsPanel برای مدیریت داده‌های تستی
+  - بهبود مدیریت دکمه‌های ایجاد/حذف داده‌های تستی
 - پروژه به 58% پیشرفت رسیده
 
 **تغییرات نسخه 1.4.0:**
