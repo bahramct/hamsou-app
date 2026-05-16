@@ -13,7 +13,22 @@ export { ZAIProvider } from './providers/zai-provider';
 
 // Client & Service
 export { aiClient, AIClient } from './ai-client';
+export { aiService, AIService } from './ai-service';
+
+// System Prompts
+export { SYSTEM_PROMPTS, getSystemPrompt, addContextToPrompt, addUserNameToPrompt } from './system-prompts';
+
+// Context Builders
+export {
+  buildChatContext,
+  buildAnalyticsContext,
+  buildCommitmentContext,
+  buildSentimentContext,
+  buildWeeklyReportContext,
+  buildMonthlyReportContext,
+} from './context-builders';
 
 // Re-export for convenience
 import { aiClient } from './ai-client';
-export { aiClient };
+import { aiService } from './ai-service';
+export { aiClient, aiService };
