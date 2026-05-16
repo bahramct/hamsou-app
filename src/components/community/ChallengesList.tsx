@@ -499,7 +499,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        <span>{formatPersianNumber(challenge._count.participants)} شرکت‌کننده</span>
+                        <span>{formatPersianNumber(challenge._count?.participants || 0)} شرکت‌کننده</span>
                       </div>
                       {challenge.targetValue && (
                         <div className="flex items-center gap-1">
@@ -539,7 +539,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                             آیا مطمئن هستید که می‌خواهید این چالش را حذف کنید؟
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            {challenge._count.participants > 1 ? (
+                            {challenge._count?.participants && challenge._count.participants > 1 ? (
                               <div className="space-y-2">
                                 <p>این چالش دارای {formatPersianNumber(challenge._count.participants)} شرکت‌کننده است.</p>
                                 <div className="text-destructive font-medium">
