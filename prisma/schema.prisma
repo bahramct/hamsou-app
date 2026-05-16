@@ -37,6 +37,7 @@ model User {
   settings       UserSettings?
   notifications  Notification[]
   sharedReports  SharedReport[]
+  sharedAchievements SharedAchievement[]
 
   @@map("users")
 }
@@ -218,4 +219,37 @@ model SharedReport {
   @@index([userId, isActive])
   @@index([shareToken])
   @@map("shared_reports")
+}
+
+// دستاوردهای اشتراک‌گذاری شده
+model SharedAchievement {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // اطلاعات اشتراک
+  shareToken  String   @unique // توکن یکتا برای اشتراک‌گذاری
+  achievementType String // commitment, streak, plan_completed
+
+  // داده‌های دستاورد (JSON)
+  data        String   // داده‌های دستاورد به صورت JSON
+
+  // متادیتای نمایشی
+  title       String?  // عنوان نمایشی
+  description String?  // توضیحات
+
+  // تنظیمات اشتراک
+  expiresAt   DateTime? // زمان انقضا
+  views       Int      @default(0) // تعداد بازدیدها
+  maxViews    Int?     // حداکثر تعداد بازدید
+
+  // وضعیت
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, isActive])
+  @@index([shareToken])
+  @@map("shared_achievements")
 }

@@ -7,9 +7,10 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Home, Save, CheckCircle2, Camera, Calendar, Target, Award, User } from 'lucide-react';
+import { Home, Save, CheckCircle2, Camera, Calendar, Target, Award, User, Share2 } from 'lucide-react';
 import { authApiGet, authApiPatch, isAuthenticated } from '@/lib/api';
 import { toPersianNumber } from '@/lib/utils/persian';
+import { ShareButton } from '@/components/share/share-button';
 
 interface UserProfile {
   id: string;
@@ -240,7 +241,25 @@ export default function ProfilePage() {
 
         {/* Statistics */}
         <Card className="p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">آمار کلی</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">آمار کلی</h2>
+            <ShareButton
+              achievementType="streak"
+              data={{
+                streak: stats?.streak || 0,
+                totalCommitments: stats?.totalCommitments || 0,
+                completedCommitments: stats?.completedCommitments || 0,
+                activePlans: stats?.activePlans || 0,
+              }}
+              title={`${toPersianNumber(stats?.streak || 0)} روز متوالی`}
+              description="پیشرفت من در همسو"
+            >
+              <Button variant="outline" size="sm">
+                <Share2 className="w-4 h-4 ml-2" />
+                اشتراک‌گذاری
+              </Button>
+            </ShareButton>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <Target className="w-6 h-6 text-purple-600 mx-auto mb-2" />
