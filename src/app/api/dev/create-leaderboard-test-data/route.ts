@@ -127,10 +127,11 @@ export async function POST(request: NextRequest) {
     ];
 
     const allUsers = [currentUser, ...createdUsers];
-    const postsPerUser = Math.ceil(samplePosts.length / allUsers.length);
+    const postsPerUser = Math.ceil(samplePosts.length / createdUsers.length);
 
-    for (let userIndex = 0; userIndex < allUsers.length; userIndex++) {
-      const user = allUsers[userIndex];
+    // فقط برای کاربران تستی پست بساز، نه برای کاربر جاری
+    for (let userIndex = 0; userIndex < createdUsers.length; userIndex++) {
+      const user = createdUsers[userIndex];
       const startIndex = userIndex * postsPerUser;
       const userPosts = samplePosts.slice(startIndex, startIndex + postsPerUser);
 
