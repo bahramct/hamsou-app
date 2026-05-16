@@ -48,31 +48,48 @@ export async function GET(request: NextRequest) {
         likes: {
           select: { userId: true },
         },
-        _count: {
-          select: {
-            likes: true,
-            comments: true,
-          },
-        },
       },
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
     });
 
-    // افزودن اطلاعات لایک کاربر جاری
-    const postsWithLikeStatus = posts.map(post => ({
-      ...post,
-      isLiked: post.likes.some(like => like.userId === user.userId),
-      likes: undefined, // حذف آرایه لایک‌ها
-    }));
+    // دریافت تعداد لایک‌ها و کامنت‌ها برای هر پست
+    const postsWithCounts = await Promise.all(
+      posts.map(async (post) => {
+        const [likesCount, commentsCount] = await Promise.all([
+          db.like.count({ where: { postId: post.id } }),
+          db.comment.count({ where: { postId: post.id } }),
+        ]);
+
+        return {
+          ...post,
+          isLiked: post.likes.some(like => like.userId === user.userId),
+          _count: {
+            likes: likesCount,
+            comments: commentsCount,
+          },
+          likes: undefined, // حذف آرایه لایک‌ها
+        };
+      })
+    );
 
     // دریافت تعداد کل
-    const total = await db.post.count({ where });
+    const total = await freshDb.post.count({ where });
+
+    // لاگ برای دیباگ
+    console.log('Feed API Response:', JSON.stringify({
+      success: true,
+      data: postsWithCounts.map(p => ({
+        id: p.id,
+        isLiked: p.isLiked,
+        _count: p._count,
+      })),
+    }, null, 2));
 
     return NextResponse.json({
       success: true,
-      data: postsWithLikeStatus,
+      data: postsWithCounts,
       pagination: {
         page,
         limit,
