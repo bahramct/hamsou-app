@@ -7,6 +7,16 @@ export async function GET(request: NextRequest) {
   try {
     const user = await verifyToken(request);
 
+    if (!user) {
+      console.error('Users API: No valid token found');
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    console.log('Users API: Fetching users for', { userId: user.userId, phone: user.phone });
+
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get('search') || '';
 
@@ -35,6 +45,8 @@ export async function GET(request: NextRequest) {
         name: 'asc',
       },
     });
+
+    console.log(`Users API: Found ${users.length} users (excluding current user)`);
 
     // بررسی وضعیت فالووینگ برای هر کاربر
     const usersWithFollowStatus = await Promise.all(
