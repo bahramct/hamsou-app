@@ -66,6 +66,14 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  // دریافت تاریخ امروز به صورت ISO
+  const getTodayISO = (): string => {
+    const today = new Date();
+    // تنظیم ساعت به 00:00:00 برای مقایسه دقیق
+    today.setHours(0, 0, 0, 0);
+    return today.toISOString().split('T')[0];
+  };
+
   const fetchChallenges = async () => {
     setLoading(true);
     try {
@@ -193,6 +201,20 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
   };
 
   const handleCreateChallenge = async () => {
+    const today = getTodayISO();
+
+    // اعتبارسنجی تاریخ شروع
+    if (newChallenge.startDate < today) {
+      alert('تاریخ شروع نمی‌تواند قبل از امروز باشد');
+      return;
+    }
+
+    // اعتبارسنجی تاریخ پایان
+    if (newChallenge.endDate < newChallenge.startDate) {
+      alert('تاریخ پایان باید بعد از تاریخ شروع باشد');
+      return;
+    }
+
     // محاسبه تعداد روز از تاریخ‌ها
     const daysBetween = calculateDaysBetween(newChallenge.startDate, newChallenge.endDate);
 
@@ -368,6 +390,8 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                         }
                         placeholder="روز/ماه/سال"
                         required
+                        minDate={getTodayISO()}
+                        maxDate={newChallenge.endDate || undefined}
                       />
                       <PersianDatePicker
                         label="تاریخ پایان"
@@ -377,6 +401,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                         }
                         placeholder="روز/ماه/سال"
                         required
+                        minDate={newChallenge.startDate || getTodayISO()}
                       />
                     </div>
 

@@ -14,6 +14,8 @@ interface PersianDatePickerProps {
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
+  minDate?: string; // ISO date string - minimum selectable date
+  maxDate?: string; // ISO date string - maximum selectable date
 }
 
 const persianMonths = [
@@ -37,6 +39,8 @@ export function PersianDatePicker({
   onChange,
   placeholder = 'روز/ماه/سال',
   required = false,
+  minDate,
+  maxDate,
 }: PersianDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showYearSelector, setShowYearSelector] = useState(false);
@@ -111,6 +115,20 @@ export function PersianDatePicker({
     if (match) {
       const [, d, m, y] = match.map((v) => parseInt(v, 10));
       const isoDate = getGregorianFromJalaali(y, m, d);
+
+      // Check if the date is within valid range
+      if (minDate && isoDate < minDate) {
+        // Invalid date (before minDate)
+        onChange('');
+        return;
+      }
+
+      if (maxDate && isoDate > maxDate) {
+        // Invalid date (after maxDate)
+        onChange('');
+        return;
+      }
+
       onChange(isoDate);
     } else {
       onChange('');
@@ -134,6 +152,21 @@ export function PersianDatePicker({
     if (month < 6) return 31;
     if (month < 11) return 30;
     return isLeap(year) ? 30 : 29;
+  };
+
+  // Check if a date is selectable (within minDate and maxDate)
+  const isDateSelectable = (jy: number, jm: number, jd: number): boolean => {
+    const isoDate = getGregorianFromJalaali(jy, jm, jd);
+
+    if (minDate && isoDate < minDate) {
+      return false;
+    }
+
+    if (maxDate && isoDate > maxDate) {
+      return false;
+    }
+
+    return true;
   };
 
   // Get the starting day of the week for the month (0 = Saturday, 6 = Friday)
@@ -165,15 +198,20 @@ export function PersianDatePicker({
         jalaaliDate.jm === selectedMonth + 1 &&
         jalaaliDate.jd === day;
 
+      const isSelectable = isDateSelectable(selectedYear, selectedMonth + 1, day);
+
       days.push(
         <button
           key={day}
           type="button"
-          onClick={() => handleDateSelect(day)}
+          onClick={() => isSelectable && handleDateSelect(day)}
+          disabled={!isSelectable}
           className={`w-9 h-9 rounded-lg text-sm font-medium transition-colors
             ${isSelected
               ? 'bg-primary text-primary-foreground'
-              : 'hover:bg-muted'
+              : isSelectable
+              ? 'hover:bg-muted'
+              : 'text-muted-foreground/30 cursor-not-allowed'
             }`}
         >
           {toPersianNumber(day)}
