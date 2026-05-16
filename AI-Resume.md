@@ -21,30 +21,36 @@ https://github.com/bahramct/hamsou-app
 
 ### آخرین کامیت
 ```
-commit 43d78e2
-feat: complete phase 7.3 - Community Features
+commit 364bcf9
+🌟 فاز 13+: همسوگرام - شبکه اجتماعی همسویی رشد فردی (چشم‌انداز)
 
-- Add Community models to Prisma schema (Post, Like, Comment, Follow, Challenge, ChallengeParticipant)
-- Create API routes for community feed, posts, likes, comments, follow, challenges, leaderboard
-- Create UI Components: CommunityFeed, PostCard, Leaderboard, ChallengesList
-- Update roadmap.md and roadmap-progress.md
-- Version: 1.4.0
+- کانسپت اصلی: پیشرفت دیده می‌شه، نه جاهات
+- اینستاگرام: سفر، غذا، لباس | همسوگرام: تلاش، رشد، انضباط
+- فلسفه طراحی بر اساس رشد واقعی، نه زندگی ویترینی
+- تعریف فرمت‌های محتوا: Progress Snapshots, Reflection Stories, Achievement Reels
+- تعاملات اجتماعی: Cheer, Sync, Encouragement, Inspire, Goal Buddy
+- ویژگی‌های کشف: Discover Journeys, Trending Goals, Curated Feeds
+- ویژگی‌های Real-time: Focus Rooms, Live Progress, Real-time Challenges
+- گیمیفیکیشن پیشرفته: Level System, Badge Collections, Seasonal Events
+- حریم خصوصی و امنیت: Privacy Levels, Close Circle, Content Moderation
+- ابزارهای محتوا: Template Gallery, AI Caption Generator, Progress Timelapse
+- همکاری و شراکت: Joint Challenges, Accountability Partners, Mentorship
+- API های آینده برای همسوگرام
+- اهداف و ارزش‌ها: انگیزه واقعی، فرهنگ سالم، جلوگیری از مقایسه سمی
+- تمرکز بر کانسپت و فلسفه، نه کپی‌کردن تک‌تک فیچرهای اینستاگرام
+- به‌روزرسانی اولویت‌های بعدی در roadmap
+- Version: 1.4.1
 ```
 
 ### نسخه فعلی
-1.4.0-dev
+1.4.1
 
 ### پیشرفت کلی
-~58% (7.1 فاز از 12 فاز اصلی)
+~58% (7.1 فاز از 12 فاز اصلی + فاز 13+ به عنوان چشم‌انداز)
 
 ---
 
 ## 🔑 دسترسی‌های مهم
-
-### توکن گیت‌هاب
-```
-[احراز هویت از طریق GitHub CLI انجام می‌شود - توکن در اینجا ذخیره نمی‌شود]
-```
 
 ### ریپوزیتوری
 ```
@@ -54,6 +60,7 @@ https://github.com/bahramct/hamsou-app.git
 <div dir="rtl">
 
 ⚠️ **هشدار مهم**: قبل از هر commit و push به گیت‌هاب، حتماً از من بپرسید و اجازه بگیرید. هرگز بدون اجازه من، کدی را push نکنید.
+⚠️ **امنیت**: هیچ‌وقت توکن‌ها، API keys یا اطلاعات حساس را در کد یا فایل‌های پروژه ذخیره و commit نکنید.
 
 </div>
 
@@ -62,7 +69,7 @@ https://github.com/bahramct/hamsou-app.git
 ## 📂 فایل‌های کلیدی برای مطالعه
 
 ### 1. فایل‌های نقشه راه
-- **roadmap.md** - نقشه راه کامل پروژه با تمام فازها
+- **roadmap.md** - نقشه راه کامل پروژه با تمام فازها (شامل فاز 13+: همسوگرام)
 - **roadmap-progress.md** - وضعیت دقیق تکمیل هر فیچر
 
 ### 2. اسکیمای دیتابیس
@@ -76,7 +83,7 @@ https://github.com/bahramct/hamsou-app.git
 - **src/app/demo/page.tsx** - داشبورد اصلی
 
 ### 4. کامپوننت‌های مهم
-- **src/components/community/** - کامپوننت‌های جامعه (CommunityFeed, PostCard, Leaderboard, ChallengesList)
+- **src/components/community/** - کامپوننت‌های جامعه (CommunityFeed, PostCard, Leaderboard, ChallengesList, UsersList)
 - **src/components/analytics/** - کامپوننت‌های تحلیلی
 - **src/components/notifications/** - کامپوننت‌های نوتیفیکیشن
 - **src/components/ui/** - کامپوننت‌های shadcn/ui
@@ -100,11 +107,20 @@ https://github.com/bahramct/hamsou-app.git
 feat: description
 fix: description
 docs: update files
+refactor: description
+test: description
+chore: description
 ```
 
 </div>
 
-### 2. قوانین توسعه
+### 2. قوانین امنیت
+- **هیچ‌وقت توکن‌ها، API keys، رمزها یا اطلاعات حساس را در کد یا فایل‌های پروژه ذخیره نکنید**
+- از environment variables برای اطلاعات حساس استفاده کنید
+- فایل‌های حاوی secrets را به .gitignore اضافه کنید
+- هیچ‌وقت credentials را در commit ها push نکنید
+
+### 3. قوانین توسعه
 - همیشه از `write_file` tool برای نوشتن فایل‌ها استفاده کنید
 - از `read` tool برای خواندن فایل‌ها استفاده کنید
 - کد باید TypeScript باشد (نه JavaScript خالص)
@@ -114,7 +130,7 @@ docs: update files
 - همیشه responsive طراحی کنید
 - هیچ test code ننویسید مگر اینکه من درخواست کنم
 
-### 3. بعد از اتمام هر فیچر
+### 4. بعد از اتمام هر فیچر
 <div dir="rtl">
 
 - یک راهنمای تست UI کامل برای من بنویسید
@@ -124,7 +140,7 @@ docs: update files
 
 </div>
 
-### 4. قبل از شروع کار
+### 5. قبل از شروع کار
 - فایل `roadmap.md` را بخوانید تا بفهمید در چه مرحله‌ای هستیم
 - فایل `roadmap-progress.md` را بخوانید تا ببینید چه چیزهایی تکمیل شده
 - اگر کاربر بپرسد "کجاییم و چی مونده؟"، پاسخ باید بر اساس این دو فایل باشد
@@ -153,7 +169,13 @@ docs: update files
    - ✅ 7.1: پروفایل کاربری - کامل
    - ✅ 7.2: اشتراک‌گذاری دستاوردها - کامل
    - ✅ 7.3: جامعه کاربران (Community) - کامل
-   - ⏳ 7.4: سیستم دوستی و هم‌تیمی - شروع نشده
+     - فید عمومی دستاوردها
+     - لایک و کامنت
+     - فالو/آنفالو کاربران
+     - لیست کاربران با جستجو
+     - چالش‌های گروهی
+     - لیدربورد با توضیح امتیازدهی
+   - ⏳ 7.4: سیستم دوستی و هم‌تیمی - شروع نشده (حیاتی!)
    - ⏳ 7.5: API های باقی‌مانده - شروع نشده
 
 ### فازهای شروع نشده
@@ -162,6 +184,12 @@ docs: update files
 10. ⏳ فاز 10: دیپلوی و Production (0%)
 11. ⏳ فاز 11: اپلیکیشن موبایل (0%)
 12. ⏳ فاز 12: پنل مدیریت ادمین (0%)
+
+### فاز چشم‌انداز (Visionary)
+13. 🌟 فاز 13+: همسوگرام - شبکه اجتماعی همسویی رشد فردی
+   - کانسپت: پیشرفت دیده می‌شه، نه جاهات
+   - اینستاگرام: سفر، غذا، لباس | همسوگرام: تلاش، رشد، انضباط
+   - پس از تکمیل فازهای 1-12 با جمع‌آوری بازخورد از کاربران
 
 ---
 
@@ -208,7 +236,7 @@ tail -100 /home/z/my-project/dev.log
 
 ## 📝 ویژگی‌های اخیراً اضافه شده
 
-### فاز 7.3 - جامعه کاربران (Community)
+### فاز 7.3 - جامعه کاربران (Community) - نسخه 1.4.1
 **تاریخ**: 2025-01-30
 
 #### مدل‌های دیتابیس اضافه شده
@@ -225,39 +253,52 @@ tail -100 /home/z/my-project/dev.log
 - `POST/DELETE /api/community/posts/[id]/like` - لایک/آنلایک
 - `POST /api/community/posts/[id]/comments` - ایجاد کامنت
 - `DELETE /api/community/comments/[id]` - حذف کامنت
-- `POST/DELETE/GET /api/community/follow` - فالو/آنفالو
+- `GET /api/community/users` - لیست کاربران با جستجو
+- `POST /api/community/users/[id]/follow` - فالو کردن کاربر
+- `DELETE /api/community/users/[id]/follow` - آنفالو کردن کاربر
+- `GET/POST /api/community/follow` - فالو/آنفالو (قدیمی)
 - `GET/POST /api/community/challenges` - لیست و ایجاد چالش
 - `POST/DELETE /api/community/challenges/[id]/join` - پیوستن/خروج
 - `GET /api/community/leaderboard` - لیدربورد
+- `POST /api/dev/create-leaderboard-test-data` - ایجاد داده‌های تستی
+- `DELETE /api/dev/clear-leaderboard-test-data` - حذف داده‌های تستی
+- `GET /api/dev/check-leaderboard-test-data` - بررسی داده‌های تستی
 
 #### کامپوننت‌های UI اضافه شده
 - `CommunityFeed` - فید اصلی با 3 تب (فید، چالش‌ها، لیدربورد)
 - `PostCard` - کارت پست با لایک، کامنت، اشتراک‌گذاری
 - `Leaderboard` - لیدربورد هفتگی/ماهانه/همیشه
 - `ChallengesList` - لیست چالش‌ها با قابلیت پیوستن
+- `UsersList` - لیست کاربران با جستجو و فالو/آنفالو
 
-#### صفحات اضافه شده
-- `/community` - صفحه جامعه
-- دکمه Users در هدر `/demo` برای دسترسی به جامعه
+#### اصلاحات Schema
+- `Challenge`: userId → creatorId, target → targetValue
+- `Like`: userId → likerId
+- `Comment`: userId → authorId
+- اضافه کردن فیلدهای type و category برای مدل Challenge
 
 ---
 
 ## 🚀 مسیر توسعه بعدی
 
-### اولویت 1: تکمیل فاز 7 (قابلیت‌های اجتماعی)
+### اولویت 1: تکمیل فاز 7 (قابلیت‌های اجتماعی) - قبل از فاز 8
 <div dir="rtl">
 
 اگر کاربر بخواهد ادامه دهیم:
 
-1. **فاز 7.4: سیستم دوستی و هم‌تیمی**
+1. **فاز 7.4: سیستم دوستی و هم‌تیمی** (حیاتی!)
    - ارسال درخواست دوستی
    - مشاهده پروفایل دوستان
    - اشتراک‌گذاری برنامه‌ها با دوستان
-   - Accountability Partners (شریک پاسخ‌گویی)
+   - **Accountability Partners** (شریک پاسخ‌گویی) - مهم‌ترین فیچر!
    - یادآوری متقابل
 
 2. **فاز 7.5: تکمیل API های باقی‌مانده**
    - GET /api/friends - مدیریت دوستان
+
+3. **تنظیمات حریم خصوصی (7.1.5)**
+   - Private/Public profile
+   - کنترل دسترسی به دستاوردها
 
 </div>
 
@@ -274,12 +315,15 @@ tail -100 /home/z/my-project/dev.log
 - پیشنهاد هوشمند تعهدات
 - تحلیل احساسی
 
+### چشم‌انداز بلندمدت
+- فاز 13+: همسوگرام - شبکه اجتماعی پیشرفته همسویی رشد فردی
+
 ---
 
 ## 📚 منابع برای مطالعه
 
 ### فایل‌های مستندات
-- `roadmap.md` - نقشه راه کامل
+- `roadmap.md` - نقشه راه کامل (شامل فاز 13+ همسوگرام)
 - `roadmap-progress.md` - پیشرفت دقیق
 - `README.md` - معرفی پروژه (برای گیت‌هاب)
 - `agent-guidelines.md` - قوانین کار
@@ -407,8 +451,8 @@ const result = await authApiPost('/api/commitments', { text: '...' });
 این فایل تمام اطلاعاتی است که برای ادامه توسعه نیاز دارید:
 
 1. اطلاعات کلی پروژه
-2. لینک گیت‌هاب و توکن
-3. قوانین مهم (به خصوص قاعده "بدون اجازه push نکنید")
+2. لینک گیت‌هاب
+3. قوانین مهم (به خصوص قاعده "بدون اجازه push نکنید" و "هیچ‌وقت توکن ذخیره نکنید")
 4. وضعیت فعلی پروژه
 5. فایل‌های کلیدی برای مطالعه
 6. ویژگی‌های اخیراً اضافه شده
@@ -425,7 +469,7 @@ const result = await authApiPost('/api/commitments', { text: '...' });
 <div dir="rtl">
 
 **آخرین بروزرسانی**: 2025-01-30
-**نسخه**: 1.4.0
-**توسعه‌دهنده**: Z.ai Code (با راهنمایی Bahram Chaboki)
+**نسخه**: 1.4.1
+**توسعه‌دهنده**: Z.ai Code (با راهنمایی Bahram Barazandeh - بهرام برازنده)
 
 </div>
