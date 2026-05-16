@@ -208,13 +208,112 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ایجاد چالش‌های نمونه برای کاربران تستی
+    const sampleChallenges = [
+      {
+        title: 'چالش ۳۰ روز ورزش',
+        description: 'هر روز حداقل ۳۰ دقیقه ورزش کن!',
+        target: 'ورزش روزانه',
+      },
+      {
+        title: 'چالش خواندن روزانه',
+        description: 'هر روز حداقل ۲۰ صفحه کتاب بخوان',
+        target: 'خواندن کتاب',
+      },
+      {
+        title: 'چالش مدیتیشن',
+        description: 'هر روز ۱۰ دقیقه مدیتیشن کن',
+        target: 'مدیتیشن روزانه',
+      },
+    ];
+
+    const challengesCreated = [];
+    for (let i = 0; i < 2; i++) { // 2 کاربر اول چالش داشته باشن
+      const user = createdUsers[i];
+      const challenge = sampleChallenges[i];
+
+      // محاسبه تاریخ‌های چالش
+      const today = new Date();
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - 5); // 5 روز پیش شروع شده
+
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + 25); // 30 روز چالش
+
+      const newChallenge = await freshDb.challenge.create({
+        data: {
+          title: challenge.title,
+          description: challenge.description,
+          target: challenge.target,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          duration: 30,
+          userId: user.id,
+        },
+      });
+
+      // ایجادکننده چالش خودش رو عضو کنه
+      await freshDb.challengeParticipant.create({
+        data: {
+          challengeId: newChallenge.id,
+          userId: user.id,
+        },
+      });
+
+      // بقیه کاربران تستی هم عضو چالش بشن
+      for (const otherUser of createdUsers) {
+        if (otherUser.id !== user.id) {
+          const existingParticipant = await db.challengeParticipant.findFirst({
+            where: {
+              challengeId: newChallenge.id,
+              userId: otherUser.id,
+            },
+          });
+
+          if (!existingParticipant) {
+            await freshDb.challengeParticipant.create({
+              data: {
+                challengeId: newChallenge.id,
+                userId: otherUser.id,
+              },
+            });
+          }
+        }
+      }
+
+      // کاربر جاری هم عضو چالش بشه
+      const existingCurrentParticipant = await db.challengeParticipant.findFirst({
+        where: {
+          challengeId: newChallenge.id,
+          userId: currentUser.id,
+        },
+      });
+
+      if (!existingCurrentParticipant) {
+        await freshDb.challengeParticipant.create({
+          data: {
+            challengeId: newChallenge.id,
+            userId: currentUser.id,
+          },
+        });
+      }
+
+      challengesCreated.push({
+        title: newChallenge.title,
+        createdBy: user.name,
+        participantsCount: createdUsers.length + 1, // +1 for current user
+      });
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'داده‌های تستی لیدربورد ایجاد شد',
+      message: `داده‌های تستی لیدربورد ایجاد شد: ${allUsers.length} کاربر، ${allPosts.length} پست، ${challengesCreated.length} چالش`,
       stats: {
         usersCreated: createdUsers.length,
         totalUsers: allUsers.length,
         totalPosts: allPosts.length,
+        challengesCreated: challengesCreated.length,
+        challenges: challengesCreated,
       },
     });
   } catch (error: any) {

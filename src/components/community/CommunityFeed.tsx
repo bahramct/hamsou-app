@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { PostCard } from './PostCard';
 import { Leaderboard } from './Leaderboard';
 import { ChallengesList } from './ChallengesList';
+import { UsersList } from './UsersList';
 import { getToken } from '@/lib/api';
 
 export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
@@ -261,7 +262,7 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
 
       {/* تب‌ها */}
       <Tabs defaultValue="feed" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="leaderboard">
             <Trophy className="h-4 w-4 mr-2" />
             لیدربورد
@@ -269,6 +270,10 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
           <TabsTrigger value="challenges">
             <Trophy className="h-4 w-4 mr-2" />
             چالش‌ها
+          </TabsTrigger>
+          <TabsTrigger value="users">
+            <Users className="h-4 w-4 mr-2" />
+            کاربران
           </TabsTrigger>
           <TabsTrigger value="feed">
             <Users className="h-4 w-4 mr-2" />
@@ -357,6 +362,11 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
         {/* چالش‌ها */}
         <TabsContent value="challenges">
           <ChallengesList currentUserId={currentUserId} />
+        </TabsContent>
+
+        {/* کاربران */}
+        <TabsContent value="users">
+          <UsersList currentUserId={currentUserId} />
         </TabsContent>
 
         {/* لیدربورد */}

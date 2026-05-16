@@ -25,11 +25,53 @@ export async function DELETE(request: NextRequest) {
           likes: 0,
           comments: 0,
           follows: 0,
+          challenges: 0,
+          challengeParticipants: 0,
         },
       });
     }
 
     const testUserIds = testUsers.map((u) => u.id);
+
+    // شمارش و حذف شرکت‌کنندگان چالش‌های کاربران تستی
+    const challengeParticipantsAsUser = await db.challengeParticipant.findMany({
+      where: {
+        userId: { in: testUserIds },
+      },
+    });
+    const challengeParticipantsAsUserCount = challengeParticipantsAsUser.length;
+    for (const cp of challengeParticipantsAsUser) {
+      await freshDb.challengeParticipant.delete({
+        where: { id: cp.id },
+      });
+    }
+
+    // شمارش و حذف چالش‌های کاربران تستی
+    const challenges = await db.challenge.findMany({
+      where: {
+        userId: { in: testUserIds },
+      },
+    });
+    const challengesCount = challenges.length;
+
+    // حذف شرکت‌کنندگان چالش‌های تستی
+    for (const challenge of challenges) {
+      const participants = await db.challengeParticipant.findMany({
+        where: { challengeId: challenge.id },
+      });
+      for (const p of participants) {
+        await freshDb.challengeParticipant.delete({
+          where: { id: p.id },
+        });
+      }
+    }
+
+    // حذف خود چالش‌ها
+    for (const challenge of challenges) {
+      await freshDb.challenge.delete({
+        where: { id: challenge.id },
+      });
+    }
 
     // شمارش و حذف کامنت‌های کاربران تستی
     const comments = await db.comment.findMany({
@@ -101,13 +143,15 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `${usersCount} کاربر تستی، ${postsCount} پست، ${likesCount} لایک، ${commentsCount} کامنت و ${followsCount} فالووینگ حذف شد`,
+      message: `${usersCount} کاربر تستی، ${postsCount} پست، ${likesCount} لایک، ${commentsCount} کامنت، ${followsCount} فالووینگ و ${challengesCount} چالش حذف شد`,
       deleted: {
         users: usersCount,
         posts: postsCount,
         likes: likesCount,
         comments: commentsCount,
         follows: followsCount,
+        challenges: challengesCount,
+        challengeParticipants: challengeParticipantsAsUserCount,
       },
     });
   } catch (error: any) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trophy, Medal, Crown, Award } from 'lucide-react';
+import { Trophy, Medal, Crown, Award, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -89,6 +89,27 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
             </div>
           </div>
         </CardHeader>
+      </Card>
+
+      {/* توضیح نحوه محاسبه امتیاز */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-900 mb-2">نحوه محاسبه امتیاز:</p>
+              <div className="text-blue-800 space-y-1">
+                <p>• هر پست: <strong>۱۰ امتیاز</strong></p>
+                <p>• هر لایک دریافتی: <strong>۲ امتیاز</strong></p>
+                <p>• هر کامنت دریافتی: <strong>۳ امتیاز</strong></p>
+                <p>• هر فالوور: <strong>۱ امتیاز</strong></p>
+                <p className="text-xs text-blue-600 mt-2">
+                  * در حالت هفتگی و ماهانه، فقط فعالیت‌های آن بازه زمانی محاسبه می‌شود
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
       {/* لیست کاربران برتر */}
