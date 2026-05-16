@@ -39,8 +39,23 @@ export function PersianDatePicker({
   required = false,
 }: PersianDatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [showYearSelector, setShowYearSelector] = useState(false);
+
+  // Convert current date to Jalaali for initial state
+  const getCurrentJalaali = () => {
+    const now = new Date();
+    return toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  };
+
+  const currentJalaali = getCurrentJalaali();
+  const [selectedYear, setSelectedYear] = useState(currentJalaali.jy);
+  const [selectedMonth, setSelectedMonth] = useState(currentJalaali.jm - 1); // 0-indexed for array
+
+  // Generate year options (current year ± 10)
+  const yearOptions = [];
+  for (let i = currentJalaali.jy - 5; i <= currentJalaali.jy + 5; i++) {
+    yearOptions.push(i);
+  }
 
   // Convert ISO date to Persian date
   const getJalaaliFromDate = (dateStr: string) => {
@@ -61,6 +76,26 @@ export function PersianDatePicker({
   };
 
   const jalaaliDate = getJalaaliFromDate(value);
+
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev') {
+      setSelectedMonth((prev) => {
+        if (prev === 0) {
+          setSelectedYear((y) => y - 1);
+          return 11;
+        }
+        return prev - 1;
+      });
+    } else {
+      setSelectedMonth((prev) => {
+        if (prev === 11) {
+          setSelectedYear((y) => y + 1);
+          return 0;
+        }
+        return prev + 1;
+      });
+    }
+  };
 
   const handleDateSelect = (day: number) => {
     const isoDate = getGregorianFromJalaali(selectedYear, selectedMonth + 1, day);
@@ -101,10 +136,28 @@ export function PersianDatePicker({
     return isLeap(year) ? 30 : 29;
   };
 
+  // Get the starting day of the week for the month (0 = Saturday, 6 = Friday)
+  const getMonthStartDay = (year: number, month: number) => {
+    // Convert Jalaali month start to Gregorian
+    const gregorian = toGregorian(year, month + 1, 1);
+    const date = new Date(gregorian.gy, gregorian.gm - 1, gregorian.gd);
+    // getDay() returns 0 for Sunday, 1 for Monday, etc.
+    // We need 0 for Saturday, 6 for Friday
+    const day = date.getDay();
+    return (day + 1) % 7; // Convert to 0=Saturday, 6=Friday
+  };
+
   const renderCalendar = () => {
-    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
+    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth + 1);
+    const startDay = getMonthStartDay(selectedYear, selectedMonth);
     const days = [];
 
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startDay; i++) {
+      days.push(<div key={`empty-${i}`} className="w-9 h-9" />);
+    }
+
+    // Add days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const isSelected =
         jalaaliDate &&
@@ -168,11 +221,14 @@ export function PersianDatePicker({
               type="button"
               variant="ghost"
               size="icon"
-              onClick={() => setSelectedMonth((prev) => (prev > 0 ? prev - 1 : 11))}
+              onClick={() => handleMonthChange('prev')}
             >
               {'<'}
             </Button>
-            <div className="text-center">
+            <div
+              className="text-center cursor-pointer hover:underline"
+              onClick={() => setShowYearSelector(!showYearSelector)}
+            >
               <div className="font-semibold text-sm">
                 {persianMonths[selectedMonth]} {toPersianNumber(selectedYear)}
               </div>
@@ -181,11 +237,36 @@ export function PersianDatePicker({
               type="button"
               variant="ghost"
               size="icon"
-              onClick={() => setSelectedMonth((prev) => (prev < 11 ? prev + 1 : 0))}
+              onClick={() => handleMonthChange('next')}
             >
               {'>'}
             </Button>
           </div>
+
+          {/* Year Selector */}
+          {showYearSelector && (
+            <div className="mb-4 p-3 border rounded-lg bg-muted">
+              <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto">
+                {yearOptions.map((year) => (
+                  <button
+                    key={year}
+                    type="button"
+                    onClick={() => {
+                      setSelectedYear(year);
+                      setShowYearSelector(false);
+                    }}
+                    className={`text-sm p-2 rounded transition-colors
+                      ${year === selectedYear
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-muted-foreground/10'
+                      }`}
+                  >
+                    {toPersianNumber(year)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Calendar Grid */}
           <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground mb-2">
