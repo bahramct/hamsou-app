@@ -264,10 +264,10 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
             <CardContent className="flex flex-col p-0 overflow-hidden">
               {/* Messages Area */}
               {!isMinimized && (
-                <ScrollArea className="h-[280px] p-3" ref={scrollRef}>
-                  <div className="space-y-3">
+                <ScrollArea className="h-[280px] p-3" ref={scrollRef} dir="rtl">
+                  <div className="space-y-3" dir="rtl">
                     {welcomeMessage && messages.length === 0 && (
-                      <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
+                      <div className="bg-muted/50 p-3 rounded-lg border border-border/50 text-right">
                         <p className="text-sm whitespace-pre-line leading-relaxed text-foreground">
                           {welcomeMessage}
                         </p>
@@ -282,7 +282,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                         }`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-2xl px-3 py-2.5 ${
+                          className={`max-w-[85%] rounded-2xl px-3 py-2.5 text-right ${
                             message.role === 'user'
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
@@ -303,7 +303,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
 
                     {isLoading && (
                       <div className="flex justify-end">
-                        <div className="bg-muted rounded-2xl px-3 py-2.5">
+                        <div className="bg-muted rounded-2xl px-3 py-2.5 text-right">
                           <div className="flex items-center gap-2">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             <span className="text-xs">در حال نوشتن...</span>
@@ -316,14 +316,14 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
               )}
 
               {/* Input Area - همیشه نمایش داده می‌شود */}
-              <div className="p-3 border-t bg-background">
+              <div className="p-3 border-t bg-background" dir="rtl">
                 <div className="flex gap-2">
                   <Textarea
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="پیام خود را بنویسید..."
-                    className="min-h-[44px] max-h-[80px] resize-none text-sm"
+                    className="min-h-[44px] max-h-[80px] resize-none text-sm text-right"
                     disabled={isLoading}
                     rows={1}
                   />
@@ -340,7 +340,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                     )}
                   </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                <p className="text-[10px] text-muted-foreground mt-1.5 text-right">
                   Enter برای ارسال پیام
                 </p>
               </div>
