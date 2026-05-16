@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 import { z } from 'zod';
 
 // GET /api/community/feed - دریافت فید جامعه
@@ -34,7 +34,8 @@ export async function GET(request: NextRequest) {
     }
 
     // دریافت پست‌ها
-    const posts = await db.post.findMany({
+    const freshDb = getFreshDb();
+    const posts = await freshDb.post.findMany({
       where,
       include: {
         user: {

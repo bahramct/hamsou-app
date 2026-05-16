@@ -54,7 +54,7 @@ export function Leaderboard({ currentUserId }: LeaderboardProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir="rtl">
       {/* هدر */}
       <Card>
         <CardHeader>

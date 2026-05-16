@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 import { z } from 'zod';
 
 // Schema برای ایجاد پست
@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     const validatedData = createPostSchema.parse(body);
 
     // ایجاد پست
-    const post = await db.post.create({
+    const freshDb = getFreshDb();
+    const post = await freshDb.post.create({
       data: {
         userId: user.id,
         content: validatedData.content,

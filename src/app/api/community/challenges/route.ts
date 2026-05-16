@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 import { z } from 'zod';
 
 // GET /api/community/challenges - دریافت لیست چالش‌ها
@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
     }
 
     // دریافت چالش‌ها
-    const challenges = await db.challenge.findMany({
+    const freshDb = getFreshDb();
+    const challenges = await freshDb.challenge.findMany({
       where,
       include: {
         creator: {
@@ -117,7 +118,8 @@ export async function POST(request: NextRequest) {
     const validatedData = createChallengeSchema.parse(body);
 
     // ایجاد چالش
-    const challenge = await db.challenge.create({
+    const freshDb = getFreshDb();
+    const challenge = await freshDb.challenge.create({
       data: {
         title: validatedData.title,
         description: validatedData.description,

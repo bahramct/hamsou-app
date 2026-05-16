@@ -99,7 +99,7 @@ export function PostCard({
   const isOwner = post.user.id === currentUserId;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" dir="rtl">
       <CardContent className="p-4">
         {/* هدر پست */}
         <div className="flex items-start justify-between mb-3">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 
 // GET /api/community/leaderboard - دریافت لیدربورد
 export async function GET(request: NextRequest) {
@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
     }
 
     // محاسبه آمار کاربران
-    const users = await db.user.findMany({
+    const freshDb = getFreshDb();
+    const users = await freshDb.user.findMany({
       include: {
         _count: {
           select: {
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
         // تعداد پست‌ها در بازه زمانی
         let postsInPeriod = 0;
         if (startDate) {
-          postsInPeriod = await db.post.count({
+          postsInPeriod = await freshDb.post.count({
             where: {
               userId: user.id,
               createdAt: { gte: startDate },
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
         }
 
         // تعداد لایک‌های دریافتی
-        const userPostIds = await db.post.findMany({
+        const userPostIds = await freshDb.post.findMany({
           where: { userId: user.id },
           select: { id: true },
         });
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
         let commentsInPeriod = 0;
         if (postIds.length > 0) {
           if (startDate) {
-            commentsInPeriod = await db.comment.count({
+            commentsInPeriod = await freshDb.comment.count({
               where: {
                 postId: { in: postIds },
                 createdAt: { gte: startDate },

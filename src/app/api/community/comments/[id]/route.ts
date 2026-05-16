@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 
 // DELETE /api/community/comments/[id] - حذف کامنت
 export async function DELETE(
@@ -43,7 +43,8 @@ export async function DELETE(
 
     // بروزرسانی تعداد کامنت‌های پست (اگر کامنت اصلی است)
     if (!comment.parentId) {
-      await db.post.update({
+      const freshDb = getFreshDb();
+      await freshDb.post.update({
         where: { id: comment.postId },
         data: {
           commentsCount: {

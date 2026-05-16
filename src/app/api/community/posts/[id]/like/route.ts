@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 
 // POST /api/community/posts/[id]/like - لایک کردن پست
 export async function POST(
@@ -12,7 +12,8 @@ export async function POST(
     const postId = params.id;
 
     // بررسی وجود پست
-    const post = await db.post.findUnique({
+    const freshDb = getFreshDb();
+    const post = await freshDb.post.findUnique({
       where: { id: postId },
     });
 
@@ -49,7 +50,8 @@ export async function POST(
     });
 
     // بروزرسانی تعداد لایک‌ها
-    await db.post.update({
+    const freshDb = getFreshDb();
+    await freshDb.post.update({
       where: { id: postId },
       data: {
         likesCount: {
@@ -96,7 +98,8 @@ export async function DELETE(
     }
 
     // بروزرسانی تعداد لایک‌ها
-    await db.post.update({
+    const freshDb = getFreshDb();
+    await freshDb.post.update({
       where: { id: postId },
       data: {
         likesCount: {

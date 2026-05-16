@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { db } from '@/lib/db';
+import { db, getFreshDb } from '@/lib/db';
 
 // POST /api/community/challenges/[id]/join - پیوستن به چالش
 export async function POST(
@@ -12,7 +12,8 @@ export async function POST(
     const challengeId = params.id;
 
     // بررسی وجود چالش
-    const challenge = await db.challenge.findUnique({
+    const freshDb = getFreshDb();
+    const challenge = await freshDb.challenge.findUnique({
       where: { id: challengeId },
     });
 
@@ -71,7 +72,7 @@ export async function POST(
     });
 
     // بروزرسانی تعداد شرکت‌کنندگان
-    await db.challenge.update({
+    await freshDb.challenge.update({
       where: { id: challengeId },
       data: {
         participantCount: {
@@ -118,7 +119,8 @@ export async function DELETE(
     }
 
     // بروزرسانی تعداد شرکت‌کنندگان
-    await db.challenge.update({
+    const freshDb = getFreshDb();
+    await freshDb.challenge.update({
       where: { id: challengeId },
       data: {
         participantCount: {
