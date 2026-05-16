@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { verifyToken } from '@/lib/auth';
 import { randomBytes } from 'crypto';
 
 // Helper function to generate unique share token
@@ -12,9 +12,9 @@ function generateShareToken(): string {
 // Create a shareable achievement link
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
+    const user = await verifyToken(request);
 
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { error: 'لطفاً وارد شوید' },
         { status: 401 }
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Create shared achievement
     const sharedAchievement = await db.sharedAchievement.create({
       data: {
-        userId: session.user.id,
+        userId: user.userId,
         shareToken: generateShareToken(),
         achievementType,
         data: JSON.stringify(data),
@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
 // Get user's shared achievements list
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
+    const user = await verifyToken(request);
 
-    if (!session?.user?.id) {
+    if (!user) {
       return NextResponse.json(
         { error: 'لطفاً وارد شوید' },
         { status: 401 }
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     const achievementType = searchParams.get('type');
 
     const where: any = {
-      userId: session.user.id,
+      userId: user.userId,
       isActive: true,
     };
 
