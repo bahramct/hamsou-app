@@ -86,24 +86,22 @@ export interface SentimentContext {
  * دریافت آمار پایه کاربر
  */
 async function getUserBasicStats(userId: string) {
-  const [
-    totalCommitments,
-    completedCommitments,
-    totalReflections,
-    activePlans,
-  ] = await Promise.all([
-    db.commitment.count({ where: { userId } }),
-    db.commitment.count({ 
-      where: { 
-        userId,
-        status: 'completed',
-      },
-    }),
-    db.reflection.count({ where: { userId } }),
-    db.plan.count({ where: { userId, status: 'active' } }),
-  ]);
+  // Reflection ها از طریق Commitment به دست می‌آیند
+  const userCommitments = await db.commitment.findMany({
+    where: { userId },
+    select: { id: true, reflection: { select: { id: true } } },
+  });
+  const totalReflections = userCommitments.filter(c => c.reflection).length;
 
-  const completionRate = totalCommitments > 0 
+  // محاسبه تعهدات تکمیل شده
+  const totalCommitments = userCommitments.length;
+  const completedCommitments = userCommitments.filter(c =>
+    c.reflection?.completed
+  ).length;
+
+  const activePlans = await db.plan.count({ where: { userId, status: 'active' } });
+
+  const completionRate = totalCommitments > 0
     ? Math.round((completedCommitments / totalCommitments) * 100)
     : 0;
 
@@ -181,16 +179,30 @@ async function getCommitmentsInRange(userId: string, startDate: Date, endDate: D
  * دریافت بازتاب‌ها در بازه زمانی
  */
 async function getReflectionsInRange(userId: string, startDate: Date, endDate: Date) {
-  return await db.reflection.findMany({
+  const commitments = await db.commitment.findMany({
     where: {
       userId,
       date: {
         gte: startDate,
         lte: endDate,
       },
+      reflection: {
+        isNot: null,
+      },
+    },
+    include: {
+      reflection: true,
     },
     orderBy: { date: 'desc' },
   });
+
+  return commitments
+    .filter(c => c.reflection)
+    .map(c => ({
+      ...c.reflection,
+      date: c.date,
+      commitmentId: c.id,
+    }));
 }
 
 /**

@@ -58,11 +58,7 @@ export async function POST(req: NextRequest) {
     }));
 
     // ارسال پیام به AI
-    const aiResponse = await aiService.chat(userId, {
-      message,
-      history: chatHistory,
-      context: { chatType },
-    });
+    const aiResponse = await aiService.chat(userId, message, chatHistory);
 
     // ذخیره پاسخ AI
     await db.chatMessage.create({
