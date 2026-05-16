@@ -22,6 +22,7 @@ import { faIR } from 'date-fns/locale';
 import { getToken } from '@/lib/api';
 import { formatPersianNumber, toPersianText } from '@/lib/utils/persian';
 import { PersianDatePicker } from '@/components/ui/persian-date-picker';
+import { toJalaali } from 'jalaali-js';
 
 interface ChallengesListProps {
   currentUserId: string;
@@ -31,7 +32,6 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
   const [challenges, setChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [targetValueError, setTargetValueError] = useState('');
   const [newChallenge, setNewChallenge] = useState({
     title: '',
     description: '',
@@ -41,6 +41,20 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
     endDate: '',
     targetValue: '',
   });
+
+  // محاسبه تعداد روز بین دو تاریخ
+  const calculateDaysBetween = (startDate: string, endDate: string): number => {
+    if (!startDate || !endDate) return 0;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // محاسبه اختلاف بر حسب روز
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays > 0 ? diffDays : 0;
+  };
 
   const fetchChallenges = async () => {
     setLoading(true);
@@ -129,15 +143,18 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
   };
 
   const handleCreateChallenge = async () => {
-    // Validate target value (must be a positive number if provided)
-    if (newChallenge.targetValue) {
-      const numValue = parseInt(newChallenge.targetValue, 10);
-      if (isNaN(numValue) || numValue <= 0) {
-        setTargetValueError('مقدار هدف باید یک عدد مثبت باشد');
-        return;
-      }
+    // محاسبه تعداد روز از تاریخ‌ها
+    const daysBetween = calculateDaysBetween(newChallenge.startDate, newChallenge.endDate);
+
+    if (daysBetween <= 0) {
+      alert('تاریخ پایان باید بعد از تاریخ شروع باشد');
+      return;
     }
-    setTargetValueError('');
+
+    if (daysBetween < 1) {
+      alert('چالش باید حداقل یک روز باشد');
+      return;
+    }
 
     try {
       const token = getToken();
@@ -153,9 +170,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
         headers,
         body: JSON.stringify({
           ...newChallenge,
-          targetValue: newChallenge.targetValue
-            ? parseInt(newChallenge.targetValue)
-            : undefined,
+          targetValue: daysBetween, // استفاده از تعداد روز محاسبه شده
         }),
       });
 
@@ -170,11 +185,14 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
           endDate: '',
           targetValue: '',
         });
-        setTargetValueError('');
         fetchChallenges();
+      } else {
+        const result = await response.json();
+        alert(result.error || 'خطا در ایجاد چالش');
       }
     } catch (error) {
       console.error('Error creating challenge:', error);
+      alert('خطا در ایجاد چالش');
     }
   };
 
@@ -325,34 +343,21 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                       </div>
                       <div>
                         <Label htmlFor="targetValue">
-                          تعداد روز / مقدار هدف (اختیاری)
+                          مدت زمان چالش (روز)
                         </Label>
                         <Input
                           id="targetValue"
                           type="text"
-                          value={newChallenge.targetValue}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            // Only allow numbers
-                            if (value === '' || /^\d+$/.test(value)) {
-                              setNewChallenge({
-                                ...newChallenge,
-                                targetValue: value,
-                              });
-                              setTargetValueError('');
-                            }
-                          }}
-                          placeholder="مثال: ۳۰"
-                          inputMode="numeric"
+                          value={calculateDaysBetween(newChallenge.startDate, newChallenge.endDate) > 0
+                            ? formatPersianNumber(calculateDaysBetween(newChallenge.startDate, newChallenge.endDate))
+                            : ''}
+                          placeholder="بعد از انتخاب تاریخ محاسبه می‌شود"
+                          disabled
+                          className="bg-muted cursor-not-allowed"
                           dir="ltr"
                         />
-                        {targetValueError && (
-                          <p className="text-sm text-destructive mt-1">
-                            {targetValueError}
-                          </p>
-                        )}
                         <p className="text-xs text-muted-foreground mt-1">
-                          تعداد روزی که می‌خواهید این چالش را ادامه دهید
+                          از اختلاف تاریخ شروع و پایان محاسبه می‌شود
                         </p>
                       </div>
                     </div>
@@ -361,10 +366,7 @@ export function ChallengesList({ currentUserId }: ChallengesListProps) {
                 <div className="flex justify-end gap-2 pt-4 border-t mt-4">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      setShowCreateDialog(false);
-                      setTargetValueError('');
-                    }}
+                    onClick={() => setShowCreateDialog(false)}
                   >
                     انصراف
                   </Button>
