@@ -48,6 +48,7 @@ export function DevToolsPanel() {
   const [clearingLeaderboardData, setClearingLeaderboardData] = useState(false);
   const [hasLeaderboardTestData, setHasLeaderboardTestData] = useState(false);
   const [creatingYesterdayCommitment, setCreatingYesterdayCommitment] = useState(false);
+  const [deletingYesterdayCommitment, setDeletingYesterdayCommitment] = useState(false);
 
   // Check if test data exists on mount
   useEffect(() => {
@@ -365,6 +366,42 @@ export function DevToolsPanel() {
     }
   };
 
+  const deleteYesterdayCommitment = async () => {
+    if (!confirm('آیا مطمئن هستید که می‌خواهید تعهد دیروز را حذف کنید؟')) {
+      return;
+    }
+
+    try {
+      setDeletingYesterdayCommitment(true);
+      setMessage(null);
+
+      const response = await authApiDelete('/api/dev/create-yesterday-commitment');
+
+      if (response.success) {
+        setMessage({
+          type: 'success',
+          text: response.message || 'تعهد دیروز با موفقیت حذف شد!',
+        });
+      } else {
+        setMessage({
+          type: 'error',
+          text: response.message || 'خطا در حذف تعهد دیروز',
+        });
+      }
+
+      // Auto-hide message after 4 seconds
+      setTimeout(() => setMessage(null), 4000);
+    } catch (error: any) {
+      console.error('Error deleting yesterday commitment:', error);
+      setMessage({
+        type: 'error',
+        text: error.message || 'خطا در حذف تعهد دیروز',
+      });
+    } finally {
+      setDeletingYesterdayCommitment(false);
+    }
+  };
+
   // Don't render in production
   if (process.env.NODE_ENV === 'production') {
     return null;
@@ -639,18 +676,30 @@ export function DevToolsPanel() {
           <p className="text-xs text-gray-600 mb-3">
             برای تست قابلیت بازتاب دیروز، یک تعهد برای دیروز بدون بازتاب ایجاد کنید:
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={createYesterdayCommitment}
-            disabled={creatingYesterdayCommitment}
-            className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
-          >
-            <Calendar className="w-4 h-4 ml-2" />
-            {creatingYesterdayCommitment ? 'در حال ایجاد...' : 'ایجاد تعهد دیروز (بدون بازتاب)'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={createYesterdayCommitment}
+              disabled={creatingYesterdayCommitment || deletingYesterdayCommitment}
+              className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
+            >
+              <Calendar className="w-4 h-4 ml-2" />
+              {creatingYesterdayCommitment ? 'در حال ایجاد...' : 'ایجاد تعهد دیروز'}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={deleteYesterdayCommitment}
+              disabled={deletingYesterdayCommitment || creatingYesterdayCommitment}
+              className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+            >
+              <Trash2 className="w-4 h-4 ml-2" />
+              {deletingYesterdayCommitment ? 'در حال حذف...' : 'حذف'}
+            </Button>
+          </div>
           <p className="text-xs text-gray-500 mt-2">
-            💡 بعد از زدن این دکمه، صفحه را رفرش کنید تا کارت بازتاب دیروز نمایش داده شود.
+            💡 بعد از زدن دکمه "ایجاد"، صفحه را رفرش کنید تا کارت بازتاب دیروز نمایش داده شود.
           </p>
         </div>
       </div>
@@ -665,6 +714,8 @@ export function DevToolsPanel() {
           • با هر بار تولید، داده‌های قبلی پاک می‌شوند
           <br />
           • تغییر پلن فقط روی localStorage شما اثر می‌گذارد، برای تست قابلیت‌های مختلف استفاده می‌شود
+          <br />
+          • برای پاک کردن داده‌های تستی از دکمه‌های "پاک کردن" در بالای پنل و بخش "تست بازتاب دیروز" استفاده کنید
         </p>
       </div>
 
