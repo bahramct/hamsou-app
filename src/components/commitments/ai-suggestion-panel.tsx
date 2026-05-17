@@ -98,7 +98,7 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
     return Math.max(0, 7 - daysPassed);
   };
 
-  const handleGetSuggestions = async () => {
+  const handleExpandCard = () => {
     // بررسی اینکه آیا کاربر دیتای کافی دارد
     if (!hasEnoughData) {
       setDaysRemaining(calculateDaysRemaining());
@@ -106,9 +106,18 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
       return;
     }
 
-    // باز کردن کارت
+    // فقط باز کردن کارت - بدون تولید پیشنهاد
     setIsExpanded(true);
+  };
 
+  const handleGetSuggestions = async () => {
+    // اگر کارت بسته است، فقط باز کن
+    if (!isExpanded) {
+      setIsExpanded(true);
+      return;
+    }
+
+    // شروع تولید پیشنهاد
     setIsLoading(true);
     setSuggestions([]);
     setInsights(null);
@@ -208,22 +217,13 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
         {/* حالت بسته - فقط دکمه دریافت پیشنهاد */}
         {!isExpanded && !hasCommitmentToday && (
           <Button
-            onClick={handleGetSuggestions}
-            disabled={isLoading || !hasEnoughData}
+            onClick={handleExpandCard}
+            disabled={!hasEnoughData}
             className="w-full"
             size="default"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                در حال تحلیل...
-              </>
-            ) : (
-              <>
-                <Sparkles className="ml-2 h-4 w-4" />
-                دریافت پیشنهاد هوشمند
-              </>
-            )}
+            <Sparkles className="ml-2 h-4 w-4" />
+            دریافت پیشنهاد هوشمند
           </Button>
         )}
 
