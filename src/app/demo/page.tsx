@@ -117,8 +117,15 @@ export default function Dashboard() {
         ? historyData.items
         : (Array.isArray(historyData) ? historyData : []);
 
-      if (commitmentsArray.length > 0) {
-        setHistory(commitmentsArray.slice(0, 7));
+      // فیلتر تاریخچه: فقط تعهدات با بازتاب ثبت شده از روزهای قبل
+      const todayStr = new Date().toISOString().split('T')[0];
+      const historyWithReflection = commitmentsArray.filter((c: Commitment) => {
+        const commitmentDate = new Date(c.date).toISOString().split('T')[0];
+        return c.reflection && commitmentDate !== todayStr;
+      });
+
+      if (historyWithReflection.length > 0) {
+        setHistory(historyWithReflection.slice(0, 7));
         const oldestCommitment = commitmentsArray[commitmentsArray.length - 1];
         setUserStartDate(new Date(oldestCommitment.date));
       } else {
@@ -214,8 +221,15 @@ export default function Dashboard() {
         ? historyData.items
         : (Array.isArray(historyData) ? historyData : []);
 
-      if (commitmentsArray.length > 0) {
-        setHistory(commitmentsArray.slice(0, 7));
+      // فیلتر تاریخچه: فقط تعهدات با بازتاب ثبت شده از روزهای قبل
+      const todayStr = new Date().toISOString().split('T')[0];
+      const historyWithReflection = commitmentsArray.filter((c: Commitment) => {
+        const commitmentDate = new Date(c.date).toISOString().split('T')[0];
+        return c.reflection && commitmentDate !== todayStr;
+      });
+
+      if (historyWithReflection.length > 0) {
+        setHistory(historyWithReflection.slice(0, 7));
         const oldestCommitment = commitmentsArray[commitmentsArray.length - 1];
         setUserStartDate(new Date(oldestCommitment.date));
       } else {
