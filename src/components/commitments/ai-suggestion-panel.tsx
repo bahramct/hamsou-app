@@ -31,7 +31,7 @@ interface AIDecisionPanelProps {
 }
 
 const CATEGORY_OPTIONS = [
-  { value: '', label: 'همه دسته‌بندی‌ها' },
+  { value: 'all', label: 'همه دسته‌بندی‌ها' },
   { value: 'work', label: 'کار' },
   { value: 'health', label: 'سلامتی' },
   { value: 'learning', label: 'یادگیری' },
@@ -40,7 +40,7 @@ const CATEGORY_OPTIONS = [
 ];
 
 const TIME_OPTIONS = [
-  { value: '', label: 'هر زمانی' },
+  { value: 'any', label: 'هر زمانی' },
   { value: 'morning', label: 'صبح' },
   { value: 'afternoon', label: 'بعدازظهر' },
   { value: 'evening', label: 'شب' },
@@ -65,8 +65,8 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
   const [suggestions, setSuggestions] = useState<CommitmentSuggestion[]>([]);
   const [insights, setInsights] = useState<Insights | null>(null);
   const [analysis, setAnalysis] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedTime, setSelectedTime] = useState('any');
   const [selectedCount, setSelectedCount] = useState(3);
   const [context, setContext] = useState('');
   const [showInsights, setShowInsights] = useState(false);
@@ -87,8 +87,8 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
         body: JSON.stringify({
           userId,
           count: selectedCount,
-          category: selectedCategory || undefined,
-          timeOfDay: selectedTime || undefined,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+          timeOfDay: selectedTime !== 'any' ? selectedTime : undefined,
           context: context || undefined,
         }),
       });
