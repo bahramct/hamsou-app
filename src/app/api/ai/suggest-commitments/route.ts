@@ -132,7 +132,19 @@ ${failedReflections.map(r => `- ${r.reason} (${r.commitment.text})`).join('\n')}
     // 5. پارس کردن JSON
     let parsedResponse;
     try {
-      parsedResponse = JSON.parse(response.content);
+      // استخراج JSON از پاسخ AI (ممکنه با ```json و ``` احاطه شده باشه)
+      let content = response.content;
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        content = jsonMatch[1];
+      } else {
+        // اگر code block نبود، شکل براکت رو پیدا کن
+        const braceMatch = content.match(/\{[\s\S]*\}/);
+        if (braceMatch) {
+          content = braceMatch[0];
+        }
+      }
+      parsedResponse = JSON.parse(content);
     } catch (parseError) {
       console.error('Failed to parse AI response:', response.content);
       throw new Error('خطا در پردازش پاسخ AI');
