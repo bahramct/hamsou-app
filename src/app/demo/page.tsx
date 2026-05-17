@@ -115,17 +115,24 @@ export default function Dashboard() {
 
     loadData();
 
-    // گوش دادن به event حذف داده‌های تستی
-    const handleTestDataCleared = () => {
-      console.log('Test data cleared event received, refreshing page...');
+    // گوش دادن به eventهای تغییر داده‌های تستی
+    const handleTestDataGenerated = (event: CustomEvent) => {
+      console.log('Test data generated event received, refreshing page...', event.detail);
       refreshData();
     };
 
-    window.addEventListener('testDataCleared', handleTestDataCleared);
+    const handleTestDataCleared = (event: CustomEvent) => {
+      console.log('Test data cleared event received, refreshing page...', event.detail);
+      refreshData();
+    };
+
+    window.addEventListener('testDataGenerated', handleTestDataGenerated as EventListener);
+    window.addEventListener('testDataCleared', handleTestDataCleared as EventListener);
 
     // Cleanup
     return () => {
-      window.removeEventListener('testDataCleared', handleTestDataCleared);
+      window.removeEventListener('testDataGenerated', handleTestDataGenerated as EventListener);
+      window.removeEventListener('testDataCleared', handleTestDataCleared as EventListener);
     };
   }, [router]);
 

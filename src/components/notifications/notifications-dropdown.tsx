@@ -12,6 +12,7 @@ import {
 import { Bell, Check, Trash2, Loader2 } from 'lucide-react';
 import { authApiGet, authApiPatch, authApiPost, authApiDelete } from '@/lib/api';
 import { useRouter } from 'next/navigation';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface Notification {
   id: string;
@@ -48,6 +49,9 @@ export function NotificationsDropdown() {
   useEffect(() => {
     loadNotifications();
   }, []);
+
+  // Sync with DevToolsPanel - reload notifications when test data changes
+  useTestDataChange(loadNotifications);
 
   useEffect(() => {
     if (open) {

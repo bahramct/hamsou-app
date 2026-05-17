@@ -19,6 +19,7 @@ import { CommitmentWordCloud } from '@/components/analytics/commitment-word-clou
 import { ReflectionWordCloud } from '@/components/analytics/reflection-word-cloud';
 import { TemplateSelector } from '@/components/analytics/template-selector';
 import { ShareButton } from '@/components/analytics/share-button';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface OverviewStats {
   totalCommitments: number;
@@ -91,6 +92,9 @@ export default function AnalyticsPage() {
     }
     loadAnalytics();
   }, [router, timeRange]);
+
+  // Sync with DevToolsPanel - reload analytics when test data changes
+  useTestDataChange(loadAnalytics);
 
   const loadAnalytics = async () => {
     try {

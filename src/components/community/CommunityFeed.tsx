@@ -12,6 +12,7 @@ import { Leaderboard } from './Leaderboard';
 import { ChallengesList } from './ChallengesList';
 import { UsersList } from './UsersList';
 import { getToken } from '@/lib/api';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
   const [posts, setPosts] = useState<any[]>([]);
@@ -60,6 +61,9 @@ export function CommunityFeed({ currentUserId }: { currentUserId: string }) {
   useEffect(() => {
     fetchPosts();
   }, [filter]);
+
+  // Sync with DevToolsPanel - reload posts when test data changes
+  useTestDataChange(fetchPosts);
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;

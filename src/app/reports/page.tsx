@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowRight, Calendar, TrendingUp, AlertCircle, CheckCircle2, LogOut, Home } from 'lucide-react';
 import { authApiPost, authApiGet, getUser, clearToken, isAuthenticated } from '@/lib/api';
 import { toPersianNumber } from '@/lib/utils/persian';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface WeeklyReport {
   id: string;
@@ -47,6 +48,9 @@ export default function ReportsPage() {
       router.push('/login');
     }
   }, [router]);
+
+  // Sync with DevToolsPanel - reload report when test data changes
+  useTestDataChange(fetchReport);
 
   const fetchReport = async () => {
     try {

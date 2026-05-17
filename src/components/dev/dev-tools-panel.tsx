@@ -147,6 +147,11 @@ export function DevToolsPanel() {
       // Refresh data info
       await checkTestData();
 
+      // Dispatch event to notify all components that test data was generated
+      window.dispatchEvent(new CustomEvent('testDataGenerated', {
+        detail: { days: result.data.totalDays, weeks: result.data.totalWeeks }
+      }));
+
       // Auto-hide message after 6 seconds
       setTimeout(() => setMessage(null), 6000);
     } catch (error: any) {
@@ -180,8 +185,10 @@ export function DevToolsPanel() {
       // Refresh data info
       await checkTestData();
 
-      // Dispatch event to notify other components (like demo page)
-      window.dispatchEvent(new CustomEvent('testDataCleared'));
+      // Dispatch event to notify all components that test data was cleared
+      window.dispatchEvent(new CustomEvent('testDataCleared', {
+        detail: { deleted: result.deleted }
+      }));
 
       // Auto-hide message after 5 seconds
       setTimeout(() => setMessage(null), 5000);
