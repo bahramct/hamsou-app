@@ -214,7 +214,7 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* حالت بسته - فقط دکمه دریافت پیشنهاد */}
+        {/* حالت بسته - فقط دکمه باز کردن */}
         {!isExpanded && !hasCommitmentToday && (
           <Button
             onClick={handleExpandCard}
@@ -223,7 +223,7 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
             size="default"
           >
             <Sparkles className="ml-2 h-4 w-4" />
-            دریافت پیشنهاد هوشمند
+            تنظیم پیشنهاد هوشمند
           </Button>
         )}
 
