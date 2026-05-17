@@ -54,6 +54,8 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [commitment, setCommitment] = useState<Commitment | null>(null);
+  const [yesterdayCommitment, setYesterdayCommitment] = useState<Commitment | null>(null);
+  const [cardState, setCardState] = useState<'yesterday-reflection' | 'today-creation' | 'today-reflection' | 'today-result'>('today-creation');
   const [newCommitmentText, setNewCommitmentText] = useState('');
   const [showReflectionForm, setShowReflectionForm] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
@@ -74,9 +76,39 @@ export default function Dashboard() {
         authApiGet('/api/plans?status=active')
       ]);
 
-      if (todayData) {
-        setCommitment(todayData);
-        setShowReflectionForm(true);
+      // بررسی تعهد دیروز که بازتاب ندارد
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (historyData && Array.isArray(historyData)) {
+        const yesterdayData = historyData.find((c: Commitment) => {
+          const commitmentDate = new Date(c.date).toISOString().split('T')[0];
+          return commitmentDate === yesterdayStr && !c.reflection;
+        });
+        setYesterdayCommitment(yesterdayData || null);
+
+        // تعیین وضعیت کارت
+        if (yesterdayData && !todayData?.reflection) {
+          // اولویت: بازتاب دیروز
+          setCardState('yesterday-reflection');
+          setCommitment(yesterdayData);
+          setShowReflectionForm(true);
+        } else if (todayData) {
+          // تعهد امروز وجود دارد
+          setCommitment(todayData);
+          if (todayData.reflection) {
+            setCardState('today-result');
+            setShowReflectionForm(false);
+          } else {
+            setCardState('today-reflection');
+            setShowReflectionForm(true);
+          }
+        } else {
+          // هیچ تعهدی وجود ندارد - فرم ایجاد تعهد امروز
+          setCardState('today-creation');
+          setShowReflectionForm(false);
+        }
       }
 
       // بررسی ساختار پاسخ - ممکن است مستقیم آرایه باشد یا در items باشد
@@ -102,6 +134,7 @@ export default function Dashboard() {
       // اگر تعهد امروز وجود نداشت، فرم جدید نمایش می‌دهیم
       setCommitment(null);
       setShowReflectionForm(false);
+      setCardState('today-creation');
     } finally {
       setLoading(false);
     }
@@ -139,12 +172,39 @@ export default function Dashboard() {
       console.log('historyData:', historyData);
       console.log('historyData type:', typeof historyData, 'isArray:', Array.isArray(historyData));
 
-      if (todayData) {
-        setCommitment(todayData);
-        setShowReflectionForm(true);
-      } else {
-        setCommitment(null);
-        setShowReflectionForm(false);
+      // بررسی تعهد دیروز که بازتاب ندارد
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (historyData && Array.isArray(historyData)) {
+        const yesterdayData = historyData.find((c: Commitment) => {
+          const commitmentDate = new Date(c.date).toISOString().split('T')[0];
+          return commitmentDate === yesterdayStr && !c.reflection;
+        });
+        setYesterdayCommitment(yesterdayData || null);
+
+        // تعیین وضعیت کارت
+        if (yesterdayData && !todayData?.reflection) {
+          // اولویت: بازتاب دیروز
+          setCardState('yesterday-reflection');
+          setCommitment(yesterdayData);
+          setShowReflectionForm(true);
+        } else if (todayData) {
+          // تعهد امروز وجود دارد
+          setCommitment(todayData);
+          if (todayData.reflection) {
+            setCardState('today-result');
+            setShowReflectionForm(false);
+          } else {
+            setCardState('today-reflection');
+            setShowReflectionForm(true);
+          }
+        } else {
+          // هیچ تعهدی وجود ندارد - فرم ایجاد تعهد امروز
+          setCardState('today-creation');
+          setShowReflectionForm(false);
+        }
       }
 
       // بررسی ساختار پاسخ - ممکن است مستقیم آرایه باشد یا در items باشد
@@ -216,33 +276,44 @@ export default function Dashboard() {
         reason: reflectionCompleted ? undefined : reflectionReason
       });
 
-      // رفرش داده‌ها
-      await refreshData();
+      // اگر در حالت بازتاب دیروز بودیم، بعد از ثبت به فرم ایجاد تعهد امروز برویم
+      if (cardState === 'yesterday-reflection') {
+        setCardState('today-creation');
+        setCommitment(null);
+        setShowReflectionForm(false);
+        toast({
+          title: 'بازتاب دیروز ثبت شد! ✅',
+          description: 'حالا تعهد امروز رو ثبت کن',
+        });
+      } else {
+        // رفرش داده‌ها
+        await refreshData();
 
-      // اگر برنامه آپدیت شد، پیام مناسب نمایش دهید
-      if (response.planUpdated) {
-        const progress = response.planUpdated.targetDays
-          ? Math.round((response.planUpdated.currentDays / response.planUpdated.targetDays) * 100)
-          : null;
+        // اگر برنامه آپدیت شد، پیام مناسب نمایش دهید
+        if (response.planUpdated) {
+          const progress = response.planUpdated.targetDays
+            ? Math.round((response.planUpdated.currentDays / response.planUpdated.targetDays) * 100)
+            : null;
 
-        if (response.planUpdated.status === 'completed') {
-          toast({
-            title: '🎉 تبریک! برنامه تکمیل شد!',
-            description: `${response.planUpdated.title} با موفقیت تکمیل شد!`,
-          });
+          if (response.planUpdated.status === 'completed') {
+            toast({
+              title: '🎉 تبریک! برنامه تکمیل شد!',
+              description: `${response.planUpdated.title} با موفقیت تکمیل شد!`,
+            });
+          } else {
+            toast({
+              title: reflectionCompleted ? 'آفرین! 🎉' : 'موفق',
+              description: reflectionCompleted
+                ? `تعهدت رو انجام دادی${progress !== null ? ` (پیشرفت: ${toPersianNumber(progress)}٪)` : ''}`
+                : 'بازتاب با موفقیت ثبت شد',
+            });
+          }
         } else {
           toast({
             title: reflectionCompleted ? 'آفرین! 🎉' : 'موفق',
-            description: reflectionCompleted
-              ? `تعهدت رو انجام دادی${progress !== null ? ` (پیشرفت: ${toPersianNumber(progress)}٪)` : ''}`
-              : 'بازتاب با موفقیت ثبت شد',
+            description: reflectionCompleted ? 'تعهدت رو انجام دادی' : 'بازتاب با موفقیت ثبت شد',
           });
         }
-      } else {
-        toast({
-          title: reflectionCompleted ? 'آفرین! 🎉' : 'موفق',
-          description: reflectionCompleted ? 'تعهدت رو انجام دادی' : 'بازتاب با موفقیت ثبت شد',
-        });
       }
 
       setReflectionReason('');
@@ -363,137 +434,248 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-1 max-w-2xl mx-auto px-4 py-8 w-full">
-        {/* Today's Commitment Card */}
-        <Card className="p-6 mb-6 shadow-sm border-0">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">تعهد امروز</h2>
+        {/* Commitment Card - با انیمیشن و ترنزیشن زیبا */}
+        <Card className="mb-6 shadow-lg border-0 overflow-hidden bg-white transition-all duration-500 ease-in-out">
+          {/* Header با gradient */}
+          <div className={`bg-gradient-to-r ${cardState === 'yesterday-reflection' ? 'from-orange-500 to-amber-500' : 'from-gray-900 to-gray-800'} px-6 py-4`}>
+            <h2 className="text-xl font-semibold text-white">
+              {cardState === 'yesterday-reflection' ? 'بازتاب دیروز' : 'تعهد امروز'}
+            </h2>
+            <p className="text-sm text-white/70 mt-1">
+              {cardState === 'yesterday-reflection'
+                ? `${getUser()?.name ? `${getUser().name} عزیز، ` : ''}دیروز چطور پیش رفت؟`
+                : 'مسیر همسویی با خودت'}
+            </p>
+          </div>
 
-          {!showReflectionForm ? (
-            // فرم ایجاد تعهد جدید
-            <form onSubmit={handleCreateCommitment} className="space-y-4">
-              <div>
-                <textarea
-                  className="w-full p-4 border border-gray-300 rounded-lg resize-none text-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent min-h-[100px]"
-                  placeholder="امروز چه تعهدی برای خودت داری؟"
-                  value={newCommitmentText}
-                  onChange={(e) => setNewCommitmentText(e.target.value)}
-                  rows={3}
-                  maxLength={180}
-                />
-                <p className="text-xs text-gray-500 mt-1 text-left">
-                  {toPersianNumber(newCommitmentText.length)} / ۱۸۰ کاراکتر
-                </p>
-              </div>
+          <div className="p-6">
+            {cardState === 'yesterday-reflection' ? (
+              // حالت 1: بازتاب دیروز
+              <form onSubmit={handleReflection} className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg mb-4 border-r-4 border-orange-400">
+                  <p className="text-lg font-medium text-gray-900">
+                    {commitment?.text}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">تعهد دیروز</p>
+                </div>
 
-              {/* انتخاب برنامه (اختیاری) */}
-              {plans.length > 0 && (
+                <div className="space-y-3">
+                  <Button
+                    type="button"
+                    variant={reflectionCompleted ? "default" : "outline"}
+                    className={`w-full py-6 text-lg transition-all duration-300 ${
+                      reflectionCompleted
+                        ? 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200'
+                        : 'hover:bg-green-50 hover:border-green-300'
+                    }`}
+                    onClick={() => setReflectionCompleted(true)}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      انجام دادم
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant={!reflectionCompleted ? "default" : "outline"}
+                    className={`w-full py-6 text-lg transition-all duration-300 ${
+                      !reflectionCompleted
+                        ? 'bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200'
+                        : 'hover:bg-red-50 hover:border-red-300'
+                    }`}
+                    onClick={() => setReflectionCompleted(false)}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      انجام ندادم
+                    </span>
+                  </Button>
+                </div>
+
+                {!reflectionCompleted && (
+                  <div className="mt-4 transition-all duration-300">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      چرا انجام ندادی؟ (اختیاری)
+                    </label>
+                    <textarea
+                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
+                      placeholder="دلیلش رو بنویس..."
+                      value={reflectionReason}
+                      onChange={(e) => setReflectionReason(e.target.value)}
+                      rows={2}
+                      maxLength={200}
+                    />
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-4 text-lg mt-4 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  disabled={submitting}
+                >
+                  {submitting ? 'در حال ثبت...' : 'ثبت و ادامه به امروز'}
+                </Button>
+              </form>
+            ) : cardState === 'today-creation' ? (
+              // حالت 2: ایجاد تعهد امروز
+              <form onSubmit={handleCreateCommitment} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    متصل به برنامه (اختیاری)
-                  </label>
-                  <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="یک برنامه انتخاب کنید" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">بدون برنامه</SelectItem>
-                      {plans.map((plan) => (
-                        <SelectItem key={plan.id} value={plan.id}>
-                          {plan.title} {plan.targetDays && `(${toPersianNumber(plan.currentDays)}/${toPersianNumber(plan.targetDays)})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 text-lg"
-                disabled={submitting || !newCommitmentText.trim()}
-              >
-                {submitting ? 'در حال ثبت...' : 'ثبت تعهد'}
-              </Button>
-            </form>
-          ) : commitment?.reflection ? (
-            // نمایش بازتاب ثبت شده
-            <div className="text-center py-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
-                {commitment.reflection.completed ? (
-                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                )}
-              </div>
-              <p className="text-lg font-semibold text-gray-900 mb-2">
-                {commitment.text}
-              </p>
-              <p className="text-sm text-gray-500 mb-4">
-                {commitment.reflection.completed ? '✅ انجام شد!' : '❌ انجام نشد'}
-              </p>
-              {!commitment.reflection.completed && commitment.reflection.reason && (
-                <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-                  <span className="font-semibold">دلیل:</span> {commitment.reflection.reason}
-                </div>
-              )}
-            </div>
-          ) : (
-            // فرم بازتاب
-            <form onSubmit={handleReflection} className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg mb-4">
-                <p className="text-lg font-medium text-gray-900">
-                  {commitment?.text}
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  type="button"
-                  variant={reflectionCompleted ? "default" : "outline"}
-                  className={`w-full py-6 text-lg ${reflectionCompleted ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                  onClick={() => setReflectionCompleted(true)}
-                >
-                  ✅ انجام دادم
-                </Button>
-
-                <Button
-                  type="button"
-                  variant={!reflectionCompleted ? "default" : "outline"}
-                  className={`w-full py-6 text-lg ${!reflectionCompleted ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                  onClick={() => setReflectionCompleted(false)}
-                >
-                  ❌ انجام ندادم
-                </Button>
-              </div>
-
-              {!reflectionCompleted && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    چرا انجام ندادی؟ (اختیاری)
+                    امروز چه تعهدی برای خودت داری؟
                   </label>
                   <textarea
-                    className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                    placeholder="دلیلش رو بنویس..."
-                    value={reflectionReason}
-                    onChange={(e) => setReflectionReason(e.target.value)}
-                    rows={2}
-                    maxLength={200}
+                    className="w-full p-4 border border-gray-300 rounded-lg resize-none text-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent min-h-[100px] transition-all duration-200"
+                    placeholder="تعهد خودت رو اینجا بنویس..."
+                    value={newCommitmentText}
+                    onChange={(e) => setNewCommitmentText(e.target.value)}
+                    rows={3}
+                    maxLength={180}
                   />
+                  <p className="text-xs text-gray-500 mt-1 text-left">
+                    {toPersianNumber(newCommitmentText.length)} / ۱۸۰ کاراکتر
+                  </p>
                 </div>
-              )}
 
-              <Button
-                type="submit"
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 text-lg mt-4"
-                disabled={submitting}
-              >
-                {submitting ? 'در حال ثبت...' : 'ثبت بازتاب'}
-              </Button>
-            </form>
-          )}
+                {/* انتخاب برنامه (اختیاری) */}
+                {plans.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      متصل به برنامه (اختیاری)
+                    </label>
+                    <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="یک برنامه انتخاب کنید" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">بدون برنامه</SelectItem>
+                        {plans.map((plan) => (
+                          <SelectItem key={plan.id} value={plan.id}>
+                            {plan.title} {plan.targetDays && `(${toPersianNumber(plan.currentDays)}/${toPersianNumber(plan.targetDays)})`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-4 text-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                  disabled={submitting || !newCommitmentText.trim()}
+                >
+                  {submitting ? 'در حال ثبت...' : 'ثبت تعهد امروز'}
+                </Button>
+              </form>
+            ) : cardState === 'today-reflection' ? (
+              // حالت 3: فرم بازتاب امروز
+              <form onSubmit={handleReflection} className="space-y-4">
+                <div className="p-4 bg-gray-50 rounded-lg mb-4 border-r-4 border-gray-800">
+                  <p className="text-lg font-medium text-gray-900">
+                    {commitment?.text}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">تعهد امروز</p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    type="button"
+                    variant={reflectionCompleted ? "default" : "outline"}
+                    className={`w-full py-6 text-lg transition-all duration-300 ${
+                      reflectionCompleted
+                        ? 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200'
+                        : 'hover:bg-green-50 hover:border-green-300'
+                    }`}
+                    onClick={() => setReflectionCompleted(true)}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      انجام دادم
+                    </span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant={!reflectionCompleted ? "default" : "outline"}
+                    className={`w-full py-6 text-lg transition-all duration-300 ${
+                      !reflectionCompleted
+                        ? 'bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200'
+                        : 'hover:bg-red-50 hover:border-red-300'
+                    }`}
+                    onClick={() => setReflectionCompleted(false)}
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      انجام ندادم
+                    </span>
+                  </Button>
+                </div>
+
+                {!reflectionCompleted && (
+                  <div className="mt-4 transition-all duration-300">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      چرا انجام ندادی؟ (اختیاری)
+                    </label>
+                    <textarea
+                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200"
+                      placeholder="دلیلش رو بنویس..."
+                      value={reflectionReason}
+                      onChange={(e) => setReflectionReason(e.target.value)}
+                      rows={2}
+                      maxLength={200}
+                    />
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-4 text-lg mt-4 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  disabled={submitting}
+                >
+                  {submitting ? 'در حال ثبت...' : 'ثبت بازتاب'}
+                </Button>
+              </form>
+            ) : (
+              // حالت 4: نتیجه امروز (بازتاب ثبت شده)
+              <div className="text-center py-8">
+                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 transition-all duration-500 ${
+                  commitment?.reflection?.completed ? 'bg-green-100' : 'bg-red-100'
+                }`}>
+                  {commitment?.reflection?.completed ? (
+                    <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                </div>
+                <p className="text-xl font-semibold text-gray-900 mb-3">
+                  {commitment?.text}
+                </p>
+                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+                  commitment?.reflection?.completed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {commitment?.reflection?.completed ? '✅ انجام شد!' : '❌ انجام نشد'}
+                </div>
+                {!commitment?.reflection?.completed && commitment?.reflection?.reason && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 max-w-md mx-auto">
+                    <span className="font-semibold">دلیل:</span> {commitment.reflection.reason}
+                  </div>
+                )}
+                <p className="text-xs text-gray-400 mt-6">تا فردا منتظر می‌مونیم!</p>
+              </div>
+            )}
+          </div>
         </Card>
 
         {/* AI Decision Panel - پیشنهاد هوشمند تعهدات */}

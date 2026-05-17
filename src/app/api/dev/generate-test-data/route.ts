@@ -150,17 +150,26 @@ export async function POST(request: NextRequest) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Start from the last Saturday that makes sense for the requested days
-    // We want complete weeks, so we round up to the nearest 7
-    const completeWeeks = Math.ceil(days / 7);
-    const totalDaysToGenerate = completeWeeks * 7;
+    // Start from yesterday and go back - we NEVER include today in test data
+    // This allows the user to create their own commitment for today
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-    // Calculate the start date (going back from today, but we don't include today)
-    // We start from yesterday and go back
-    const startDate = new Date(today);
-    startDate.setDate(startDate.getDate() - 1); // Start from yesterday
+    // For less than 7 days, just generate that many days ending at yesterday
+    // For 7+ days, round to complete weeks
+    let totalDaysToGenerate: number;
+    if (days < 7) {
+      totalDaysToGenerate = days;
+    } else {
+      const completeWeeks = Math.ceil(days / 7);
+      totalDaysToGenerate = completeWeeks * 7;
+    }
 
-    // Align to Saturday (start of week in Persian calendar)
+    // Calculate the start date (going back from yesterday)
+    const startDate = new Date(yesterday);
+    startDate.setDate(startDate.getDate() - (totalDaysToGenerate - 1));
+
+    // Align to Saturday (start of week in Persian calendar) for better week organization
     const weekStart = getWeekStart(startDate);
 
     // Generate commitments and reflections
@@ -171,6 +180,13 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < totalDaysToGenerate; i++) {
       const date = new Date(weekStart);
       date.setDate(date.getDate() + i);
+
+      // IMPORTANT: Skip today - never generate test data for the current day
+      const dateStr = date.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split('T')[0];
+      if (dateStr === todayStr) {
+        continue;
+      }
 
       // Track week data
       const thisWeekStart = getWeekStart(date);

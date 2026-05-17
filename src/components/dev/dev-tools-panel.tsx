@@ -47,6 +47,7 @@ export function DevToolsPanel() {
   const [creatingLeaderboardData, setCreatingLeaderboardData] = useState(false);
   const [clearingLeaderboardData, setClearingLeaderboardData] = useState(false);
   const [hasLeaderboardTestData, setHasLeaderboardTestData] = useState(false);
+  const [creatingYesterdayCommitment, setCreatingYesterdayCommitment] = useState(false);
 
   // Check if test data exists on mount
   useEffect(() => {
@@ -332,6 +333,38 @@ export function DevToolsPanel() {
     }
   };
 
+  const createYesterdayCommitment = async () => {
+    try {
+      setCreatingYesterdayCommitment(true);
+      setMessage(null);
+
+      const response = await authApiPost('/api/dev/create-yesterday-commitment', {});
+
+      if (response.success) {
+        setMessage({
+          type: 'success',
+          text: response.message || 'تعهد دیروز با موفقیت ایجاد شد!',
+        });
+      } else {
+        setMessage({
+          type: 'error',
+          text: response.message || 'خطا در ایجاد تعهد دیروز',
+        });
+      }
+
+      // Auto-hide message after 4 seconds
+      setTimeout(() => setMessage(null), 4000);
+    } catch (error: any) {
+      console.error('Error creating yesterday commitment:', error);
+      setMessage({
+        type: 'error',
+        text: error.message || 'خطا در ایجاد تعهد دیروز',
+      });
+    } finally {
+      setCreatingYesterdayCommitment(false);
+    }
+  };
+
   // Don't render in production
   if (process.env.NODE_ENV === 'production') {
     return null;
@@ -595,6 +628,30 @@ export function DevToolsPanel() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Yesterday Reflection Testing Section */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            تست بازتاب دیروز
+          </h4>
+          <p className="text-xs text-gray-600 mb-3">
+            برای تست قابلیت بازتاب دیروز، یک تعهد برای دیروز بدون بازتاب ایجاد کنید:
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={createYesterdayCommitment}
+            disabled={creatingYesterdayCommitment}
+            className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
+          >
+            <Calendar className="w-4 h-4 ml-2" />
+            {creatingYesterdayCommitment ? 'در حال ایجاد...' : 'ایجاد تعهد دیروز (بدون بازتاب)'}
+          </Button>
+          <p className="text-xs text-gray-500 mt-2">
+            💡 بعد از زدن این دکمه، صفحه را رفرش کنید تا کارت بازتاب دیروز نمایش داده شود.
+          </p>
         </div>
       </div>
 
