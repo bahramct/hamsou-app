@@ -8,7 +8,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.1-green?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/version-1.5.0-green?style=for-the-badge)]()
 
 </div>
 
@@ -292,14 +292,14 @@ hamsou-app/
 | 5 | نوتیفیکیشن‌ها | ✅ MVP | 90% |
 | 6 | تحلیل و گزارش‌ها | 🔄 تقریباً کامل | 85% |
 | 7 | قابلیت‌های اجتماعی | 🔄 در حال توسعه | 60% |
-| 8 | AI پیشرفته | ⏳ شروع نشده | 0% |
+| 8 | AI پیشرفته | 🔄 در حال توسعه | 10% |
 | 9 | بهینه‌سازی | ⏳ شروع نشده | 0% |
 | 10 | دیپلوی | ⏳ شروع نشده | 0% |
 | 11 | اپلیکیشن موبایل | ⏳ شروع نشده | 0% |
 | 12 | پنل ادمین | ⏳ شروع نشده | 0% |
 | 13+ | همسوگرام (چشم‌انداز) | 🌟 Vision | - |
 
-**پیشرفت کلی**: ~58%
+**پیشرفت کلی**: ~59%
 
 </div>
 
@@ -323,14 +323,15 @@ hamsou-app/
 - لیست کاربران با فالو/آنفالو
 - چالش‌های گروهی
 - لیدربورد با امتیازدهی
+- چت‌بات هوشمند با Quick Prompts و ورودی صوتی
 
 ### 🔄 در حال توسعه
 - سیستم دوستی و هم‌تیمی
 - Accountability Partners (شریک پاسخ‌گویی)
 - تنظیمات حریم خصوصی
+- ویژگی‌های بیشتر AI پیشرفته
 
 ### ⏳ ویژگی‌های آینده
-- دستیار هوشمند (Chatbot)
 - پیشنهاد هوشمند تعهدات
 - تحلیل احساسی
 - اپلیکیشن موبایل (React Native/PWA)
@@ -450,7 +451,7 @@ bun run db:reset
 </p>
 
 <p align="center">
-  <sub>نسخه 1.4.1</sub> • <sub>آخرین بروزرسانی: ۳۰ ژانویه ۲۰۲۵</sub>
+  <sub>نسخه 1.5.0</sub> • <sub>آخرین بروزرسانی: ۳۰ ژانویه ۲۰۲۵</sub>
 </p>
 
 </div>
