@@ -175,6 +175,9 @@ export function DevToolsPanel() {
 
       const result = await authApiDelete('/api/dev/generate-test-data');
 
+      console.log('✅ Data deleted successfully:', result);
+      console.log('📢 Dispatching testDataCleared event...');
+
       setMessage({
         type: 'success',
         text: `${result.deleted.commitments} تعهد و ${result.deleted.reflections} بازتاب حذف شد`,
@@ -189,6 +192,8 @@ export function DevToolsPanel() {
       window.dispatchEvent(new CustomEvent('testDataCleared', {
         detail: { deleted: result.deleted }
       }));
+
+      console.log('✅ testDataCleared event dispatched!');
 
       // Auto-hide message after 5 seconds
       setTimeout(() => setMessage(null), 5000);

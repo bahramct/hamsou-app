@@ -20,6 +20,7 @@ import {
 import { authApiPost, authApiGet, setToken, setUser, getToken, clearToken, getUser } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { toPersianNumber } from '@/lib/utils/persian';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface Plan {
   id: string;
@@ -63,82 +64,10 @@ export default function Dashboard() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('none');
   const [userStartDate, setUserStartDate] = useState<Date | undefined>(undefined);
 
-  // چک کردن احراز هویت و لود کردن داده‌ها
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    // لود کردن داده‌ها
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const [todayData, historyData, plansData] = await Promise.all([
-          authApiGet('/api/commitments/today'),
-          authApiGet('/api/commitments?limit=100'), // بگیریم بیشتر تا تاریخ اولین رو پیدا کنیم
-          authApiGet('/api/plans?status=active')
-        ]);
-
-        if (todayData) {
-          setCommitment(todayData);
-          setShowReflectionForm(true);
-        }
-
-        if (historyData && historyData.items && historyData.items.length > 0) {
-          setHistory(historyData.items.slice(0, 7)); // فقط 7 تا برای نمایش تاریخچه
-          // پیدا کردن قدیمی‌ترین تعهد برای محاسبه تاریخ شروع داده‌های کاربر
-          const oldestCommitment = historyData.items[historyData.items.length - 1];
-          setUserStartDate(new Date(oldestCommitment.date));
-        } else if (historyData && Array.isArray(historyData) && historyData.length > 0) {
-          setHistory(historyData.slice(0, 7));
-          const oldestCommitment = historyData[historyData.length - 1];
-          setUserStartDate(new Date(oldestCommitment.date));
-        } else {
-          // اگر هیچ تعهدی وجود نداره، تاریخ شروع رو null می‌کنیم
-          setUserStartDate(undefined);
-        }
-
-        if (Array.isArray(plansData)) {
-          setPlans(plansData);
-        }
-      } catch (error: any) {
-        console.error('Error loading data:', error);
-        // اگر تعهد امروز وجود نداشت، فرم جدید نمایش می‌دهیم
-        setCommitment(null);
-        setShowReflectionForm(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-
-    // گوش دادن به eventهای تغییر داده‌های تستی
-    const handleTestDataGenerated = (event: CustomEvent) => {
-      console.log('Test data generated event received, refreshing page...', event.detail);
-      refreshData();
-    };
-
-    const handleTestDataCleared = (event: CustomEvent) => {
-      console.log('Test data cleared event received, refreshing page...', event.detail);
-      refreshData();
-    };
-
-    window.addEventListener('testDataGenerated', handleTestDataGenerated as EventListener);
-    window.addEventListener('testDataCleared', handleTestDataCleared as EventListener);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('testDataGenerated', handleTestDataGenerated as EventListener);
-      window.removeEventListener('testDataCleared', handleTestDataCleared as EventListener);
-    };
-  }, [router]);
-
-  // رفرش داده‌ها
-  const refreshData = async () => {
+  // لود کردن داده‌ها
+  const loadData = async () => {
     try {
+      setLoading(true);
       const [todayData, historyData, plansData] = await Promise.all([
         authApiGet('/api/commitments/today'),
         authApiGet('/api/commitments?limit=100'),
@@ -148,22 +77,90 @@ export default function Dashboard() {
       if (todayData) {
         setCommitment(todayData);
         setShowReflectionForm(true);
+      }
+
+      // بررسی ساختار پاسخ - ممکن است مستقیم آرایه باشد یا در items باشد
+      const commitmentsArray = (historyData?.items && Array.isArray(historyData.items))
+        ? historyData.items
+        : (Array.isArray(historyData) ? historyData : []);
+
+      if (commitmentsArray.length > 0) {
+        setHistory(commitmentsArray.slice(0, 7));
+        const oldestCommitment = commitmentsArray[commitmentsArray.length - 1];
+        setUserStartDate(new Date(oldestCommitment.date));
+      } else {
+        // اگر هیچ تعهدی وجود نداره، تاریخ شروع و تاریخچه رو null می‌کنیم
+        setUserStartDate(undefined);
+        setHistory([]);
+      }
+
+      if (Array.isArray(plansData)) {
+        setPlans(plansData);
+      }
+    } catch (error: any) {
+      console.error('Error loading data:', error);
+      // اگر تعهد امروز وجود نداشت، فرم جدید نمایش می‌دهیم
+      setCommitment(null);
+      setShowReflectionForm(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // چک کردن احراز هویت و لود کردن داده‌ها
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    // لود کردن داده‌ها
+    loadData();
+  }, [router]);
+
+  // Sync with DevToolsPanel - refresh data when test data changes
+  useTestDataChange(() => {
+    console.log('📢 Test data changed, refreshing...');
+    refreshData();
+  });
+
+  // رفرش داده‌ها
+  const refreshData = async () => {
+    console.log('Refreshing data...');
+    try {
+      const [todayData, historyData, plansData] = await Promise.all([
+        authApiGet('/api/commitments/today'),
+        authApiGet('/api/commitments?limit=100'),
+        authApiGet('/api/plans?status=active')
+      ]);
+
+      console.log('todayData:', todayData);
+      console.log('historyData:', historyData);
+      console.log('historyData type:', typeof historyData, 'isArray:', Array.isArray(historyData));
+
+      if (todayData) {
+        setCommitment(todayData);
+        setShowReflectionForm(true);
       } else {
         setCommitment(null);
         setShowReflectionForm(false);
       }
 
-      if (historyData && historyData.items && historyData.items.length > 0) {
-        setHistory(historyData.items.slice(0, 7));
-        const oldestCommitment = historyData.items[historyData.items.length - 1];
-        setUserStartDate(new Date(oldestCommitment.date));
-      } else if (historyData && Array.isArray(historyData) && historyData.length > 0) {
-        setHistory(historyData.slice(0, 7));
-        const oldestCommitment = historyData[historyData.length - 1];
+      // بررسی ساختار پاسخ - ممکن است مستقیم آرایه باشد یا در items باشد
+      const commitmentsArray = (historyData?.items && Array.isArray(historyData.items))
+        ? historyData.items
+        : (Array.isArray(historyData) ? historyData : []);
+
+      if (commitmentsArray.length > 0) {
+        setHistory(commitmentsArray.slice(0, 7));
+        const oldestCommitment = commitmentsArray[commitmentsArray.length - 1];
         setUserStartDate(new Date(oldestCommitment.date));
       } else {
-        // اگر هیچ تعهدی وجود نداره، تاریخ شروع رو null می‌کنیم
+        // اگر هیچ تعهدی وجود نداره، تاریخ شروع و تاریخچه رو null می‌کنیم
+        console.log('No history data, clearing history and userStartDate');
         setUserStartDate(undefined);
+        setHistory([]);
       }
 
       if (Array.isArray(plansData)) {
