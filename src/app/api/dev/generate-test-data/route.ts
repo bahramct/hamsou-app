@@ -132,23 +132,47 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Always delete today's commitments first - we NEVER want test data for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
+    await db.commitment.deleteMany({
+      where: {
+        userId: decoded.userId,
+        date: {
+          gte: today,
+          lt: endOfDay,
+        },
+      },
+    });
+
     if (existingCommitments > 0 && clearBefore) {
-      // Delete reflections first (due to foreign key)
+      // Delete reflections first (due to foreign key) - but only for non-today
       await db.reflection.deleteMany({
         where: {
-          commitment: { userId: decoded.userId },
+          commitment: {
+            userId: decoded.userId,
+            date: {
+              lt: today,
+            },
+          },
         },
       });
 
-      // Delete commitments
+      // Delete commitments - but only for non-today
       await db.commitment.deleteMany({
-        where: { userId: decoded.userId },
+        where: {
+          userId: decoded.userId,
+          date: {
+            lt: today,
+          },
+        },
       });
     }
 
     // Calculate week boundaries for clean data
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     // Start from yesterday and go back - we NEVER include today in test data
     // This allows the user to create their own commitment for today
