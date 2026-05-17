@@ -43,18 +43,6 @@ export default function ProfilePage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-
-    fetchProfile();
-  }, [router]);
-
-  // Sync with DevToolsPanel - reload stats when test data changes
-  useTestDataChange(fetchProfile);
-
   const fetchProfile = async () => {
     try {
       setLoading(true);
@@ -77,6 +65,18 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+
+    fetchProfile();
+  }, [router]);
+
+  // Sync with DevToolsPanel - reload stats when test data changes
+  useTestDataChange(fetchProfile);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

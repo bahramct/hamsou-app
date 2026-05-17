@@ -81,18 +81,6 @@ export default function MyPlansPage() {
     priority: 'medium',
   });
 
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    loadPlans();
-  }, [router]);
-
-  // Sync with DevToolsPanel - reload plans when test data changes
-  useTestDataChange(loadPlans);
-
   const loadPlans = async () => {
     try {
       const data = await authApiGet<Plan[]>('/api/plans');
@@ -108,6 +96,18 @@ export default function MyPlansPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    loadPlans();
+  }, [router]);
+
+  // Sync with DevToolsPanel - reload plans when test data changes
+  useTestDataChange(loadPlans);
 
   const handleCreatePlan = async (e: React.FormEvent) => {
     e.preventDefault();
