@@ -84,18 +84,6 @@ export default function AnalyticsPage() {
   const [distributionData, setDistributionData] = useState<any[]>([]);
   const [heatmapData, setHeatmapData] = useState<any[]>([]);
 
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-    loadAnalytics();
-  }, [router, timeRange]);
-
-  // Sync with DevToolsPanel - reload analytics when test data changes
-  useTestDataChange(loadAnalytics);
-
   const loadAnalytics = async () => {
     try {
       setLoading(true);
@@ -147,6 +135,18 @@ export default function AnalyticsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    loadAnalytics();
+  }, [router, timeRange]);
+
+  // Sync with DevToolsPanel - reload analytics when test data changes
+  useTestDataChange(loadAnalytics);
 
   const handleLogout = () => {
     clearToken();

@@ -35,23 +35,6 @@ export default function ReportsPage() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-
-    try {
-      setUser(getUser());
-      fetchReport();
-    } catch (error) {
-      router.push('/login');
-    }
-  }, [router]);
-
-  // Sync with DevToolsPanel - reload report when test data changes
-  useTestDataChange(fetchReport);
-
   const fetchReport = async () => {
     try {
       setLoading(true);
@@ -68,6 +51,23 @@ export default function ReportsPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      setUser(getUser());
+      fetchReport();
+    } catch (error) {
+      router.push('/login');
+    }
+  }, [router]);
+
+  // Sync with DevToolsPanel - reload report when test data changes
+  useTestDataChange(fetchReport);
 
   const generateReport = async () => {
     if (!report) return;
