@@ -307,7 +307,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
       {/* پنجره چت - با انیمیشن iPhone style */}
       {isOpen && (
         <div
-          className="fixed bottom-24 left-6 right-6 md:left-6 md:right-auto md:w-[380px] z-50"
+          className="fixed bottom-24 left-6 right-6 md:left-6 md:right-auto md:w-[340px] z-50"
           style={{
             animation: 'chatOpen 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
@@ -337,28 +337,28 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
 
           <Card className="shadow-2xl flex flex-col overflow-hidden" dir="rtl">
             {/* Header */}
-            <CardHeader className="flex flex-row items-center justify-between pb-3 border-b bg-gradient-to-l from-primary/10 to-transparent">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 border-b bg-gradient-to-l from-primary/10 to-transparent">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <CardTitle className="text-base font-semibold">دستیار هوشمند همسو</CardTitle>
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <CardTitle className="text-sm font-semibold">دستیار هوشمند همسو</CardTitle>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleClearHistory}
-                  className="h-7 w-7"
+                  className="h-6 w-6"
                   title="پاک کردن تاریخچه"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Trash2 className="h-3 w-3" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsOpen(false)}
-                  className="h-7 w-7"
+                  className="h-6 w-6"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </CardHeader>
@@ -366,11 +366,11 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
             <CardContent className="flex flex-col p-0 overflow-hidden">
               {/* Messages Area */}
               {!isMinimized && (
-                <ScrollArea className="h-[280px] p-3" ref={scrollRef} dir="rtl">
-                  <div className="space-y-3" dir="rtl">
+                <ScrollArea className="h-[200px] p-2" ref={scrollRef} dir="rtl">
+                  <div className="space-y-2" dir="rtl">
                     {welcomeMessage && messages.length === 0 && (
-                      <div className="bg-muted/50 p-3 rounded-lg border border-border/50 text-right">
-                        <p className="text-sm whitespace-pre-line leading-relaxed text-foreground">
+                      <div className="bg-muted/50 p-2 rounded-lg border border-border/50 text-right">
+                        <p className="text-xs whitespace-pre-line leading-relaxed text-foreground">
                           {toPersianText(welcomeMessage)}
                         </p>
                       </div>
@@ -384,16 +384,16 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                         }`}
                       >
                         <div
-                          className={`max-w-[85%] rounded-2xl px-3 py-2.5 text-right ${
+                          className={`max-w-[85%] rounded-xl px-2.5 py-2 text-right ${
                             message.role === 'user'
                               ? 'bg-primary text-primary-foreground'
                               : 'bg-muted'
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-line leading-relaxed">
+                          <p className="text-xs whitespace-pre-line leading-relaxed">
                             {message.content}
                           </p>
-                          <p className="text-xs mt-1.5 opacity-70">
+                          <p className="text-[10px] mt-1 opacity-70">
                             {toPersianText(
                               new Date(message.timestamp).toLocaleTimeString('fa-IR', {
                                 hour: '2-digit',
@@ -407,10 +407,10 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
 
                     {isLoading && (
                       <div className="flex justify-end">
-                        <div className="bg-muted rounded-2xl px-3 py-2.5 text-right">
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            <span className="text-xs">در حال نوشتن...</span>
+                        <div className="bg-muted rounded-xl px-2.5 py-2 text-right">
+                          <div className="flex items-center gap-1.5">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span className="text-[10px]">در حال نوشتن...</span>
                           </div>
                         </div>
                       </div>
@@ -421,16 +421,16 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
 
               {/* Quick Prompts - فقط در شروع چت نمایش داده می‌شود */}
               {messages.length === 0 && !isLoading && (
-                <div className="px-3 py-2 border-b bg-muted/30" dir="rtl">
-                  <p className="text-xs text-muted-foreground mb-2 font-medium">
-                    سوالات پرکاربرد:
+                <div className="px-2.5 py-1.5 border-b bg-muted/30" dir="rtl">
+                  <p className="text-[10px] text-muted-foreground mb-1.5 font-medium">
+                    سوالات سریع:
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {quickPrompts.map((prompt) => (
                       <button
                         key={prompt.id}
                         onClick={() => handleSendMessage(prompt.message)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background border border-border hover:border-primary/50 hover:bg-primary/5 rounded-full text-xs font-medium transition-all duration-200 text-foreground hover:text-primary"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-background border border-border hover:border-primary/50 hover:bg-primary/5 rounded-full text-[10px] font-medium transition-all duration-200 text-foreground hover:text-primary"
                         disabled={isLoading}
                       >
                         {prompt.icon}
@@ -442,20 +442,20 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
               )}
 
               {/* Input Area - همیشه نمایش داده می‌شود */}
-              <div className="p-3 border-t bg-background" dir="rtl">
-                <div className="flex gap-2">
+              <div className="p-2 border-t bg-background" dir="rtl">
+                <div className="flex gap-1.5">
                   <Button
                     onClick={handleVoiceInput}
                     variant={isRecording ? "default" : "ghost"}
                     size="icon"
-                    className={`h-[44px] w-[44px] shrink-0 ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                    className={`h-9 w-9 shrink-0 ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
                     disabled={isLoading}
                     title={isRecording ? 'توقف ضبط' : 'ورودی صوتی'}
                   >
                     {isRecording ? (
-                      <MicOff className="h-4 w-4" />
+                      <MicOff className="h-3.5 w-3.5" />
                     ) : (
-                      <Mic className="h-4 w-4" />
+                      <Mic className="h-3.5 w-3.5" />
                     )}
                   </Button>
                   <Textarea
@@ -463,7 +463,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={isRecording ? 'در حال ضبط...' : 'پیام خود را بنویسید...'}
-                    className="min-h-[44px] max-h-[80px] resize-none text-sm text-right"
+                    className="min-h-[36px] max-h-[70px] resize-none text-xs text-right"
                     disabled={isLoading}
                     rows={1}
                   />
@@ -471,18 +471,15 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
                     onClick={handleSendMessage}
                     disabled={!inputValue.trim() || isLoading}
                     size="icon"
-                    className="h-[44px] w-[44px] shrink-0"
+                    className="h-9 w-9 shrink-0"
                   >
                     {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4" />
+                      <Send className="h-3.5 w-3.5" />
                     )}
                   </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5 text-right">
-                  Enter برای ارسال پیام • 🎤 صدا هم می‌تونی بفرستی
-                </p>
               </div>
             </CardContent>
           </Card>
