@@ -226,239 +226,244 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
 
             {/* تنظیمات */}
             {!hasCommitmentToday && (
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 transition-opacity duration-200 ${isLoading ? 'opacity-50' : ''}`}>
-          <div className="space-y-1.5">
-            <Label className="text-xs">تعداد پیشنهادات</Label>
-            <Select value={selectedCount.toString()} onValueChange={(v) => setSelectedCount(parseInt(v))}>
-              <SelectTrigger className="text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {COUNT_OPTIONS.map((count) => (
-                  <SelectItem key={count} value={count.toString()}>
-                    {count} تعهد
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs">زمان روز</Label>
-            <Select value={selectedTime} onValueChange={setSelectedTime}>
-              <SelectTrigger className="text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TIME_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1.5 md:col-span-2">
-            <Label className="text-xs">دسته‌بندی</Label>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs">توضیحات اضافی (اختیاری)</Label>
-          <Textarea
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            placeholder="مثلاً: می‌خوام بیشتر ورزش کنم یا می‌خوام یادگیری زبان رو شروع کنم..."
-            className="text-xs min-h-[60px]"
-            rows={2}
-          />
-        </div>
-
-        {/* دکمه دریافت پیشنهادات در حالت باز */}
-        {!hasCommitmentToday && (
-          <Button
-            onClick={handleGetSuggestions}
-            disabled={isLoading}
-            className="w-full"
-            size="default"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                در حال تحلیل...
-              </>
-            ) : (
-              <>
-                <Sparkles className="ml-2 h-4 w-4" />
-                دریافت پیشنهادات هوشمند
-              </>
-            )}
-          </Button>
-        )}
-
-        {/* نمایش آمار تحلیل */}
-        {analysis && !hasCommitmentToday && (
-          <div className="p-3 bg-muted/50 rounded-lg border animate-in fade-in duration-300">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <span className="text-xs font-medium">آمار شما</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p className="text-lg font-bold text-primary">{analysis.completionRate}%</p>
-                <p className="text-[10px] text-muted-foreground">نرخ تکمیل</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold">{analysis.totalCommitments}</p>
-                <p className="text-[10px] text-muted-foreground">کل تعهدات</p>
-              </div>
-              <div>
-                <p className="text-lg font-bold text-green-600">{analysis.completedCommitments}</p>
-                <p className="text-[10px] text-muted-foreground">انجام شده</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* نمایش پیشنهادات */}
-        {suggestions.length > 0 && !hasCommitmentToday && (
-          <div className="space-y-3 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold">پیشنهادات ({suggestions.length})</h4>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowInsights(!showInsights)}
-                  className="text-xs"
-                >
-                  <Lightbulb className="ml-1 h-3 w-3" />
-                  {showInsights ? 'مخفی کردن' : 'مشاهده بینش‌ها'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setIsExpanded(false);
-                    setSuggestions([]);
-                    setInsights(null);
-                    setAnalysis(null);
-                  }}
-                  className="text-xs"
-                >
-                  <X className="ml-1 h-3 w-3" />
-                  بستن
-                </Button>
-              </div>
-            </div>
-
-            {showInsights && insights && (
-              <div className="p-3 bg-primary/5 rounded-lg border border-primary/10 space-y-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-green-700 dark:text-green-400 flex items-center gap-1">
-                    <Check className="h-3 w-3" />
-                    نقاط قوت:
-                  </p>
-                  <ul className="text-xs text-muted-foreground pr-4 space-y-0.5">
-                    {insights.strengths.map((s, i) => (
-                      <li key={i} className="list-disc">{s}</li>
-                    ))}
-                  </ul>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 transition-opacity duration-200">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">تعداد پیشنهادات</Label>
+                  <Select value={selectedCount.toString()} onValueChange={(v) => setSelectedCount(parseInt(v))}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COUNT_OPTIONS.map((count) => (
+                        <SelectItem key={count} value={count.toString()}>
+                          {count} تعهد
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    نقاط قابل بهبود:
-                  </p>
-                  <ul className="text-xs text-muted-foreground pr-4 space-y-0.5">
-                    {insights.areasForImprovement.map((a, i) => (
-                      <li key={i} className="list-disc">{a}</li>
-                    ))}
-                  </ul>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs">زمان روز</Label>
+                  <Select value={selectedTime} onValueChange={setSelectedTime}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIME_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <Label className="text-xs">دسته‌بندی</Label>
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}
 
-            <div className="space-y-2">
-              {suggestions.map((suggestion, index) => (
-                <Card
-                  key={index}
-                  className={`border hover:border-primary/50 transition-all duration-300 ${
-                    rejectingId === index
-                      ? 'opacity-0 scale-95 translate-x-4'
-                      : 'opacity-100 scale-100 translate-x-0'
-                  }`}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Target className="h-3.5 w-3.5 text-primary" />
-                          <h5 className="text-sm font-semibold">{suggestion.title}</h5>
+            {!hasCommitmentToday && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">توضیحات اضافی (اختیاری)</Label>
+                <Textarea
+                  value={context}
+                  onChange={(e) => setContext(e.target.value)}
+                  placeholder="مثلاً: می‌خوام بیشتر ورزش کنم یا می‌خوام یادگیری زبان رو شروع کنم..."
+                  className="text-xs min-h-[60px]"
+                  rows={2}
+                />
+              </div>
+            )}
+
+            {/* دکمه دریافت پیشنهادات در حالت باز */}
+            {!hasCommitmentToday && (
+              <Button
+                onClick={handleGetSuggestions}
+                disabled={isLoading}
+                className="w-full"
+                size="default"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                    در حال تحلیل...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="ml-2 h-4 w-4" />
+                    دریافت پیشنهادات هوشمند
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* نمایش آمار تحلیل */}
+            {analysis && !hasCommitmentToday && (
+              <div className="p-3 bg-muted/50 rounded-lg border animate-in fade-in duration-300">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-medium">آمار شما</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-lg font-bold text-primary">{analysis.completionRate}%</p>
+                    <p className="text-[10px] text-muted-foreground">نرخ تکمیل</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold">{analysis.totalCommitments}</p>
+                    <p className="text-[10px] text-muted-foreground">کل تعهدات</p>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-green-600">{analysis.completedCommitments}</p>
+                    <p className="text-[10px] text-muted-foreground">انجام شده</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* نمایش پیشنهادات */}
+            {suggestions.length > 0 && !hasCommitmentToday && (
+              <div className="space-y-3 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">پیشنهادات ({suggestions.length})</h4>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowInsights(!showInsights)}
+                      className="text-xs"
+                    >
+                      <Lightbulb className="ml-1 h-3 w-3" />
+                      {showInsights ? 'مخفی کردن' : 'مشاهده بینش‌ها'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsExpanded(false);
+                        setSuggestions([]);
+                        setInsights(null);
+                        setAnalysis(null);
+                      }}
+                      className="text-xs"
+                    >
+                      <X className="ml-1 h-3 w-3" />
+                      بستن
+                    </Button>
+                  </div>
+                </div>
+
+                {showInsights && insights && (
+                  <div className="p-3 bg-primary/5 rounded-lg border border-primary/10 space-y-2">
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-green-700 dark:text-green-400 flex items-center gap-1">
+                        <Check className="h-3 w-3" />
+                        نقاط قوت:
+                      </p>
+                      <ul className="text-xs text-muted-foreground pr-4 space-y-0.5">
+                        {insights.strengths.map((s, i) => (
+                          <li key={i} className="list-disc">{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        نقاط قابل بهبود:
+                      </p>
+                      <ul className="text-xs text-muted-foreground pr-4 space-y-0.5">
+                        {insights.areasForImprovement.map((a, i) => (
+                          <li key={i} className="list-disc">{a}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  {suggestions.map((suggestion, index) => (
+                    <Card
+                      key={index}
+                      className={`border hover:border-primary/50 transition-all duration-300 ${
+                        rejectingId === index
+                          ? 'opacity-0 scale-95 translate-x-4'
+                          : 'opacity-100 scale-100 translate-x-0'
+                      }`}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Target className="h-3.5 w-3.5 text-primary" />
+                              <h5 className="text-sm font-semibold">{suggestion.title}</h5>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {suggestion.description}
+                            </p>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={`${PRIORITY_COLORS[suggestion.priority as keyof typeof PRIORITY_COLORS]} shrink-0`}
+                          >
+                            {PRIORITY_LABELS[suggestion.priority as keyof typeof PRIORITY_LABELS]}
+                          </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {suggestion.description}
+
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            <span>{suggestion.estimatedTime}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {suggestion.category}
+                          </Badge>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground mb-3 italic">
+                          💡 {suggestion.reason}
                         </p>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`${PRIORITY_COLORS[suggestion.priority as keyof typeof PRIORITY_COLORS]} shrink-0`}
-                      >
-                        {PRIORITY_LABELS[suggestion.priority as keyof typeof PRIORITY_LABELS]}
-                      </Badge>
-                    </div>
 
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>{suggestion.estimatedTime}</span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {suggestion.category}
-                      </Badge>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground mb-3 italic">
-                      💡 {suggestion.reason}
-                    </p>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleAcceptSuggestion(suggestion)}
-                        size="sm"
-                        className="flex-1"
-                        variant="outline"
-                      >
-                        <Check className="ml-1 h-3.5 w-3.5" />
-                        قبول
-                      </Button>
-                      <Button
-                        onClick={() => handleRejectSuggestion(index, suggestion)}
-                        size="sm"
-                        className="flex-1"
-                        variant="outline"
-                      >
-                        <X className="ml-1 h-3.5 w-3.5" />
-                        رد
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleAcceptSuggestion(suggestion)}
+                            size="sm"
+                            className="flex-1"
+                            variant="outline"
+                          >
+                            <Check className="ml-1 h-3.5 w-3.5" />
+                            قبول
+                          </Button>
+                          <Button
+                            onClick={() => handleRejectSuggestion(index, suggestion)}
+                            size="sm"
+                            className="flex-1"
+                            variant="outline"
+                          >
+                            <X className="ml-1 h-3.5 w-3.5" />
+                            رد
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
