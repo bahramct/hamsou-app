@@ -55,7 +55,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [commitment, setCommitment] = useState<Commitment | null>(null);
   const [yesterdayCommitment, setYesterdayCommitment] = useState<Commitment | null>(null);
-  const [cardState, setCardState] = useState<'yesterday-reflection' | 'today-creation' | 'today-reflection' | 'today-result'>('today-creation');
+  const [cardState, setCardState] = useState<'yesterday-reflection' | 'today-creation' | 'today-reflection' | 'today-result' | 'today-fresh'>('today-creation');
+  const [isFreshCommitment, setIsFreshCommitment] = useState(false);
   const [newCommitmentText, setNewCommitmentText] = useState('');
   const [showReflectionForm, setShowReflectionForm] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
@@ -101,8 +102,15 @@ export default function Dashboard() {
             setCardState('today-result');
             setShowReflectionForm(false);
           } else {
-            setCardState('today-reflection');
-            setShowReflectionForm(true);
+            // اگر تعهد تازه ایجاد شده، حالت fresh را نشان بده
+            if (isFreshCommitment) {
+              setCardState('today-fresh');
+              setShowReflectionForm(false);
+              setIsFreshCommitment(false); // ریست کردن فلگ
+            } else {
+              setCardState('today-reflection');
+              setShowReflectionForm(true);
+            }
           }
         } else {
           // هیچ تعهدی وجود ندارد - فرم ایجاد تعهد امروز
@@ -197,8 +205,15 @@ export default function Dashboard() {
             setCardState('today-result');
             setShowReflectionForm(false);
           } else {
-            setCardState('today-reflection');
-            setShowReflectionForm(true);
+            // اگر تعهد تازه ایجاد شده، حالت fresh را نشان بده
+            if (isFreshCommitment) {
+              setCardState('today-fresh');
+              setShowReflectionForm(false);
+              setIsFreshCommitment(false); // ریست کردن فلگ
+            } else {
+              setCardState('today-reflection');
+              setShowReflectionForm(true);
+            }
           }
         } else {
           // هیچ تعهدی وجود ندارد - فرم ایجاد تعهد امروز
@@ -243,7 +258,8 @@ export default function Dashboard() {
         planId: selectedPlanId !== 'none' ? selectedPlanId : undefined
       });
       setCommitment(data);
-      setShowReflectionForm(true);
+      setIsFreshCommitment(true); // نشان دادن اینکه این تعهد تازه ایجاد شده
+      await refreshData();
       setNewCommitmentText('');
       setSelectedPlanId('none');
       toast({
@@ -343,6 +359,7 @@ export default function Dashboard() {
       await authApiPost('/api/commitments', {
         text: suggestion.title,
       });
+      setIsFreshCommitment(true); // نشان دادن اینکه این تعهد از پیشنهاد هوشمند ایجاد شده
       await refreshData();
     } catch (error: any) {
       console.error('Error accepting suggestion:', error);
@@ -643,6 +660,33 @@ export default function Dashboard() {
                   {submitting ? 'در حال ثبت...' : 'ثبت بازتاب'}
                 </Button>
               </form>
+            ) : cardState === 'today-fresh' ? (
+              // حالت 3.5: تعهد تازه ایجاد شده (بدون درخواست بازتاب فوری)
+              <div className="text-center py-8">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 bg-green-100">
+                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p className="text-xl font-semibold text-gray-900 mb-3">
+                  {commitment?.text}
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                  ✅ تعهد امروز ثبت شد!
+                </div>
+                <p className="text-sm text-gray-500 mt-4">بعداً برای ثبت بازتاب برگردید</p>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setIsFreshCommitment(false);
+                    setCardState('today-reflection');
+                    setShowReflectionForm(true);
+                  }}
+                  className="mt-4 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white"
+                >
+                  ثبت بازتاب همین حالا
+                </Button>
+              </div>
             ) : (
               // حالت 4: نتیجه امروز (بازتاب ثبت شده)
               <div className="text-center py-8">
