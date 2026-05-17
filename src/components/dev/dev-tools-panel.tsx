@@ -503,13 +503,22 @@ export function DevToolsPanel() {
               <p className="text-sm text-gray-600">
                 داده تستی ندارید. برای تست گزارش هفتگی و تحلیل AI، داده‌های تستی تولید کنید:
               </p>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generateTestData(3)}
+                  disabled={loading}
+                  className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
+                >
+                  <Database className="w-4 h-4 ml-2" />
+                  3 روز (کاربر جدید)
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => generateTestData(7)}
                   disabled={loading}
-                  className="flex-1"
                 >
                   <Database className="w-4 h-4 ml-2" />
                   7 روز (1 هفته)
@@ -519,7 +528,6 @@ export function DevToolsPanel() {
                   size="sm"
                   onClick={() => generateTestData(14)}
                   disabled={loading}
-                  className="flex-1"
                 >
                   <Database className="w-4 h-4 ml-2" />
                   14 روز (2 هفته)
@@ -529,12 +537,14 @@ export function DevToolsPanel() {
                   size="sm"
                   onClick={() => generateTestData(28)}
                   disabled={loading}
-                  className="flex-1"
                 >
                   <Database className="w-4 h-4 ml-2" />
                   28 روز (4 هفته)
                 </Button>
               </div>
+              <p className="text-xs text-orange-600 mt-2">
+                💡 گزینه "3 روز (کاربر جدید)" برای تست قابلیت پیشنهاد هوشمند تعهدات مناسب است (نیاز به 7 روز داده دارد).
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -542,6 +552,16 @@ export function DevToolsPanel() {
                 داده تستی موجود است. برای تولید داده جدید، دکمه زیر را بزنید:
               </p>
               <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generateTestData(3)}
+                  disabled={loading}
+                  className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
+                >
+                  <Database className="w-4 h-4 ml-2" />
+                  3 روز (کاربر جدید)
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -570,6 +590,9 @@ export function DevToolsPanel() {
                   4 هفته جدید
                 </Button>
               </div>
+              <p className="text-xs text-orange-600">
+                💡 گزینه "3 روز (کاربر جدید)" برای تست قابلیت پیشنهاد هوشمند تعهدات مناسب است (نیاز به 7 روز داده دارد).
+              </p>
             </div>
           )}
         </div>
