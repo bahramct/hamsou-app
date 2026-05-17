@@ -461,7 +461,11 @@ export default function Dashboard() {
 
         {/* AI Decision Panel - پیشنهاد هوشمند تعهدات */}
         <div className="mb-6">
-          <AIDecisionPanel userId={getUser().id} onAcceptSuggestion={handleAcceptSuggestion} />
+          <AIDecisionPanel
+            userId={getUser().id}
+            onAcceptSuggestion={handleAcceptSuggestion}
+            hasCommitmentToday={!!commitment}
+          />
         </div>
 
         {/* Weekly Report Card */}

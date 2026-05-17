@@ -28,6 +28,7 @@ interface Insights {
 interface AIDecisionPanelProps {
   userId: string;
   onAcceptSuggestion: (suggestion: CommitmentSuggestion) => Promise<void>;
+  hasCommitmentToday?: boolean; // اگر کاربر امروز تعهد داشته باشد
 }
 
 const CATEGORY_OPTIONS = [
@@ -60,7 +61,7 @@ const PRIORITY_LABELS = {
   low: 'پایین',
 };
 
-export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelProps) {
+export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday = false }: AIDecisionPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<CommitmentSuggestion[]>([]);
   const [insights, setInsights] = useState<Insights | null>(null);
@@ -154,23 +155,32 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
   };
 
   return (
-    <Card className="w-full">
+    <Card className={`w-full ${hasCommitmentToday ? 'opacity-70' : ''}`}>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
+          <div className={`p-2 rounded-lg ${hasCommitmentToday ? 'bg-muted' : 'bg-primary/10'}`}>
+            <Sparkles className={`h-5 w-5 ${hasCommitmentToday ? 'text-muted-foreground' : 'text-primary'}`} />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-lg">پیشنهاد هوشمند تعهدات</CardTitle>
+            <CardTitle className={`text-lg ${hasCommitmentToday ? 'text-muted-foreground' : ''}`}>پیشنهاد هوشمند تعهدات</CardTitle>
             <CardDescription className="text-xs">
-              بر اساس تاریخچه و الگوهای شما
+              {hasCommitmentToday ? 'شما امروز تعهد دارید' : 'بر اساس تاریخچه و الگوهای شما'}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* پیام وضعیت */}
+        {hasCommitmentToday && (
+          <div className="p-4 bg-muted/50 rounded-lg border border-muted-200 text-center">
+            <p className="text-sm text-muted-foreground">
+              شما امروز تعهد ثبت کرده‌اید. این قابلیت فردا فعال می‌شود. 🎯
+            </p>
+          </div>
+        )}
+
         {/* تنظیمات */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${hasCommitmentToday ? 'pointer-events-none opacity-50' : ''}`}>
           <div className="space-y-1.5">
             <Label className="text-xs">تعداد پیشنهادات</Label>
             <Select value={selectedCount.toString()} onValueChange={(v) => setSelectedCount(parseInt(v))}>
@@ -234,7 +244,7 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
         {/* دکمه دریافت پیشنهادات */}
         <Button
           onClick={handleGetSuggestions}
-          disabled={isLoading}
+          disabled={isLoading || hasCommitmentToday}
           className="w-full"
           size="default"
         >
