@@ -14,9 +14,19 @@ interface PieChartProps {
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export function DistributionPieChart({ data }: PieChartProps) {
+  // اگر داده‌ای وجود ندارد، پیام مناسب نمایش بده
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center text-gray-500">
+        <p className="text-sm">داده‌ای برای نمایش نمودار وجود ندارد</p>
+      </div>
+    );
+  }
+
   // اعمال رنگ‌های ثابت
   const chartData = data.map((item, index) => ({
-    ...item,
+    name: item.name || '',
+    value: typeof item.value === 'number' ? item.value : 0,
     color: item.color || COLORS[index % COLORS.length],
   }));
 

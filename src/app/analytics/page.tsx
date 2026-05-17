@@ -97,40 +97,49 @@ export default function AnalyticsPage() {
 
       setOverview(overviewRes);
       // Set subscription plan from overview response
-      setUserPlan(overviewRes.subscriptionPlan || 'free');
+      setUserPlan(overviewRes?.subscriptionPlan || 'free');
       setCommitmentAnalytics(commitmentsRes);
       setReflectionAnalytics(reflectionsRes);
       setPlanAnalytics(plansRes);
-      setTrendData(trendsRes);
+      setTrendData(Array.isArray(trendsRes) ? trendsRes : []);
 
       // تولید داده‌های توزیع تعهدات
-      if (commitmentsRes) {
+      if (commitmentsRes && typeof commitmentsRes === 'object') {
         const distribution = [
-          { name: 'انجام شده', value: commitmentsRes.completedCommitments, color: '#10b981' },
-          { name: 'انجام نشده', value: commitmentsRes.notCompletedCommitments, color: '#ef4444' },
-          { name: 'بدون بازتاب', value: commitmentsRes.noReflection, color: '#f59e0b' },
+          { name: 'انجام شده', value: commitmentsRes.completedCommitments || 0, color: '#10b981' },
+          { name: 'انجام نشده', value: commitmentsRes.notCompletedCommitments || 0, color: '#ef4444' },
+          { name: 'بدون بازتاب', value: commitmentsRes.noReflection || 0, color: '#f59e0b' },
         ];
         setDistributionData(distribution);
+      } else {
+        setDistributionData([]);
       }
 
       // تولید داده‌های heatmap
-      if (trendsRes && trendsRes.length > 0) {
+      if (Array.isArray(trendsRes) && trendsRes.length > 0) {
         const heatmap = trendsRes.map((item: any) => {
           let level: 0 | 1 | 2 | 3 | 4 = 0;
-          if (item.total >= 1) level = 1;
-          if (item.total >= 2) level = 2;
-          if (item.total >= 3) level = 3;
-          if (item.total >= 4) level = 4;
+          const total = typeof item.total === 'number' ? item.total : 0;
+          if (total >= 1) level = 1;
+          if (total >= 2) level = 2;
+          if (total >= 3) level = 3;
+          if (total >= 4) level = 4;
           return {
-            date: item.date,
-            count: item.total,
+            date: item.date || '',
+            count: total,
             level,
           };
         });
         setHeatmapData(heatmap);
+      } else {
+        setHeatmapData([]);
       }
     } catch (error) {
       console.error('Error loading analytics:', error);
+      // Set empty data on error to prevent crashes
+      setTrendData([]);
+      setDistributionData([]);
+      setHeatmapData([]);
     } finally {
       setLoading(false);
     }

@@ -13,13 +13,25 @@ interface TrendLineChartProps {
 }
 
 export function TrendLineChart({ data }: TrendLineChartProps) {
+  // اگر داده‌ای وجود ندارد، پیام مناسب نمایش بده
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full h-[400px] flex items-center justify-center text-gray-500">
+        <p className="text-sm">داده‌ای برای نمایش نمودار وجود ندارد</p>
+      </div>
+    );
+  }
+
   // تبدیل تاریخ‌ها به فرمت کوتاه فارسی
   const formattedData = data.map((item) => ({
-    ...item,
-    displayDate: item.date,
-    completionRateDisplay: `${toPersianNumber(item.completionRate.toFixed(0))}%`,
-    totalDisplay: toPersianNumber(item.total),
-    completedDisplay: toPersianNumber(item.completed),
+    date: item.date || '',
+    completionRate: typeof item.completionRate === 'number' ? item.completionRate : 0,
+    total: typeof item.total === 'number' ? item.total : 0,
+    completed: typeof item.completed === 'number' ? item.completed : 0,
+    displayDate: item.date || '',
+    completionRateDisplay: `${toPersianNumber((typeof item.completionRate === 'number' ? item.completionRate : 0).toFixed(0))}%`,
+    totalDisplay: toPersianNumber(typeof item.total === 'number' ? item.total : 0),
+    completedDisplay: toPersianNumber(typeof item.completed === 'number' ? item.completed : 0),
   }));
 
   return (

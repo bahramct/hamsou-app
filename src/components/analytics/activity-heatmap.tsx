@@ -11,6 +11,15 @@ interface ActivityHeatmapProps {
 }
 
 export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
+  // اگر داده‌ای وجود ندارد، پیام مناسب نمایش بده
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full h-[200px] flex items-center justify-center text-gray-500">
+        <p className="text-sm">داده‌ای برای نمایش نقشه فعالیت وجود ندارد</p>
+      </div>
+    );
+  }
+
   // رنگ‌های برای سطوح مختلف فعالیت
   const levelColors = {
     0: 'bg-gray-100',
@@ -36,7 +45,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   }
 
   // محاسبه حداکثر تعداد
-  const maxCount = Math.max(...data.map((d) => d.count));
+  const maxCount = Math.max(...data.map((d) => typeof d.count === 'number' ? d.count : 0), 0);
 
   return (
     <div className="w-full" dir="rtl">
