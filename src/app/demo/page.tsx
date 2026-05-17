@@ -95,6 +95,9 @@ export default function Dashboard() {
           setHistory(historyData.slice(0, 7));
           const oldestCommitment = historyData[historyData.length - 1];
           setUserStartDate(new Date(oldestCommitment.date));
+        } else {
+          // اگر هیچ تعهدی وجود نداره، تاریخ شروع رو null می‌کنیم
+          setUserStartDate(undefined);
         }
 
         if (Array.isArray(plansData)) {
@@ -111,6 +114,19 @@ export default function Dashboard() {
     };
 
     loadData();
+
+    // گوش دادن به event حذف داده‌های تستی
+    const handleTestDataCleared = () => {
+      console.log('Test data cleared event received, refreshing page...');
+      refreshData();
+    };
+
+    window.addEventListener('testDataCleared', handleTestDataCleared);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('testDataCleared', handleTestDataCleared);
+    };
   }, [router]);
 
   // رفرش داده‌ها
@@ -138,6 +154,9 @@ export default function Dashboard() {
         setHistory(historyData.slice(0, 7));
         const oldestCommitment = historyData[historyData.length - 1];
         setUserStartDate(new Date(oldestCommitment.date));
+      } else {
+        // اگر هیچ تعهدی وجود نداره، تاریخ شروع رو null می‌کنیم
+        setUserStartDate(undefined);
       }
 
       if (Array.isArray(plansData)) {

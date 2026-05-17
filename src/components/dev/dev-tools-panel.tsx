@@ -180,6 +180,9 @@ export function DevToolsPanel() {
       // Refresh data info
       await checkTestData();
 
+      // Dispatch event to notify other components (like demo page)
+      window.dispatchEvent(new CustomEvent('testDataCleared'));
+
       // Auto-hide message after 5 seconds
       setTimeout(() => setMessage(null), 5000);
     } catch (error: any) {
