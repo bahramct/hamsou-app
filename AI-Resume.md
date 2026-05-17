@@ -21,32 +21,29 @@ https://github.com/bahramct/hamsou-app
 
 ### آخرین کامیت
 ```
-commit 364bcf9
-🌟 فاز 13+: همسوگرام - شبکه اجتماعی همسویی رشد فردی (چشم‌انداز)
+commit 7ae5965
+feat: v1.5.0 - Add AI Chatbot with Quick Prompts and Voice Input
 
-- کانسپت اصلی: پیشرفت دیده می‌شه، نه جاهات
-- اینستاگرام: سفر، غذا، لباس | همسوگرام: تلاش، رشد، انضباط
-- فلسفه طراحی بر اساس رشد واقعی، نه زندگی ویترینی
-- تعریف فرمت‌های محتوا: Progress Snapshots, Reflection Stories, Achievement Reels
-- تعاملات اجتماعی: Cheer, Sync, Encouragement, Inspire, Goal Buddy
-- ویژگی‌های کشف: Discover Journeys, Trending Goals, Curated Feeds
-- ویژگی‌های Real-time: Focus Rooms, Live Progress, Real-time Challenges
-- گیمیفیکیشن پیشرفته: Level System, Badge Collections, Seasonal Events
-- حریم خصوصی و امنیت: Privacy Levels, Close Circle, Content Moderation
-- ابزارهای محتوا: Template Gallery, AI Caption Generator, Progress Timelapse
-- همکاری و شراکت: Joint Challenges, Accountability Partners, Mentorship
-- API های آینده برای همسوگرام
-- اهداف و ارزش‌ها: انگیزه واقعی، فرهنگ سالم، جلوگیری از مقایسه سمی
-- تمرکز بر کانسپت و فلسفه، نه کپی‌کردن تک‌تک فیچرهای اینستاگرام
-- به‌روزرسانی اولویت‌های بعدی در roadmap
-- Version: 1.4.1
+Features:
+- ✅ Chat Widget with floating button and iPhone-style animation
+- ✅ Quick Prompts (5 predefined prompts for common questions)
+- ✅ Voice Input with Web Speech API (Persian language support)
+- ✅ Persian Numbers throughout the chat interface
+- ✅ Chat history persistence in database
+- ✅ Personalized welcome messages based on user stats
+- ✅ Full RTL support
+- ✅ API Routes: chat/send, chat/history, chat/welcome, chat/clear
+- ✅ Reduced widget size to standard chat dimensions (340px width, 200px height)
+
+Phase 8 (Advanced AI Features): 10% complete (8.1.1)
+Overall Progress: 59%
 ```
 
 ### نسخه فعلی
-1.4.1
+1.5.0
 
 ### پیشرفت کلی
-~58% (7.1 فاز از 12 فاز اصلی + فاز 13+ به عنوان چشم‌انداز)
+~59% (7.1 فاز از 12 فاز اصلی + فاز 13+ به عنوان چشم‌انداز)
 
 ---
 
@@ -179,7 +176,18 @@ chore: description
    - ⏳ 7.5: API های باقی‌مانده - شروع نشده
 
 ### فازهای شروع نشده
-8. ⏳ فاز 8: قابلیت‌های AI پیشرفته (0%)
+8. 🔄 فاز 8: قابلیت‌های AI پیشرفته (10% - 8.1.1 تکمیل شده)
+   - ✅ 8.1.1: چت‌بات اختصاصی همسو (کامل)
+     - Chat Widget با دکمه شناور و انیمیشن iPhone-style
+     - Quick Prompts (۵ پیشنهاد سریع)
+     - Voice Input با Web Speech API و پشتیبانی فارسی
+     - Persian Numbers در تمام چت
+     - ذخیره‌سازی تاریخچه چت در دیتابیس
+     - پیام خوش‌آمدگویی شخصی‌سازی شده
+     - پشتیبانی کامل RTL
+     - API Routes: POST /api/chat/send, GET /api/chat/history, GET /api/chat/welcome, POST /api/chat/clear
+   - ⏳ 8.2: پیشنهاد هوشمند تعهدات
+   - ⏳ 8.3: تحلیل احسالی (Sentiment Analysis)
 9. ⏳ فاز 9: بهینه‌سازی و عملکرد (0%)
 10. ⏳ فاز 10: دیپلوی و Production (0%)
 11. ⏳ فاز 11: اپلیکیشن موبایل (0%)
@@ -235,6 +243,50 @@ tail -100 /home/z/my-project/dev.log
 ---
 
 ## 📝 ویژگی‌های اخیراً اضافه شده
+
+### فاز 8.1 - چت‌بات اختصاصی همسو (AI Chatbot) - نسخه 1.5.0
+**تاریخ**: 2025-01-30
+
+#### مدل دیتابیس اضافه شده
+- `ChatMessage` - پیام‌های چت با فیلدهای:
+  - id, userId, role (user/assistant/system), content, chatType, metadata
+  - timestamp, createdAt, updatedAt
+
+#### API Routes اضافه شده
+- `POST /api/chat/send` - ارسال پیام به AI
+- `GET /api/chat/history` - دریافت تاریخچه چت
+- `GET /api/chat/welcome` - پیام خوش‌آمدگویی شخصی‌سازی شده
+- `POST /api/chat/clear` - پاک کردن تاریخچه چت
+
+#### کامپوننت UI اضافه شده
+- `ChatWidget` - ویجت چت شناور با ویژگی‌های:
+  - دکمه شناور در گوشه پایین سمت چپ (RTL)
+  - پنجره چت با انیمیشن iPhone-style (cubic-bezier)
+  - Quick Prompts (۵ دکمه پیشنهاد سریع):
+    - 📊 تحلیل هفته
+    - 🎯 پیشنهاد هدف
+    - 💡 راهنمایی بهبود
+    - 📝 خلاصه امروز
+    - ⭐ انگیزه
+  - Voice Input با Web Speech API:
+    - پشتیبانی از زبان فارسی (fa-IR)
+    - نمایش وضعیت ضبط با رنگ قرمز
+    - مدیریت خطا برای مرورگرهای غیرپشتیبان
+  - Persian Numbers (تبدیل اعداد به فارسی در همه‌جا)
+  - پیام خوش‌آمدگویی شخصی‌سازی شده بر اساس نام و آمار کاربر
+  - ذخیره‌سازی تاریخچه چت در دیتابیس
+  - پشتیبانی کامل RTL
+  - سایز استاندارد چت (340px عرض، 200px ارتفاع ناحیه پیام‌ها)
+
+#### ویژگی‌های فنی
+- استفاده از Web Speech API برای ورودی صوتی
+- استفاده از تابع toPersianText() برای تبدیل اعداد
+- Toast notifications برای خطاها و موفقیت‌ها
+- Auto-scroll به آخرین پیام
+- Loading states با spinner
+- دکمه پاک کردن تاریخچه چت
+
+---
 
 ### فاز 7.3 - جامعه کاربران (Community) - نسخه 1.4.1
 **تاریخ**: 2025-01-30
@@ -310,10 +362,33 @@ tail -100 /home/z/my-project/dev.log
 
 </div>
 
-### اولویت 3: شروع فاز 8 (AI پیشرفته)
-- چت‌بات اختصاصی همسو
-- پیشنهاد هوشمند تعهدات
-- تحلیل احساسی
+### اولویت 3: ادامه فاز 8 (AI پیشرفته) - در حال توسعه
+<div dir="rtl">
+
+فاز 8.1 (چت‌بات اختصاصی همسو) تکمیل شده است. می‌توانید ادامه دهید با:
+
+1. **فاز 8.2: پیشنهاد هوشمند تعهدات**
+   - تحلیل برنامه‌های قبلی
+   - پیشنهاد تعهدات مناسب
+   - تنظیم خودکار بر اساس ظرفیت
+   - یادگیری از رفتار کاربر
+   - بهینه‌سازی زمان‌بندی
+
+2. **فاز 8.3: تحلیل احسالی (Sentiment Analysis)**
+   - تحلیل احساسات در بازتف‌ها
+   - شناسایی الگوهای استرس
+   - هشدارهای سلامت روان
+   - پیشنهاد تکنیک‌های مدیریت استرس
+   - ردیابی بهبود سلامت روان
+
+3. **فاز 8.4: تولید محتوا با AI**
+   - تولید گزارش‌های تصویری با AI
+   - ایجاد quotes الهام‌بخش
+   - تولید summary هفتگی
+   - خلاصه‌سازی داده‌های ماهانه
+   - تولید motivational content
+
+</div>
 
 ### چشم‌انداز بلندمدت
 - فاز 13+: همسوگرام - شبکه اجتماعی پیشرفته همسویی رشد فردی
@@ -469,7 +544,7 @@ const result = await authApiPost('/api/commitments', { text: '...' });
 <div dir="rtl">
 
 **آخرین بروزرسانی**: 2025-01-30
-**نسخه**: 1.4.1
+**نسخه**: 1.5.0
 **توسعه‌دهنده**: Z.ai Code (با راهنمایی Bahram Barazandeh - بهرام برازنده)
 
 </div>
