@@ -61,6 +61,7 @@ export default function Dashboard() {
   const [history, setHistory] = useState<Commitment[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('none');
+  const [userStartDate, setUserStartDate] = useState<Date | undefined>(undefined);
 
   // چک کردن احراز هویت و لود کردن داده‌ها
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function Dashboard() {
         setLoading(true);
         const [todayData, historyData, plansData] = await Promise.all([
           authApiGet('/api/commitments/today'),
-          authApiGet('/api/commitments?limit=7'),
+          authApiGet('/api/commitments?limit=100'), // بگیریم بیشتر تا تاریخ اولین رو پیدا کنیم
           authApiGet('/api/plans?status=active')
         ]);
 
@@ -85,8 +86,15 @@ export default function Dashboard() {
           setShowReflectionForm(true);
         }
 
-        if (historyData && historyData.items) {
-          setHistory(historyData.items);
+        if (historyData && historyData.items && historyData.items.length > 0) {
+          setHistory(historyData.items.slice(0, 7)); // فقط 7 تا برای نمایش تاریخچه
+          // پیدا کردن قدیمی‌ترین تعهد برای محاسبه تاریخ شروع داده‌های کاربر
+          const oldestCommitment = historyData.items[historyData.items.length - 1];
+          setUserStartDate(new Date(oldestCommitment.date));
+        } else if (historyData && Array.isArray(historyData) && historyData.length > 0) {
+          setHistory(historyData.slice(0, 7));
+          const oldestCommitment = historyData[historyData.length - 1];
+          setUserStartDate(new Date(oldestCommitment.date));
         }
 
         if (Array.isArray(plansData)) {
@@ -110,7 +118,7 @@ export default function Dashboard() {
     try {
       const [todayData, historyData, plansData] = await Promise.all([
         authApiGet('/api/commitments/today'),
-        authApiGet('/api/commitments?limit=7'),
+        authApiGet('/api/commitments?limit=100'),
         authApiGet('/api/plans?status=active')
       ]);
 
@@ -122,8 +130,14 @@ export default function Dashboard() {
         setShowReflectionForm(false);
       }
 
-      if (historyData && historyData.items) {
-        setHistory(historyData.items);
+      if (historyData && historyData.items && historyData.items.length > 0) {
+        setHistory(historyData.items.slice(0, 7));
+        const oldestCommitment = historyData.items[historyData.items.length - 1];
+        setUserStartDate(new Date(oldestCommitment.date));
+      } else if (historyData && Array.isArray(historyData) && historyData.length > 0) {
+        setHistory(historyData.slice(0, 7));
+        const oldestCommitment = historyData[historyData.length - 1];
+        setUserStartDate(new Date(oldestCommitment.date));
       }
 
       if (Array.isArray(plansData)) {
@@ -465,6 +479,7 @@ export default function Dashboard() {
             userId={getUser().id}
             onAcceptSuggestion={handleAcceptSuggestion}
             hasCommitmentToday={!!commitment}
+            userStartDate={userStartDate}
           />
         </div>
 

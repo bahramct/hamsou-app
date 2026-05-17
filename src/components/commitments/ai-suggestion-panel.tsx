@@ -28,7 +28,8 @@ interface Insights {
 interface AIDecisionPanelProps {
   userId: string;
   onAcceptSuggestion: (suggestion: CommitmentSuggestion) => Promise<void>;
-  hasCommitmentToday?: boolean; // اگر کاربر امروز تعهد داشته باشد
+  hasCommitmentToday?: boolean;
+  userStartDate?: Date; // تاریخ ثبت‌نام کاربر یا اولین تعهد
 }
 
 const CATEGORY_OPTIONS = [
@@ -61,7 +62,7 @@ const PRIORITY_LABELS = {
   low: 'پایین',
 };
 
-export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday = false }: AIDecisionPanelProps) {
+export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday = false, userStartDate }: AIDecisionPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<CommitmentSuggestion[]>([]);
   const [insights, setInsights] = useState<Insights | null>(null);
@@ -72,9 +73,28 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
   const [context, setContext] = useState('');
   const [showInsights, setShowInsights] = useState(false);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
 
+  // بررسی اینکه آیا کاربر حداقل یک هفته داده دارد یا نه
+  const hasEnoughData = userStartDate
+    ? (Date.now() - new Date(userStartDate).getTime()) >= 7 * 24 * 60 * 60 * 1000
+    : false;
+
   const handleGetSuggestions = async () => {
+    // بررسی اینکه آیا کاربر دیتای کافی دارد
+    if (!hasEnoughData) {
+      toast({
+        title: 'داده کافی موجود نیست',
+        description: 'برای ارائه پیشنهادات هوشمند، نیاز به حداقل یک هفته داده داریم. بعد از جمع‌آوری داده‌های بیشتر، این قابلیت فعال می‌شود.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // باز کردن کارت
+    setIsExpanded(true);
+
     setIsLoading(true);
     setSuggestions([]);
     setInsights(null);
@@ -155,7 +175,7 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
   };
 
   return (
-    <Card className={`w-full ${hasCommitmentToday ? 'opacity-70' : ''}`}>
+    <Card className={`w-full ${hasCommitmentToday ? 'opacity-70' : ''} transition-all duration-300`}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <div className={`p-2 rounded-lg ${hasCommitmentToday ? 'bg-muted' : 'bg-primary/10'}`}>
@@ -164,23 +184,49 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
           <div className="flex-1">
             <CardTitle className={`text-lg ${hasCommitmentToday ? 'text-muted-foreground' : ''}`}>پیشنهاد هوشمند تعهدات</CardTitle>
             <CardDescription className="text-xs">
-              {hasCommitmentToday ? 'شما امروز تعهد دارید' : 'بر اساس تاریخچه و الگوهای شما'}
+              {hasCommitmentToday ? 'شما امروز تعهد دارید' : hasEnoughData ? 'بر اساس تاریخچه و الگوهای شما' : 'داده کافی ندارید'}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* پیام وضعیت */}
-        {hasCommitmentToday && (
-          <div className="p-4 bg-muted/50 rounded-lg border border-muted-200 text-center">
-            <p className="text-sm text-muted-foreground">
-              شما امروز تعهد ثبت کرده‌اید. این قابلیت فردا فعال می‌شود. 🎯
-            </p>
-          </div>
+        {/* حالت بسته - فقط دکمه دریافت پیشنهاد */}
+        {!isExpanded && !hasCommitmentToday && (
+          <Button
+            onClick={handleGetSuggestions}
+            disabled={isLoading || !hasEnoughData}
+            className="w-full"
+            size="default"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                در حال تحلیل...
+              </>
+            ) : (
+              <>
+                <Sparkles className="ml-2 h-4 w-4" />
+                دریافت پیشنهاد هوشمند
+              </>
+            )}
+          </Button>
         )}
 
-        {/* تنظیمات */}
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 ${hasCommitmentToday ? 'pointer-events-none opacity-50' : ''}`}>
+        {/* حالت باز - تنظیمات و پیشنهادات */}
+        {isExpanded && (
+          <div className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+            {/* پیام وضعیت */}
+            {hasCommitmentToday && (
+              <div className="p-4 bg-muted/50 rounded-lg border border-muted-200 text-center">
+                <p className="text-sm text-muted-foreground">
+                  شما امروز تعهد ثبت کرده‌اید. این قابلیت فردا فعال می‌شود. 🎯
+                </p>
+              </div>
+            )}
+
+            {/* تنظیمات */}
+            {!hasCommitmentToday && (
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 transition-opacity duration-200 ${isLoading ? 'opacity-50' : ''}`}>
           <div className="space-y-1.5">
             <Label className="text-xs">تعداد پیشنهادات</Label>
             <Select value={selectedCount.toString()} onValueChange={(v) => setSelectedCount(parseInt(v))}>
@@ -241,29 +287,31 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
           />
         </div>
 
-        {/* دکمه دریافت پیشنهادات */}
-        <Button
-          onClick={handleGetSuggestions}
-          disabled={isLoading || hasCommitmentToday}
-          className="w-full"
-          size="default"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              در حال تحلیل...
-            </>
-          ) : (
-            <>
-              <Sparkles className="ml-2 h-4 w-4" />
-              دریافت پیشنهادات هوشمند
-            </>
-          )}
-        </Button>
+        {/* دکمه دریافت پیشنهادات در حالت باز */}
+        {!hasCommitmentToday && (
+          <Button
+            onClick={handleGetSuggestions}
+            disabled={isLoading}
+            className="w-full"
+            size="default"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                در حال تحلیل...
+              </>
+            ) : (
+              <>
+                <Sparkles className="ml-2 h-4 w-4" />
+                دریافت پیشنهادات هوشمند
+              </>
+            )}
+          </Button>
+        )}
 
         {/* نمایش آمار تحلیل */}
-        {analysis && (
-          <div className="p-3 bg-muted/50 rounded-lg border">
+        {analysis && !hasCommitmentToday && (
+          <div className="p-3 bg-muted/50 rounded-lg border animate-in fade-in duration-300">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-primary" />
               <span className="text-xs font-medium">آمار شما</span>
@@ -286,19 +334,35 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
         )}
 
         {/* نمایش پیشنهادات */}
-        {suggestions.length > 0 && (
-          <div className="space-y-3">
+        {suggestions.length > 0 && !hasCommitmentToday && (
+          <div className="space-y-3 animate-in fade-in duration-300">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold">پیشنهادات ({suggestions.length})</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowInsights(!showInsights)}
-                className="text-xs"
-              >
-                <Lightbulb className="ml-1 h-3 w-3" />
-                {showInsights ? 'مخفی کردن' : 'مشاهده بینش‌ها'}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowInsights(!showInsights)}
+                  className="text-xs"
+                >
+                  <Lightbulb className="ml-1 h-3 w-3" />
+                  {showInsights ? 'مخفی کردن' : 'مشاهده بینش‌ها'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsExpanded(false);
+                    setSuggestions([]);
+                    setInsights(null);
+                    setAnalysis(null);
+                  }}
+                  className="text-xs"
+                >
+                  <X className="ml-1 h-3 w-3" />
+                  بستن
+                </Button>
+              </div>
             </div>
 
             {showInsights && insights && (
