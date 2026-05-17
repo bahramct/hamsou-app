@@ -21,29 +21,35 @@ https://github.com/bahramct/hamsou-app
 
 ### آخرین کامیت
 ```
-commit 7ae5965
-feat: v1.5.0 - Add AI Chatbot with Quick Prompts and Voice Input
+commit [latest]
+feat: v1.7.0 - Implement Hamsu Concept and Improve Smart Suggestions
 
 Features:
-- ✅ Chat Widget with floating button and iPhone-style animation
-- ✅ Quick Prompts (5 predefined prompts for common questions)
-- ✅ Voice Input with Web Speech API (Persian language support)
-- ✅ Persian Numbers throughout the chat interface
-- ✅ Chat history persistence in database
-- ✅ Personalized welcome messages based on user stats
-- ✅ Full RTL support
-- ✅ API Routes: chat/send, chat/history, chat/welcome, chat/clear
-- ✅ Reduced widget size to standard chat dimensions (340px width, 200px height)
+- ✅ Complete Hamsu (همسو) concept implementation:
+  - One commitment per day
+  - Reflection only on the next day (not same day)
+  - Calendar-based system (not behavior-based)
+  - History shows only commitments with completed reflections from past days
+  - Removed "Reflect Now" button (conflicts with Hamsu concept)
+- ✅ Smart Suggestions improvements:
+  - Minimum 7 days data validation before suggesting
+  - Error message when insufficient data: "این قسمت برای ارائه صحیح پیشنهادات به حداقل داده‌های یک هفته شما نیاز دارد"
+  - Separated card expansion from suggestion generation
+  - Button text changes based on state:
+    - Closed: "تنظیم پیشنهاد هوشمند"
+    - Open: "دریافت پیشنهادات هوشمند"
+  - Fixed history filter to show only commitments with reflections from past days
+- ✅ Fixed test data generation (past days only)
 
-Phase 8 (Advanced AI Features): 10% complete (8.1.1)
-Overall Progress: 59%
+Phase 8 (Advanced AI Features): 40% complete (8.1.1, 8.2)
+Overall Progress: 68%
 ```
 
 ### نسخه فعلی
-1.5.0
+1.7.0
 
 ### پیشرفت کلی
-~59% (7.1 فاز از 12 فاز اصلی + فاز 13+ به عنوان چشم‌انداز)
+~68% (7.1 فاز از 12 فاز اصلی + فاز 13+ به عنوان چشم‌انداز)
 
 ---
 
@@ -148,7 +154,11 @@ chore: description
 
 ### فازهای تکمیل شده (100%)
 1. ✅ فاز 1: سیستم احراز هویت (Authentication System)
-2. ✅ فاز 2: سیستم تعهدات (Commitments System)
+2. ✅ فاز 2: سیستم تعهدات (Commitments System) - **با کانسپت همسو (Hamsu)**
+   - یک تعهد در هر روز
+   - بازتاب فقط در روز بعد (نه همان روز)
+   - سیستم مبتنی بر تقویم (نه رفتار کاربر)
+   - تاریخچه فقط تعهدات با بازتاب تکمیل شده
 3. ✅ فاز 3: سیستم بازتاب (Reflections System)
 4. ✅ فاز 4: سیستم برنامه‌ریزی (Plans System)
 
@@ -176,7 +186,7 @@ chore: description
    - ⏳ 7.5: API های باقی‌مانده - شروع نشده
 
 ### فازهای شروع نشده
-8. 🔄 فاز 8: قابلیت‌های AI پیشرفته (10% - 8.1.1 تکمیل شده)
+8. 🔄 فاز 8: قابلیت‌های AI پیشرفته (40% - 8.1.1, 8.2 تکمیل شده)
    - ✅ 8.1.1: چت‌بات اختصاصی همسو (کامل)
      - Chat Widget با دکمه شناور و انیمیشن iPhone-style
      - Quick Prompts (۵ پیشنهاد سریع)
@@ -186,7 +196,15 @@ chore: description
      - پیام خوش‌آمدگویی شخصی‌سازی شده
      - پشتیبانی کامل RTL
      - API Routes: POST /api/chat/send, GET /api/chat/history, GET /api/chat/welcome, POST /api/chat/clear
-   - ⏳ 8.2: پیشنهاد هوشمند تعهدات
+   - ✅ 8.2: پیشنهاد هوشمند تعهدات (کامل)
+     - تحلیل برنامه‌های قبلی
+     - پیشنهاد تعهدات مناسب
+     - تنظیم خودکار بر اساس ظرفیت
+     - یادگیری از رفتار کاربر
+     - بهینه‌سازی زمان‌بندی
+     - اعتبارسنجی حداقل ۷ روز داده
+     - جدا کردن باز کردن کارت از تولید پیشنهاد
+     - اصلاح تولید داده‌های تستی
    - ⏳ 8.3: تحلیل احسالی (Sentiment Analysis)
 9. ⏳ فاز 9: بهینه‌سازی و عملکرد (0%)
 10. ⏳ فاز 10: دیپلوی و Production (0%)
@@ -243,6 +261,42 @@ tail -100 /home/z/my-project/dev.log
 ---
 
 ## 📝 ویژگی‌های اخیراً اضافه شده
+
+### فاز 2.5 - کانسپت همسو (Hamsu) - نسخه 1.7.0
+**تاریخ**: 2025-01-30
+
+#### مفهوم اصلی همسو
+همسو یک سیستم تعهد و بازتاب مبتنی بر تقویم است با اصول زیر:
+- یک تعهد در هر روز
+- بازتاب فقط در روز بعد (نه همان روز)
+- سیستم مبتنی بر تقویم (نه رفتار کاربر)
+- تاریخچه فقط تعهدات با بازتاب تکمیل شده از روزهای گذشته
+
+#### تغییرات در رابط کاربری
+- حذف دکمه "ثبت بازتف همین حالا" (تعارض با کانسپت همسو)
+- تغییرات منطقی در `/src/app/demo/page.tsx`:
+  - روزهای گذشته بدون بازتاب → نمایش فرم بازتاب
+  - تعهد امروز بدون بازتاب → نمایش وضعیت fresh (بدون درخواست بازتاب)
+  - تعهد امروز با بازتاب → نمایش نتیجه
+  - بدون تعهد امروز → نمایش فرم ایجاد تعهد
+- فیلتر تاریخچه: فقط نمایش تعهدات با بازتاب تکمیل شده از روزهای گذشته
+
+#### تغییرات در SmartSuggestionCard
+- اعتبارسنجی حداقل ۷ روز داده قبل از ارائه پیشنهاد
+- پیام خطا: "این قسمت برای ارائه صحیح پیشنهادات به حداقل داده‌های یک هفته شما نیاز دارد، شما می‌توانید از هفته دوم از این ویژگی استفاده کنید"
+- جدا کردن باز کردن کارت از تولید پیشنهاد:
+  - `handleExpandCard`: فقط باز کردن کارت
+  - `handleGetSuggestions`: تولید پیشنهاد با تنظیمات فعلی
+- تغییر متن دکمه بر اساس وضعیت:
+  - بسته: "تنظیم پیشنهاد هوشمند"
+  - باز شده: "دریافت پیشنهادات هوشمند"
+
+#### تغییرات در تولید داده‌های تستی
+- API: `/src/app/api/dev/generate-test-data/route.ts`
+- همیشه تعهدات امروز را قبل از تولید حذف می‌کند
+- داده‌های تستی فقط برای روزهای گذشته (نه امروز)
+
+---
 
 ### فاز 8.1 - چت‌بات اختصاصی همسو (AI Chatbot) - نسخه 1.5.0
 **تاریخ**: 2025-01-30
@@ -544,7 +598,7 @@ const result = await authApiPost('/api/commitments', { text: '...' });
 <div dir="rtl">
 
 **آخرین بروزرسانی**: 2025-01-30
-**نسخه**: 1.5.0
+**نسخه**: 1.7.0
 **توسعه‌دهنده**: Z.ai Code (با راهنمایی Bahram Barazandeh - بهرام برازنده)
 
 </div>
