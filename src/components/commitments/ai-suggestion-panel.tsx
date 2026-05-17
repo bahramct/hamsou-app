@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Sparkles, Loader2, Check, Clock, Target, TrendingUp, AlertCircle, Lightbulb } from 'lucide-react';
+import { Sparkles, Loader2, Check, Clock, Target, TrendingUp, AlertCircle, Lightbulb, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CommitmentSuggestion {
@@ -70,6 +70,7 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
   const [selectedCount, setSelectedCount] = useState(3);
   const [context, setContext] = useState('');
   const [showInsights, setShowInsights] = useState(false);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const handleGetSuggestions = async () => {
@@ -136,6 +137,20 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
         variant: 'destructive',
       });
     }
+  };
+
+  const handleRejectSuggestion = (index: number, suggestion: CommitmentSuggestion) => {
+    setRejectingId(index);
+
+    // انیمیشن خروج و سپس حذف
+    setTimeout(() => {
+      setSuggestions((prev) => prev.filter((_, i) => i !== index));
+      setRejectingId(null);
+      toast({
+        title: 'پیشنهاد رد شد',
+        description: `"${suggestion.title}" حذف شد.`,
+      });
+    }, 300);
   };
 
   return (
@@ -305,7 +320,14 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
 
             <div className="space-y-2">
               {suggestions.map((suggestion, index) => (
-                <Card key={index} className="border hover:border-primary/50 transition-colors">
+                <Card
+                  key={index}
+                  className={`border hover:border-primary/50 transition-all duration-300 ${
+                    rejectingId === index
+                      ? 'opacity-0 scale-95 translate-x-4'
+                      : 'opacity-100 scale-100 translate-x-0'
+                  }`}
+                >
                   <CardContent className="p-3">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div className="flex-1">
@@ -339,15 +361,26 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion }: AIDecisionPanelP
                       💡 {suggestion.reason}
                     </p>
 
-                    <Button
-                      onClick={() => handleAcceptSuggestion(suggestion)}
-                      size="sm"
-                      className="w-full"
-                      variant="outline"
-                    >
-                      <Check className="ml-1 h-3.5 w-3.5" />
-                      قبول این پیشنهاد
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleAcceptSuggestion(suggestion)}
+                        size="sm"
+                        className="flex-1"
+                        variant="outline"
+                      >
+                        <Check className="ml-1 h-3.5 w-3.5" />
+                        قبول
+                      </Button>
+                      <Button
+                        onClick={() => handleRejectSuggestion(index, suggestion)}
+                        size="sm"
+                        className="flex-1"
+                        variant="outline"
+                      >
+                        <X className="ml-1 h-3.5 w-3.5" />
+                        رد
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
