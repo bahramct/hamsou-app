@@ -114,9 +114,9 @@ export async function POST(request: NextRequest) {
     const days = body.days || 14; // Default 14 days
     const clearBefore = body.clearBefore !== false; // Default: clear existing data
 
-    if (days < 7 || days > 365) {
+    if (days < 1 || days > 365) {
       return NextResponse.json(
-        { error: 'تعداد روز باید حداقل 7 روز و حداکثر 365 روز باشد' },
+        { error: 'تعداد روز باید حداقل 1 روز و حداکثر 365 روز باشد' },
         { status: 400 }
       );
     }
