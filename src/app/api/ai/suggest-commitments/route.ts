@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
+import { aiClient } from '@/lib/ai';
 
 // Validation schema
 const suggestCommitmentsSchema = z.object({
   userId: z.string().min(1),
   count: z.number().min(1).max(10).optional().default(3),
   category: z.string().optional(),
-  timeOfDay: z.string().optional(), // morning, afternoon, evening
-  context: z.string().optional(), // اطلاعات اضافی برای شخصی‌سازی
+  timeOfDay: z.string().optional(),
+  context: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -16,120 +17,80 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, count, category, timeOfDay, context } = suggestCommitmentsSchema.parse(body);
 
-    // 1. دریافت تعهدات قبلی کاربر
-    const pastCommitments = await db.commitment.findMany({
+    // 1. محاسبه نرخ تکمیل
+    const totalCommitments = await db.commitment.count({
       where: { userId },
-      orderBy: { date: 'desc' },
-      take: 30,
     });
 
-    // 2. دریافت بازتاب‌های کاربر برای تحلیل الگوها
-    const reflections = await db.reflection.findMany({
+    const completedCommitments = await db.commitment.count({
+      where: {
+        userId,
+        reflection: { completed: true },
+      },
+    });
+
+    const completionRate = totalCommitments > 0
+      ? (completedCommitments / totalCommitments) * 100
+      : 0;
+
+    // 2. دریافت تعهدات موفق و ناموفق
+    const successfulCommitments = await db.commitment.findMany({
+      where: {
+        userId,
+        reflection: { completed: true },
+      },
+      orderBy: { date: 'desc' },
+      take: 10,
+      select: { text: true },
+    });
+
+    const failedReflections = await db.reflection.findMany({
       where: {
         commitment: { userId },
+        completed: false,
+        reason: { not: null },
       },
       include: {
-        commitment: true,
+        commitment: { select: { text: true } },
       },
       orderBy: { reflectedAt: 'desc' },
-      take: 20,
+      take: 10,
     });
 
-    // 3. دریافت برنامه‌های فعال کاربر
-    const activePlans = await db.plan.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      take: 5,
-    });
+    // 3. ساخت prompt برای AI با context اضافی
+    let customPrompt = `بر اساس سابقه من، ${count} تعهد مناسب و قابل‌دستیابی به فارسی پیشنهاد بده.
 
-    // 4. دریافت گزارش‌های هفتگی برای تحلیل الگوهای رفتاری
-    const weeklyReports = await db.weeklyReport.findMany({
-      where: { userId },
-      orderBy: { weekStart: 'desc' },
-      take: 4,
-    });
-
-    // 5. تحلیل داده‌ها و آماده‌سازی برای AI
-    const analysisData = {
-      pastCommitments: pastCommitments.map(c => ({
-        text: c.text,
-        date: c.date.toISOString(),
-        completed: c.reflection?.completed || false,
-      })),
-      reflections: reflections.map(r => ({
-        completed: r.completed,
-        reason: r.reason,
-        date: r.reflectedAt.toISOString(),
-      })),
-      activePlans: activePlans.map(p => ({
-        title: p.title,
-        description: p.description,
-        type: p.type,
-        category: p.category,
-      })),
-      weeklyInsights: weeklyReports.map(r => ({
-        summary: r.weeklySummary,
-        behavioralInsight: r.behavioralInsight,
-        suggestedDirection: r.suggestedDirection,
-      })),
-    };
-
-    // 6. محاسبه نرخ تکمیل و الگوها
-    const totalCommitments = analysisData.pastCommitments.length;
-    const completedCommitments = analysisData.pastCommitments.filter(c => c.completed).length;
-    const completionRate = totalCommitments > 0 ? (completedCommitments / totalCommitments) * 100 : 0;
-
-    // 7. تحلیل دسته‌بندی‌های موفق
-    const successfulPatterns = analysisData.pastCommitments
-      .filter(c => c.completed)
-      .map(c => c.text);
-
-    const failedPatterns = analysisData.reflections
-      .filter(r => !r.completed && r.reason)
-      .map(r => ({ reason: r.reason, date: r.date }));
-
-    // 8. ساخت Prompt برای AI
-    let aiPrompt = `تو یک دستیار هوشمند برای برنامه‌ریزی و تعهدات روزانه هستی.
-
-اطلاعات کاربر:
+اطلاعات من:
 - نرخ تکمیل تعهدات: ${completionRate.toFixed(1)}%
 - تعداد تعهدات قبلی: ${totalCommitments}
 - تعداد تعهدات تکمیل شده: ${completedCommitments}
 
 تعهدات موفق قبلی:
-${successfulPatterns.slice(0, 5).map(c => `- ${c}`).join('\n')}
+${successfulCommitments.map(c => `- ${c.text}`).join('\n')}
 
 دلایل عدم انجام (اگر وجود داره):
-${failedPatterns.slice(0, 3).map(f => `- ${f.reason}`).join('\n')}
-
-برنامه‌های فعال کاربر:
-${analysisData.activePlans.map(p => `- ${p.title} (${p.category})`).join('\n')}
-
+${failedReflections.map(r => `- ${r.reason} (${r.commitment.text})`).join('\n')}
 `;
 
-    // اضافه کردن اطلاعات بازه زمانی
+    // اضافه کردن context اضافی
     if (timeOfDay) {
       const timeContext = {
         morning: 'این تعهدات برای صبح است، توصیه می‌شود فعالیت‌های سبک‌تر و پرانرژی پیشنهاد شوند.',
         afternoon: 'این تعهدات برای بعدازظهر است، توصیه می‌شود فعالیت‌های متوسط پیشنهاد شوند.',
         evening: 'این تعهدات برای شب است، توصیه می‌شود فعالیت‌های آرام و قابل انجام پیشنهاد شوند.',
       };
-      aiPrompt += timeContext[timeOfDay as keyof typeof timeContext] + '\n';
+      customPrompt += timeContext[timeOfDay as keyof typeof timeContext] + '\n';
     }
 
-    // اضافه کردن دسته‌بندی
     if (category) {
-      aiPrompt += `این تعهدات باید در دسته‌بندی "${category}" باشند.\n`;
+      customPrompt += `این تعهدات باید در دسته‌بندی "${category}" باشند.\n`;
     }
 
-    // اضافه کردن context اضافی
     if (context) {
-      aiPrompt += `اطلاعات اضافی کاربر: ${context}\n`;
+      customPrompt += `اطلاعات اضافی کاربر: ${context}\n`;
     }
 
-    aiPrompt += `
-بر اساس این اطلاعات، ${count} تعهد مناسب و قابل‌دستیابی به فارسی پیشنهاد بده.
-
+    customPrompt += `
 نکات مهم:
 1. تعهدات باید کوتاه، مشخص و قابل‌اندازه‌گیری باشند
 2. از الگوهای موفق قبلی الهام بگیر
@@ -145,7 +106,7 @@ ${analysisData.activePlans.map(p => `- ${p.title} (${p.category})`).join('\n')}
       "title": "عنوان کوتاه تعهد",
       "description": "توضیح مختصر که چرا این تعهد مناسب است",
       "estimatedTime": "مثلاً 15 دقیقه",
-      "category": "دسته‌بندی (مثلاً سلامتی، یادگیری، کار)",
+      "category": "${category || 'عمومی'}",
       "priority": "high/medium/low",
       "reason": "دلیل پیشنهاد این تعهد بر اساس داده‌های کاربر"
     }
@@ -159,42 +120,21 @@ ${analysisData.activePlans.map(p => `- ${p.title} (${p.category})`).join('\n')}
 
 فقط JSON خروجی بده، بدون هیچ متن دیگه.`;
 
-    // 9. فراخوانی AI
-    const aiResponse = await fetch('http://localhost:3001/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'تو یک دستیار هوشمند برای برنامه‌ریزی تعهدات روزانه هستی. فقط JSON خروجی بده، بدون هیچ توضیح اضافه.',
-          },
-          {
-            role: 'user',
-            content: aiPrompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 1500,
-      }),
+    // 4. فراخوانی AI
+    const provider = aiClient.getProvider();
+    const response = await provider.chat({
+      messages: [{ role: 'user', content: customPrompt }],
+      systemPrompt: 'تو یک دستیار هوشمند برای برنامه‌ریزی تعهدات روزانه هستی. فقط JSON خروجی بده، بدون هیچ توضیح اضافه.',
+      temperature: 0.7,
+      maxTokens: 1500,
     });
 
-    if (!aiResponse.ok) {
-      throw new Error('AI service error');
-    }
-
-    const aiData = await aiResponse.json();
-    const aiContent = aiData.choices[0]?.message?.content || '{}';
-
-    // 10. پارس کردن JSON
+    // 5. پارس کردن JSON
     let parsedResponse;
     try {
-      parsedResponse = JSON.parse(aiContent);
+      parsedResponse = JSON.parse(response.content);
     } catch (parseError) {
-      console.error('Failed to parse AI response:', aiContent);
+      console.error('Failed to parse AI response:', response.content);
       throw new Error('خطا در پردازش پاسخ AI');
     }
 
