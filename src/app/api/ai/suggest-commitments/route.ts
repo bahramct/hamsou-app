@@ -17,10 +17,23 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { userId, count, category, timeOfDay, context } = suggestCommitmentsSchema.parse(body);
 
-    // 1. محاسبه نرخ تکمیل
+    // بررسی حداقل داده کافی (حداقل 7 روز تعهد)
     const totalCommitments = await db.commitment.count({
       where: { userId },
     });
+
+    if (totalCommitments < 7) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'برای ارائه صحیح پیشنهادات هوشمند، شما به حداقل 7 روز داده نیاز دارید. شما می‌توانید از هفته دوم از این ویژگی استفاده کنید.',
+          code: 'INSUFFICIENT_DATA',
+          requiredDays: 7,
+          currentDays: totalCommitments,
+        },
+        { status: 400 }
+      );
+    }
 
     const completedCommitments = await db.commitment.count({
       where: {

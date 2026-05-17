@@ -7,7 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Sparkles, Loader2, Check, Clock, Target, TrendingUp, AlertCircle, Lightbulb, X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Sparkles, Loader2, Check, Clock, Target, TrendingUp, AlertCircle, Lightbulb, X, Calendar, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface CommitmentSuggestion {
@@ -74,6 +82,8 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
   const [showInsights, setShowInsights] = useState(false);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showInsufficientDataDialog, setShowInsufficientDataDialog] = useState(false);
+  const [daysRemaining, setDaysRemaining] = useState(0);
   const { toast } = useToast();
 
   // بررسی اینکه آیا کاربر حداقل یک هفته داده دارد یا نه
@@ -81,14 +91,18 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
     ? (Date.now() - new Date(userStartDate).getTime()) >= 7 * 24 * 60 * 60 * 1000
     : false;
 
+  // محاسبه روزهای باقی‌مانده تا یک هفته کامل
+  const calculateDaysRemaining = () => {
+    if (!userStartDate) return 7;
+    const daysPassed = Math.floor((Date.now() - new Date(userStartDate).getTime()) / (24 * 60 * 60 * 1000));
+    return Math.max(0, 7 - daysPassed);
+  };
+
   const handleGetSuggestions = async () => {
     // بررسی اینکه آیا کاربر دیتای کافی دارد
     if (!hasEnoughData) {
-      toast({
-        title: 'داده کافی موجود نیست',
-        description: 'برای ارائه پیشنهادات هوشمند، نیاز به حداقل یک هفته داده داریم. بعد از جمع‌آوری داده‌های بیشتر، این قابلیت فعال می‌شود.',
-        variant: 'destructive',
-      });
+      setDaysRemaining(calculateDaysRemaining());
+      setShowInsufficientDataDialog(true);
       return;
     }
 
@@ -175,7 +189,8 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
   };
 
   return (
-    <Card className={`w-full ${hasCommitmentToday ? 'opacity-70' : ''} transition-all duration-300`}>
+    <>
+      <Card className={`w-full ${hasCommitmentToday ? 'opacity-70' : ''} transition-all duration-300`}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <div className={`p-2 rounded-lg ${hasCommitmentToday ? 'bg-muted' : 'bg-primary/10'}`}>
@@ -468,5 +483,54 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
         )}
       </CardContent>
     </Card>
+
+    {/* Dialog for insufficient data */}
+    <Dialog open={showInsufficientDataDialog} onOpenChange={setShowInsufficientDataDialog}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-100 rounded-full">
+              <Info className="h-6 w-6 text-amber-600" />
+            </div>
+            <DialogTitle className="text-xl">اطلاعیه مهم</DialogTitle>
+          </div>
+        </DialogHeader>
+        <DialogDescription className="text-base text-foreground pt-4">
+          <div className="space-y-4">
+            <p className="text-gray-700">
+              برای ارائه <strong className="text-gray-900">پیشنهادات هوشمند و دقیق</strong>، سیستم به حداقل <strong className="text-primary">7 روز داده</strong> از تعهدات شما نیاز دارد.
+            </p>
+
+            <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <Calendar className="h-5 w-5 text-amber-600 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-amber-900">
+                  {daysRemaining > 0 
+                    ? `${daysRemaining} روز دیگر تا فعال‌سازی این ویژگی باقی مانده است`
+                    : 'لطفاً چند روز دیگر تعهدات خود را ثبت کنید'
+                  }
+                </p>
+                <p className="text-xs text-amber-700 mt-1">
+                  شما می‌توانید از هفته دوم از این ویژگی استفاده کنید
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              💡 <strong>نکته:</strong> با ثبت روزانه تعهدات و بازتاب‌ها، سیستم بهتر الگوهای شما را یاد می‌گیرد و پیشنهادات دقیق‌تری ارائه می‌دهد.
+            </p>
+          </div>
+        </DialogDescription>
+        <DialogFooter>
+          <Button
+            onClick={() => setShowInsufficientDataDialog(false)}
+            className="w-full"
+          >
+            متوجه شدم
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
