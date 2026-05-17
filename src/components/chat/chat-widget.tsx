@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, X, Send, Loader2, Trash2, Sparkles, Minimize2, BarChart3, Target, Lightbulb, FileText, Star, Mic, MicOff } from 'lucide-react';
+import { Bot, X, Send, Loader2, Trash2, Sparkles, Minimize2, BarChart3, Target, Lightbulb, FileText, Star, Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { toPersianText } from '@/lib/utils/persian';
 
@@ -300,7 +300,7 @@ export function ChatWidget({ userId }: ChatWidgetProps) {
         {isOpen ? (
           <X className="h-6 w-6" />
         ) : (
-          <MessageSquare className="h-6 w-6" />
+          <Bot className="h-6 w-6" />
         )}
       </Button>
 

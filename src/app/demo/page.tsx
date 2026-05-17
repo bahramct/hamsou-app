@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { DevToolsPanel } from '@/components/dev/dev-tools-panel';
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown';
 import { ChatWidget } from '@/components/chat/chat-widget';
+import { AIDecisionPanel } from '@/components/commitments/ai-suggestion-panel';
 import { Settings, LogOut, Target, BarChart3, User, Users } from 'lucide-react';
 import {
   Select,
@@ -228,6 +229,19 @@ export default function Dashboard() {
     router.push('/login');
   };
 
+  // قبول کردن پیشنهاد هوشمند
+  const handleAcceptSuggestion = async (suggestion: any) => {
+    try {
+      await authApiPost('/api/commitments', {
+        text: suggestion.title,
+      });
+      await refreshData();
+    } catch (error: any) {
+      console.error('Error accepting suggestion:', error);
+      throw error;
+    }
+  };
+
   // فرمت تاریخ
   const formatDate = (date: Date | string) => {
     const d = new Date(date);
@@ -444,6 +458,11 @@ export default function Dashboard() {
             </form>
           )}
         </Card>
+
+        {/* AI Decision Panel - پیشنهاد هوشمند تعهدات */}
+        <div className="mb-6">
+          <AIDecisionPanel userId={getUser().id} onAcceptSuggestion={handleAcceptSuggestion} />
+        </div>
 
         {/* Weekly Report Card */}
         <Card className="p-6 mb-6 shadow-sm border-0 cursor-pointer hover:shadow-md transition-shadow"
