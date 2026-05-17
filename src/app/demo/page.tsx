@@ -55,8 +55,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [commitment, setCommitment] = useState<Commitment | null>(null);
   const [yesterdayCommitment, setYesterdayCommitment] = useState<Commitment | null>(null);
-  const [cardState, setCardState] = useState<'yesterday-reflection' | 'today-creation' | 'today-reflection' | 'today-result' | 'today-fresh'>('today-creation');
-  const [isFreshCommitment, setIsFreshCommitment] = useState(false);
+  const [cardState, setCardState] = useState<'yesterday-reflection' | 'today-creation' | 'today-fresh' | 'today-result'>('today-creation');
   const [newCommitmentText, setNewCommitmentText] = useState('');
   const [showReflectionForm, setShowReflectionForm] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
@@ -89,9 +88,9 @@ export default function Dashboard() {
         });
         setYesterdayCommitment(yesterdayData || null);
 
-        // تعیین وضعیت کارت
-        if (yesterdayData && !todayData?.reflection) {
-          // اولویت: بازتاب دیروز
+        // تعیین وضعیت کارت - منطق تقویم‌محور
+        // اولویت اول: بازتاب دیروز
+        if (yesterdayData) {
           setCardState('yesterday-reflection');
           setCommitment(yesterdayData);
           setShowReflectionForm(true);
@@ -102,18 +101,12 @@ export default function Dashboard() {
             setCardState('today-result');
             setShowReflectionForm(false);
           } else {
-            // اگر تعهد تازه ایجاد شده، حالت fresh را نشان بده
-            if (isFreshCommitment) {
-              setCardState('today-fresh');
-              setShowReflectionForm(false);
-              setIsFreshCommitment(false); // ریست کردن فلگ
-            } else {
-              setCardState('today-reflection');
-              setShowReflectionForm(true);
-            }
+            // تعهد امروز بدون بازتاب - همیشه حالت fresh (نه reflection)
+            setCardState('today-fresh');
+            setShowReflectionForm(false);
           }
         } else {
-          // هیچ تعهدی وجود ندارد - فرم ایجاد تعهد امروز
+          // هیچ تعهدی برای امروز وجود ندارد
           setCardState('today-creation');
           setShowReflectionForm(false);
         }
@@ -192,9 +185,9 @@ export default function Dashboard() {
         });
         setYesterdayCommitment(yesterdayData || null);
 
-        // تعیین وضعیت کارت
-        if (yesterdayData && !todayData?.reflection) {
-          // اولویت: بازتاب دیروز
+        // تعیین وضعیت کارت - منطق تقویم‌محور
+        // اولویت اول: بازتاب دیروز
+        if (yesterdayData) {
           setCardState('yesterday-reflection');
           setCommitment(yesterdayData);
           setShowReflectionForm(true);
@@ -205,18 +198,12 @@ export default function Dashboard() {
             setCardState('today-result');
             setShowReflectionForm(false);
           } else {
-            // اگر تعهد تازه ایجاد شده، حالت fresh را نشان بده
-            if (isFreshCommitment) {
-              setCardState('today-fresh');
-              setShowReflectionForm(false);
-              setIsFreshCommitment(false); // ریست کردن فلگ
-            } else {
-              setCardState('today-reflection');
-              setShowReflectionForm(true);
-            }
+            // تعهد امروز بدون بازتاب - همیشه حالت fresh (نه reflection)
+            setCardState('today-fresh');
+            setShowReflectionForm(false);
           }
         } else {
-          // هیچ تعهدی وجود ندارد - فرم ایجاد تعهد امروز
+          // هیچ تعهدی برای امروز وجود ندارد
           setCardState('today-creation');
           setShowReflectionForm(false);
         }
@@ -258,8 +245,7 @@ export default function Dashboard() {
         planId: selectedPlanId !== 'none' ? selectedPlanId : undefined
       });
       setCommitment(data);
-      setIsFreshCommitment(true); // نشان دادن اینکه این تعهد تازه ایجاد شده
-      await refreshData();
+      setCardState('today-fresh');
       setNewCommitmentText('');
       setSelectedPlanId('none');
       toast({
@@ -359,7 +345,7 @@ export default function Dashboard() {
       await authApiPost('/api/commitments', {
         text: suggestion.title,
       });
-      setIsFreshCommitment(true); // نشان دادن اینکه این تعهد از پیشنهاد هوشمند ایجاد شده
+      setCardState('today-fresh');
       await refreshData();
     } catch (error: any) {
       console.error('Error accepting suggestion:', error);
@@ -678,7 +664,6 @@ export default function Dashboard() {
                 <Button
                   type="button"
                   onClick={() => {
-                    setIsFreshCommitment(false);
                     setCardState('today-reflection');
                     setShowReflectionForm(true);
                   }}
