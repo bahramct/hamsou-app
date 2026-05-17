@@ -574,80 +574,8 @@ export default function Dashboard() {
                   {submitting ? 'در حال ثبت...' : 'ثبت تعهد امروز'}
                 </Button>
               </form>
-            ) : cardState === 'today-reflection' ? (
-              // حالت 3: فرم بازتاب امروز
-              <form onSubmit={handleReflection} className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg mb-4 border-r-4 border-gray-800">
-                  <p className="text-lg font-medium text-gray-900">
-                    {commitment?.text}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-2">تعهد امروز</p>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    type="button"
-                    variant={reflectionCompleted ? "default" : "outline"}
-                    className={`w-full py-6 text-lg transition-all duration-300 ${
-                      reflectionCompleted
-                        ? 'bg-green-600 hover:bg-green-700 shadow-lg shadow-green-200'
-                        : 'hover:bg-green-50 hover:border-green-300'
-                    }`}
-                    onClick={() => setReflectionCompleted(true)}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      انجام دادم
-                    </span>
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant={!reflectionCompleted ? "default" : "outline"}
-                    className={`w-full py-6 text-lg transition-all duration-300 ${
-                      !reflectionCompleted
-                        ? 'bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200'
-                        : 'hover:bg-red-50 hover:border-red-300'
-                    }`}
-                    onClick={() => setReflectionCompleted(false)}
-                  >
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      انجام ندادم
-                    </span>
-                  </Button>
-                </div>
-
-                {!reflectionCompleted && (
-                  <div className="mt-4 transition-all duration-300">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      چرا انجام ندادی؟ (اختیاری)
-                    </label>
-                    <textarea
-                      className="w-full p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200"
-                      placeholder="دلیلش رو بنویس..."
-                      value={reflectionReason}
-                      onChange={(e) => setReflectionReason(e.target.value)}
-                      rows={2}
-                      maxLength={200}
-                    />
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white py-4 text-lg mt-4 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  disabled={submitting}
-                >
-                  {submitting ? 'در حال ثبت...' : 'ثبت بازتاب'}
-                </Button>
-              </form>
             ) : cardState === 'today-fresh' ? (
-              // حالت 3.5: تعهد تازه ایجاد شده (بدون درخواست بازتاب فوری)
+              // حالت 3: تعهد امروز بدون بازتاب
               <div className="text-center py-8">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 bg-green-100">
                   <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -660,17 +588,7 @@ export default function Dashboard() {
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
                   ✅ تعهد امروز ثبت شد!
                 </div>
-                <p className="text-sm text-gray-500 mt-4">بعداً برای ثبت بازتاب برگردید</p>
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setCardState('today-reflection');
-                    setShowReflectionForm(true);
-                  }}
-                  className="mt-4 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white"
-                >
-                  ثبت بازتاب همین حالا
-                </Button>
+                <p className="text-sm text-gray-500 mt-4">فردا برای ثبت بازتاب برگردید</p>
               </div>
             ) : (
               // حالت 4: نتیجه امروز (بازتاب ثبت شده)
