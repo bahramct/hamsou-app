@@ -11,6 +11,7 @@ import { Home, Save, CheckCircle2, Camera, Calendar, Target, Award, User, Share2
 import { authApiGet, authApiPatch, isAuthenticated } from '@/lib/api';
 import { toPersianNumber } from '@/lib/utils/persian';
 import { ShareButton } from '@/components/share/share-button';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface UserProfile {
   id: string;
@@ -50,6 +51,9 @@ export default function ProfilePage() {
 
     fetchProfile();
   }, [router]);
+
+  // Sync with DevToolsPanel - reload stats when test data changes
+  useTestDataChange(fetchProfile);
 
   const fetchProfile = async () => {
     try {

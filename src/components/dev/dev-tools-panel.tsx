@@ -346,6 +346,11 @@ export function DevToolsPanel() {
           type: 'success',
           text: response.message || 'تعهد دیروز با موفقیت ایجاد شد!',
         });
+
+        // Dispatch event to notify all components that data changed
+        window.dispatchEvent(new CustomEvent('testDataGenerated', {
+          detail: { action: 'yesterday-commitment-created' }
+        }));
       } else {
         setMessage({
           type: 'error',
@@ -382,6 +387,11 @@ export function DevToolsPanel() {
           type: 'success',
           text: response.message || 'تعهد دیروز با موفقیت حذف شد!',
         });
+
+        // Dispatch event to notify all components that data changed
+        window.dispatchEvent(new CustomEvent('testDataCleared', {
+          detail: { action: 'yesterday-commitment-deleted' }
+        }));
       } else {
         setMessage({
           type: 'error',

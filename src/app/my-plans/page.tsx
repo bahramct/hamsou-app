@@ -42,6 +42,7 @@ import { NotificationsDropdown } from '@/components/notifications/notifications-
 import { authApiGet, authApiPost, authApiPatch, authApiDelete, getToken, setToken, setUser } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { toPersianNumber } from '@/lib/utils/persian';
+import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface Plan {
   id: string;
@@ -88,6 +89,9 @@ export default function MyPlansPage() {
     }
     loadPlans();
   }, [router]);
+
+  // Sync with DevToolsPanel - reload plans when test data changes
+  useTestDataChange(loadPlans);
 
   const loadPlans = async () => {
     try {
