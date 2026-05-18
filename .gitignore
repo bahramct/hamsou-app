@@ -31,24 +31,41 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+.env
+.env.local
+.env.development
+.env.test
+.env.production
 
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Development files
 local-*
 .claude
 .z-ai-config
+
+# Logs
 *.log
 dev.log
 dev.out.log
+server.log
+
+# Test directories
 test
 prompt
 
-server.log
 # Skills directory
 /skills/
+
+# Database files (DO NOT commit database files)
+*.db
+*.db-shm
+*.db-wal
+db/*.db
+db/*.db-shm
+db/*.db-wal
