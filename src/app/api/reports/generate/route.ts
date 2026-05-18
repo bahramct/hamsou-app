@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { aiClient } from '@/lib/ai';
+import { addContextToPrompt } from '@/lib/ai';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'hamsou-dev-secret-key';
@@ -13,8 +15,82 @@ function verifyToken(token: string) {
   }
 }
 
-// System Prompt برای AI
-const AI_SYSTEM_PROMPT = `
+export async function POST(request: NextRequest) {
+  try {
+    // 1. احراز هویت
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'توکن نامعتبر است' }, { status: 401 });
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return NextResponse.json({ error: 'توکن نامعتبر است' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { reportId } = body;
+
+    if (!reportId) {
+      return NextResponse.json({ error: 'شناسه گزارش الزامی است' }, { status: 400 });
+    }
+
+    // 2. دریافت گزارش کاربر
+    const report = await db.weeklyReport.findFirst({
+      where: {
+        id: reportId,
+        userId: decoded.userId,
+      },
+    });
+
+    if (!report) {
+      return NextResponse.json({ error: 'گزارش یافت نشد' }, { status: 404 });
+    }
+
+    // 3. دریافت تعهدات هفته کاربر
+    const commitments = await db.commitment.findMany({
+      where: {
+        userId: decoded.userId,
+        date: {
+          gte: report.weekStart,
+          lte: report.weekEnd,
+        },
+      },
+      include: {
+        reflection: true,
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    // 4. محاسبه آمار از داده‌های کاربر
+    const completedCount = commitments.filter(c => c.reflection?.completed).length;
+    const completionRate = commitments.length > 0 ? completedCount / commitments.length : 0;
+
+    // 5. ساخت context برای AI - فقط داده‌های کاربر
+    const context = {
+      userId: decoded.userId,
+      weekStart: report.weekStart,
+      weekEnd: report.weekEnd,
+      totalCommitments: commitments.length,
+      completedCommitments: completedCount,
+      completionRate: (completionRate * 100).toFixed(1) + '%',
+      consistencyScore: report.consistencyScore,
+    };
+
+    // 6. آماده‌سازی داده‌های تعهدات برای AI
+    const commitmentsData = commitments.map(c => ({
+      text: c.text,
+      date: c.date,
+      completed: c.reflection?.completed || false,
+      reason: c.reflection?.reason || null,
+    }));
+
+    // 7. ساخت system prompt با context کاربر
+    let systemPrompt = `
 شما یک تحلیلگر بازتابی برای پلتفرم "همسو" هستید.
 
 نقش شما:
@@ -35,77 +111,14 @@ const AI_SYSTEM_PROMPT = `
 
 خروجی باید به زبان فارسی و با لحن آرام و بالغ باشد.
 `;
+    systemPrompt = addContextToPrompt(systemPrompt, context);
 
-export async function POST(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'توکن نامعتبر است' }, { status: 401 });
-    }
-
-    const token = authHeader.substring(7);
-    const decoded = verifyToken(token);
-
-    if (!decoded) {
-      return NextResponse.json({ error: 'توکن نامعتبر است' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { reportId } = body;
-
-    if (!reportId) {
-      return NextResponse.json({ error: 'شناسه گزارش الزامی است' }, { status: 400 });
-    }
-
-    // دریافت گزارش
-    const report = await db.weeklyReport.findFirst({
-      where: {
-        id: reportId,
-        userId: decoded.userId,
-      },
-    });
-
-    if (!report) {
-      return NextResponse.json({ error: 'گزارش یافت نشد' }, { status: 404 });
-    }
-
-    // دریافت تعهدات هفته
-    const commitments = await db.commitment.findMany({
-      where: {
-        userId: decoded.userId,
-        date: {
-          gte: report.weekStart,
-          lte: report.weekEnd,
-        },
-      },
-      include: {
-        reflection: true,
-      },
-      orderBy: {
-        date: 'asc',
-      },
-    });
-
-    // آماده‌سازی داده‌ها برای AI
-    const aiInput = {
-      period: {
-        start: report.weekStart,
-        end: report.weekEnd,
-      },
-      commitments: commitments.map(c => ({
-        text: c.text,
-        date: c.date,
-        completed: c.reflection?.completed || false,
-        reason: c.reflection?.reason || null,
-      })),
-    };
-
-    // فراخوانی AI با استفاده از fetch به API endpoint
-    // در اینجا از z-ai-web-dev-sdk استفاده می‌کنیم
-    const aiPrompt = `
+    // 8. ساخت user prompt با داده‌های کاربر
+    const userPrompt = `
 لطفاً بر اساس داده‌های زیر، یک گزارش هفتگی مینیمال و آرام تولید کنید:
 
-${JSON.stringify(aiInput, null, 2)}
+داده‌های تعهدات کاربر:
+${JSON.stringify(commitmentsData, null, 2)}
 
 خروجی باید شامل این بخش‌ها باشد:
 1. weeklySummary: خلاصه هفتگی (2-3 جمله، آرام و بدون قضاوت)
@@ -118,33 +131,35 @@ ${JSON.stringify(aiInput, null, 2)}
   "behavioralInsight": "...",
   "suggestedDirection": "..."
 }
+
+فقط JSON خروجی بده، بدون هیچ متن اضافه.
 `;
 
     try {
-      // فراخوانی AI API
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      const aiResponse = await fetch(`${baseUrl}/api/ai/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: AI_SYSTEM_PROMPT },
-            { role: 'user', content: aiPrompt },
-          ],
-          temperature: 0.7,
-        }),
+      // 9. فراخوانی AI Provider با context کاربر
+      const provider = aiClient.getProvider();
+      const response = await provider.chat({
+        messages: [{ role: 'user', content: userPrompt }],
+        systemPrompt,
+        temperature: 0.7,
       });
 
-      if (!aiResponse.ok) {
-        throw new Error('خطا در ارتباط با AI');
+      // 10. Parse JSON response
+      let aiResult;
+      try {
+        const content = response.content.trim();
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          aiResult = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No valid JSON found in AI response');
+        }
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', response.content);
+        throw new Error('خطا در پردازش پاسخ AI');
       }
 
-      const aiData = await aiResponse.json();
-      const aiResult = JSON.parse(aiData.content || aiData.message || '{}');
-
-      // به‌روزرسانی گزارش با نتایج AI
+      // 11. به‌روزرسانی گزارش با نتایج AI
       const updatedReport = await db.weeklyReport.update({
         where: { id: reportId },
         data: {
@@ -175,31 +190,10 @@ ${JSON.stringify(aiInput, null, 2)}
     } catch (aiError: any) {
       console.error('AI Error:', aiError);
 
-      // اگر AI در دسترس نبود، یک گزارش ساده بر اساس آمار ایجاد می‌کنیم
-      const pattern = report.completionPattern ? JSON.parse(report.completionPattern) : null;
-      const completionRate = pattern?.completionRate || 0;
-
-      let summary = '';
-      let insight = '';
-      let direction = '';
-
-      if (commitments.length === 0) {
-        summary = 'این هفته هنوز تعهدی ثبت نشده است.';
-        insight = 'شروع تعهدات جدید می‌تواند آغاز مسیری آگاهانه باشد.';
-        direction = 'می‌توانی با یک تعهد ساده شروع کنی.';
-      } else if (completionRate >= 0.8) {
-        summary = `در این هفته از ${commitments.length} تعهد، ${Math.round(completionRate * 100)}% انجام شده است.`;
-        insight = 'الگوی ثباتی در تعهدات دیده می‌شود که نشان‌دهنده انسجام درونی است.';
-        direction = 'ادامه دادن به همین مسیر می‌تواند اعتماد به خود را تقویت کند.';
-      } else if (completionRate >= 0.5) {
-        summary = `در این هفته از ${commitments.length} تعهد، ${Math.round(completionRate * 100)}% انجام شده است.`;
-        insight = 'تعادل میان انجام و عدم انجام تعهدات دیده می‌شود.';
-        direction = 'می‌توان به الگوهایی که باعث عدم انجام می‌شوند آگاه‌تر شد.';
-      } else {
-        summary = `در این هفته از ${commitments.length} تعهد، ${Math.round(completionRate * 100)}% انجام شده است.`;
-        insight = 'الگوی تکراری در عدم انجام تعهدات دیده می‌شود.';
-        direction = 'آگاهی از موانع واقعی می‌تواند اولین قدم باشد.';
-      }
+      // 12. Fallback logic - گزارش ساده بر اساس آمار کاربر
+      const summary = generateFallbackSummary(commitments, completionRate);
+      const insight = generateFallbackInsight(commitmentRateToLabel(completionRate));
+      const direction = generateFallbackDirection(commitmentRateToLabel(completionRate));
 
       const updatedReport = await db.weeklyReport.update({
         where: { id: reportId },
@@ -211,7 +205,7 @@ ${JSON.stringify(aiInput, null, 2)}
             hasData: commitments.length > 0,
             needsAI: false,
             generatedAt: new Date().toISOString(),
-            fallback: true, // نشان می‌دهد که از fallback logic استفاده شده
+            fallback: true,
           }),
         },
       });
@@ -228,7 +222,7 @@ ${JSON.stringify(aiInput, null, 2)}
           behavioralInsight: updatedReport.behavioralInsight,
           suggestedDirection: updatedReport.suggestedDirection,
         },
-        fallback: true, // نشان می‌دهد که از fallback استفاده شده
+        fallback: true,
       });
     }
   } catch (error: any) {
@@ -238,4 +232,39 @@ ${JSON.stringify(aiInput, null, 2)}
       { status: 500 }
     );
   }
+}
+
+// Helper functions
+function commitmentRateToLabel(rate: number): 'high' | 'medium' | 'low' | 'none' {
+  if (rate >= 0.8) return 'high';
+  if (rate >= 0.5) return 'medium';
+  if (rate > 0) return 'low';
+  return 'none';
+}
+
+function generateFallbackSummary(commitments: any[], rate: number): string {
+  if (commitments.length === 0) {
+    return 'این هفته هنوز تعهدی ثبت نشده است.';
+  }
+  return `در این هفته از ${commitments.length} تعهد، ${Math.round(rate * 100)}% انجام شده است.`;
+}
+
+function generateFallbackInsight(label: string): string {
+  const insights = {
+    high: 'الگوی ثباتی در تعهدات دیده می‌شود که نشان‌دهنده انسجام درونی است.',
+    medium: 'تعادل میان انجام و عدم انجام تعهدات دیده می‌شود.',
+    low: 'الگوی تکراری در عدم انجام تعهدات دیده می‌شود.',
+    none: 'شروع تعهدات جدید می‌تواند آغاز مسیری آگاهانه باشد.',
+  };
+  return insights[label];
+}
+
+function generateFallbackDirection(label: string): string {
+  const directions = {
+    high: 'ادامه دادن به همین مسیر می‌تواند اعتماد به خود را تقویت کند.',
+    medium: 'می‌توان به الگوهایی که باعث عدم انجام می‌شوند آگاه‌تر شد.',
+    low: 'آگاهی از موانع واقعی می‌تواند اولین قدم باشد.',
+    none: 'می‌توانی با یک تعهد ساده شروع کنی.',
+  };
+  return directions[label];
 }
