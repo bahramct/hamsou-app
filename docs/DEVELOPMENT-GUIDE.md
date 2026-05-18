@@ -90,10 +90,16 @@ if (process.env.NODE_ENV === 'production') {
 **در `.env` و `.env.local`:**
 ```bash
 NODE_ENV="development"
-JWT_SECRET="hamsou-dev-secret-key-change-in-production"
+JWT_SECRET="hamsou-dev-secret-key"
 AI_PROVIDER="z-ai"
 DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 ```
+
+**⚠️ نکته مهم در مورد JWT_SECRET:**
+- مقدار `JWT_SECRET` در `.env` حتماً باید با مقدار default در `src/lib/auth.ts` یکسان باشد
+- در حال حاضر مقدار درست: `hamsou-dev-secret-key`
+- اگر `JWT_SECRET` رو عوض کنی، همه توکن‌های قبلی invalid میشن و کاربر باید دوباره login کنه
+- تغییر JWT_SECRET بدون توجه به این موضوع می‌تونه باعث بشه همه APIها خطای "invalid signature" بدن
 
 **در production:**
 ```bash
@@ -193,6 +199,51 @@ bun run db:push      # sync schema with database
 
 **مهم:** DevToolsPanel فقط در development کار می‌کنه. در production کاملاً حذف میشه.
 
+### ۵. احراز هویت و Token Handling
+
+**ساختار Authentication:**
+
+1. **verifyToken function در src/lib/auth.ts:**
+   - ورودی: `NextRequest` (برای API routes)
+   - خروجی: `{ userId, phone }` (توجه: `userId` نه `id`!)
+   ```typescript
+   export async function verifyToken(request: NextRequest): Promise<{ userId: string; phone: string } | null>
+   ```
+
+2. **verifyTokenString function:**
+   - ورودی: `string` (برای verify کردن توکن مستقیم)
+   - خروجی: `{ userId, phone }` یا `null`
+   ```typescript
+   export function verifyTokenString(token: string): { userId: string; phone: string } | null
+   ```
+
+3. **کاربرد در API routes:**
+   ```typescript
+   // ✅ درست
+   const user = await verifyToken(request);
+   if (!user) {
+     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+   }
+
+   // استفاده در database queries
+   const data = await db.model.findMany({
+     where: { userId: user.userId }  // ✅ درست
+   });
+
+   // ❌ غلط
+   const data = await db.model.findMany({
+     where: { userId: user.id }  // ❌ اشتباه - user.id وجود نداره
+   });
+   ```
+
+**قانون طلایی:**
+> همیشه از `user.userId` استفاده کن، نه `user.id`. تابع `verifyToken` `{ userId, phone }` برمی‌گردونه.
+
+**نکات مهم:**
+- اگر `JWT_SECRET` رو عوض کردی، کاربر باید دوباره login کنه
+- توکن‌ها با انقضای 30 روز ساخته میشن
+- توکن در localStorage با کلید `'token'` ذخیره میشه
+
 ---
 
 ## چک‌لیست قبل از commit
@@ -202,28 +253,35 @@ bun run db:push      # sync schema with database
 ### 1. چک کردن Environment Variables
 - [ ] `DATABASE_URL` path درست هست (`db/hamsou.db` نه `../db/hamsou.db`)
 - [ ] `NODE_ENV` روی `development` در dev و `production` در production
+- [ ] `JWT_SECRET` در development با `src/lib/auth.ts` هماهنگ است (حالا: `hamsou-dev-secret-key`)
 - [ ] `JWT_SECRET` در development فرق می‌کنه با production
 
-### 2. چک کردن Prisma
+### 2. چک کردن Authentication
+- [ ] API routes از `user.userId` استفاده می‌کنن (نه `user.id`)
+- [ ] تابع درست از `@/lib/auth` import شده (`verifyToken` یا `verifyTokenString`)
+- [ ] اگر JWT_SECRET تغییر کرده، کاربر مطلع شده باید دوباره login کنه
+
+### 3. چک کردن Prisma
 - [ ] schema از `env("DATABASE_URL")` استفاده می‌کنه
 - [ ] بعد از تغییر schema: `bun run db:generate` و `bun run db:push` اجرا شده
 
-### 3. چک کردن کامپوننت‌های Dev-Only
+### 4. چک کردن کامپوننت‌های Dev-Only
 - [ ] همه چیزهایی که فقط برای development هستن با `process.env.NODE_ENV` کنترل میشن
 - [ ] DevToolsPanel دو لایه حفاظتی داره (داخل کامپوننت و در صفحه)
 
-### 4. تست سرور
+### 5. تست سرور
 - [ ] سرور با `.zscripts/dev.sh` اجرا شده
 - [ ] سرور پایدار می‌مونه و خاموش نمیشه
 - [ ] API routes درست کار می‌کنن
 - [ ] DevToolsPanel در development هست و در production نیست
 
-### 5. تست فیچر
+### 6. تست فیچر
 - [ ] فیچر جدید کار می‌کنه
 - [ ] فیچرهای قبلی هنوز کار می‌کنن
 - [ ] هیچ خطایی در console نیست
+- [ ] API routes احراز هویت درست دارن و خطای 401 نمی‌دن
 
-### 6. دیتابیس
+### 7. دیتابیس
 - [ ] می‌تونی به دیتابیس بنویسی (خطای readonly نداریم)
 - [ ] می‌تونی از دیتابیس بخونی
 - [ ] داده‌های تستی با DevToolsPanel ساخته و پاک میشن
@@ -276,6 +334,8 @@ bash .zscripts/dev.sh
 1. آیا `.env` تغییر کرده؟
 2. آیا `prisma/schema.prisma` تغییر کرده؟
 3. آیا دیتابیس sync شده؟
+4. آیا `JWT_SECRET` تغییر کرده؟
+5. آیا API routes از `user.userId` استفاده می‌کنن (نه `user.id`)؟
 
 **راه حل:**
 ```bash
@@ -286,9 +346,62 @@ bash .zscripts/dev.sh
 # 2. Sync دیتابیس
 bun run db:push
 
-# 3. تست کردن DevToolsPanel
+# 3. اگر JWT_SECRET تغییر کرده، کاربر باید دوباره login کنه
+# در console مرورگر: localStorage.clear() و سپس login دوباره
+
+# 4. تست کردن DevToolsPanel
 # (اگر این کار کنه، مشکل از دیتابیس حل شده)
 ```
+
+### مشکل: همه APIها خطای "invalid signature" یا 401 می‌دن
+
+**دلایل احتمالی:**
+1. `JWT_SECRET` توی `.env` با `src/lib/auth.ts` هماهنگ نیست
+2. توکن قدیمی با `JWT_SECRET` قبلی ساخته شده
+3. توکن منقضی شده (30 روز)
+
+**راه حل:**
+```bash
+# 1. چک کردن JWT_SECRET
+cat .env | grep JWT_SECRET
+# باید: JWT_SECRET="hamsou-dev-secret-key" باشه
+
+# 2. چک کردن src/lib/auth.ts
+grep JWT_SECRET src/lib/auth.ts
+# باید: const JWT_SECRET = process.env.JWT_SECRET || 'hamsou-dev-secret-key'; باشه
+
+# 3. اگر فرق داشتن، .env رو اصلاح کن و سرور رو ریستارت کن
+killall node
+bash .zscripts/dev.sh
+
+# 4. کاربر باید localStorage رو پاک کنه و دوباره login کنه
+# در console مرورگر:
+localStorage.clear()
+# سپس صفحه رو رفرش کن و login دوباره
+```
+
+### مشکل: API routes خطای Cannot read properties of undefined (reading 'userId') می‌دن
+
+**دلیل:**
+استفاده از `user.id` به جای `user.userId` در API routes.
+
+**راه حل:**
+```typescript
+// ❌ غلط
+const user = await verifyToken(request);
+const data = await db.model.findMany({
+  where: { userId: user.id }  // user.id undefined هست
+});
+
+// ✅ درست
+const user = await verifyToken(request);
+const data = await db.model.findMany({
+  where: { userId: user.userId }  // user.userId درسته
+});
+```
+
+**قانون:**
+> تابع `verifyToken` از `@/lib/auth` همیشه `{ userId, phone }` برمی‌گردونه، نه `{ id, phone }`.
 
 ---
 
@@ -299,30 +412,41 @@ bun run db:push
 1. **Environment Variables:**
    - همیشه path دیتابیس رو چک کن (`db/` نه `../db/`)
    - NODE_ENV رو درست تنظیم کن
+   - JWT_SECRET در development باید با `src/lib/auth.ts` هماهنگ باشه
 
-2. **Prisma:**
+2. **Authentication:**
+   - همیشه از `user.userId` استفاده کن (نه `user.id`)
+   - تابع درست رو import کن: `verifyToken` برای API routes، `verifyTokenString` برای مستقیم
+   - اگر JWT_SECRET تغییر کرد، کاربر باید دوباره login کنه
+
+3. **Prisma:**
    - همیشه از `env("DATABASE_URL")` استفاده کن
    - بعد از تغییر schema، دیتابیس رو sync کن
 
-3. **Dev-Only Components:**
+4. **Dev-Only Components:**
    - با `process.env.NODE_ENV` کنترل کن
    - دو لایه حفاظتی داشته باش (داخل کامپوننت و در صفحه)
 
-4. **سرور:**
+5. **سرور:**
    - از `.zscripts/dev.sh` استفاده کن
    - از `nohup bun run dev &` استفاده نکن
 
-5. **تست:**
+6. **تست:**
    - بعد از هر فیچر جدید، فیچرهای قبلی رو هم تست کن
    - DevToolsPanel رو تست کن (اگر این کار کنه، دیتابیس درسته)
+   - API routes رو برای احراز هویت تست کن
 
 ---
 
 ## آخرین بروزرسانی
 
-- **تاریخ:** ۲۰۲۵-۰۱-XX
-- **نسخه:** 1.0.0
+- **تاریخ:** ۲۰۲۵-۰۱-۱۸
+- **نسخه:** 1.1.0
 - **تغییرات:**
-  - اصلاح DATABASE_URL در .env و .env.local
+  - اصلاح JWT_SECRET در .env و .env.local به `hamsou-dev-secret-key`
   - اصلاح prisma/schema.prisma برای استفاده از env
   - مستندسازی راهنمای توسعه
+  - **آپدیت جدید:** اصلاح API routes برای استفاده از `user.userId` به جای `user.id`
+  - **آپدیت جدید:** اصلاح `/api/auth/verify` برای استفاده از `verifyTokenString`
+  - **آپدیت جدید:** افزودن بخش احراز هویت و token handling
+  - **آپدیت جدید:** مستندسازی مشکلات احراز هویت و راه‌حل‌ها

@@ -103,6 +103,13 @@ import { DevToolsPanel } from '@/components/dev/dev-tools-panel';
    - این endpoint نیاز به احراز هویت دارد
    - هر کاربر فقط می‌تواند داده‌های خودش را ببیند و حذف کند
    - در Production کاملاً غیرفعال است
+   - از JWT token برای احراز هویت استفاده می‌کند
+
+5. **احراز هویت (Authentication)**:
+   - DevToolsPanel از `authApiPost`، `authApiGet` و `authApiDelete` در `src/lib/api.ts` استفاده می‌کند
+   - این توابع به صورت خودکار token از localStorage می‌گیرند و در Authorization header می‌فرستند
+   - اگر توکن نامعتبر یا منقضی شده باشد، APIها خطای 401 می‌دهند
+   - برای حل مشکل: `localStorage.clear()` در console مرورگر و دوباره login کنید
 
 ## ساختار داده‌های تولید شده
 
@@ -188,10 +195,27 @@ curl -X POST http://localhost:3000/api/dev/generate-test-data \
 ## مشکلات رایج
 
 ### مشکل: ابزارهای توسعه نمایش داده نمی‌شوند
-- **راه‌حل**: مطمئن شوید `NODE_ENV` روی `development` تنظیم شده است
+- **راه‌حل 1**: مطمئن شوید `NODE_ENV` روی `development` تنظیم شده است
+- **راه‌حل 2**: در console مرورگر چک کنید که خطای JavaScript ندارید
 
 ### مشکل: API 404 برمی‌گرداند
 - **راه‌حل**: در محیط Production هستید. برای تست به Development برگردید
 
 ### مشکل: داده‌های قبلی پاک نمی‌شوند
 - **راه‌حل**: این رفتار نرمال است. در development، داده‌های قبلی همیشه پاک می‌شوند.
+
+### مشکل: خطای "توکن نامعتبر است" یا 401 Unauthorized
+- **علل احتمالی**:
+  1. توکن منقضی شده (30 روز)
+  2. JWT_SECRET تغییر کرده و توکن قدیمی invalid شده
+  3. توکن در localStorage به درستی ذخیره نشده است
+- **راه‌حل**:
+  ```javascript
+  // در console مرورگر
+  localStorage.clear()
+  // سپس صفحه را رفرش کنید و دوباره login کنید
+  ```
+
+### مشکل: خطای "Cannot read properties of undefined (reading 'userId')"
+- **علت**: این خطا معمولاً از سمت سرور است و یعنی API route از `user.id` به جای `user.userId` استفاده کرده
+- **راه‌حل**: باید توسط توسعه‌دهنده اصلاح شود. تابع `verifyToken` از `@/lib/auth` `{ userId, phone }` برمی‌گرداند، نه `{ id, phone }`

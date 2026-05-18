@@ -136,23 +136,106 @@ CORS policy error
 ```
 {"error": "توکن نامعتبر است"}
 401 Unauthorized
+{"error": "Invalid token"}
 ```
 
 ### علت
-Token منقضی شده یا فرمت آن اشتباه است.
+1. Token منقضی شده (30 روز)
+2. فرمت token اشتباه است
+3. **JWT_SECRET تغییر کرده و token با secret قبلی ساخته شده**
+4. token در localStorage به درستی ذخیره نشده است
 
 ### راه‌حل
-1. **از localStorage پاک کنید:**
-   ```javascript
-   // در console مرورگر
-   localStorage.clear()
-   ```
 
-2. **دوباره login کنید**
-3. **چک کنید token در درست ذخیره شده است:**
-   ```javascript
-   localStorage.getItem('token')
-   ```
+**روش 1: پاک کردن و login دوباره (پیشنهادی)**
+```javascript
+// در console مرورگر
+localStorage.clear()
+// سپس صفحه رو رفرش کن و دوباره login کن
+```
+
+**روش 2: چک کردن JWT_SECRET**
+```bash
+# چک کردن .env
+cat .env | grep JWT_SECRET
+# باید: JWT_SECRET="hamsou-dev-secret-key" باشه
+
+# چک کردن src/lib/auth.ts
+grep JWT_SECRET src/lib/auth.ts
+# باید: const JWT_SECRET = process.env.JWT_SECRET || 'hamsou-dev-secret-key'; باشه
+
+# اگر فرق داشتن:
+# 1. .env رو اصلاح کن
+# 2. سرور رو ریستارت کن
+killall node
+bash .zscripts/dev.sh
+# 3. کاربر باید localStorage.clear() کنه و دوباره login کنه
+```
+
+**روش 3: چک کردن token در localStorage**
+```javascript
+// در console مرورگر
+localStorage.getItem('token')
+// اگر null بود یا فرمتش اشتباه بود، باید دوباره login کنی
+```
+
+### پیشگیری
+- هر وقت JWT_SECRET رو عوض کردی، سرور رو ریستارت کن
+- بعد از عوض کردن JWT_SECRET، کاربر باید دوباره login کنه
+- JWT_SECRET در development باید با default در `src/lib/auth.ts` هماهنگ باشه
+
+---
+
+## مشکل شماره 6.1: همه APIها خطای "invalid signature" می‌دن
+
+### علائم
+```
+Token verification error: Error [JsonWebTokenError]: invalid signature
+401 Unauthorized on ALL API calls
+```
+
+### علت
+**JWT_SECRET mismatch** - مقدار JWT_SECRET در `.env` با مقدار default در `src/lib/auth.ts` فرق داره.
+
+### تشخیص
+```bash
+# چک کردن .env
+cat .env | grep JWT_SECRET
+# خروجی مثال: JWT_SECRET="hamsou-dev-secret-key-change-in-production"
+
+# چک کردن src/lib/auth.ts
+grep JWT_SECRET src/lib/auth.ts
+# خروجی: const JWT_SECRET = process.env.JWT_SECRET || 'hamsou-dev-secret-key';
+
+# اگر فرق داشتن، این مشکل هست!
+```
+
+### راه‌حل
+```bash
+# 1. اصلاح .env و .env.local
+# این خط رو تغییر بده:
+JWT_SECRET="hamsou-dev-secret-key-change-in-production"
+# به این:
+JWT_SECRET="hamsou-dev-secret-key"
+
+# 2. هر دو فایل رو اصلاح کن
+nano .env
+nano .env.local
+
+# 3. ریستارت سرور
+pkill -9 -f "next dev"
+bash .zscripts/dev.sh
+
+# 4. کاربر باید localStorage رو پاک کنه و دوباره login کنه
+# در console مرورگر:
+localStorage.clear()
+# سپس رفرش کن و login دوباره
+```
+
+### پیشگیری
+- هر وقت JWT_SECRET رو در `.env` تغییر میدی، باید با `src/lib/auth.ts` چک کنی
+- مقدار development: `hamsou-dev-secret-key`
+- مقدار production: باید متفاوت باشه و امن
 
 ---
 
@@ -229,7 +312,7 @@ PORT=3001 bun run dev
 ## مشکل شماره 10: داده‌های تستی وجود ندارد
 
 ### علائم
-``
+```
 گزارشی یافت نشد
 No commitments found
 ```
@@ -245,6 +328,59 @@ bun run scripts/seed-database.ts
 # بررسی داده‌ها
 bun run scripts/check-data.ts
 ```
+
+---
+
+## مشکل شماره 11: API routes خطای undefined property می‌دن
+
+### علائم
+```
+TypeError: Cannot read properties of undefined (reading 'id')
+TypeError: Cannot read properties of undefined (reading 'userId')
+Cannot read property 'userId' of undefined
+```
+
+### علت
+استفاده از `user.id` به جای `user.userId` در API routes. تابع `verifyToken` از `@/lib/auth` `{ userId, phone }` برمی‌گردونه، نه `{ id, phone }`.
+
+### تشخیص
+```bash
+# جستجو در فایل‌های API route
+grep -r "user\.id" src/app/api --include="*.ts"
+# اگر نتیجه‌ای پیدا شد، احتمالا مشکل همینجاست
+```
+
+### راه‌حل
+```typescript
+// ❌ غلط
+import { verifyToken } from '@/lib/auth';
+
+const user = await verifyToken(request);
+const data = await db.model.findMany({
+  where: { userId: user.id }  // user.id undefined هست!
+});
+
+// ✅ درست
+import { verifyToken } from '@/lib/auth';
+
+const user = await verifyToken(request);
+const data = await db.model.findMany({
+  where: { userId: user.userId }  // user.userId درست است
+});
+```
+
+### فایل‌هایی که باید چک بشن
+- `src/app/api/notifications/route.ts`
+- `src/app/api/notifications/[id]/route.ts`
+- `src/app/api/notifications/mark-read/route.ts`
+- `src/app/api/plans/route.ts`
+- `src/app/api/plans/[id]/route.ts`
+- `src/app/api/plans/[id]/progress/route.ts`
+- `src/app/api/ai/service-test/route.ts`
+- و هر فایل دیگه‌ای که از `verifyToken` استفاده می‌کنه
+
+### قانون طلایی
+> تابع `verifyToken` از `@/lib/auth` همیشه `{ userId, phone }` برمی‌گردونه. همیشه از `user.userId` استفاده کن، نه `user.id`.
 
 ---
 
@@ -348,6 +484,51 @@ bun run lint
    ```bash
    tail -f dev.log
    ```
+
+6. **بعد از تغییر JWT_SECRET:**
+   ```bash
+   # 1. سرور رو ریستارت کن
+   pkill -9 -f "next dev"
+   bash .zscripts/dev.sh
+
+   # 2. کاربر باید localStorage رو پاک کنه
+   # در console مرورگر:
+   localStorage.clear()
+   # سپس دوباره login کنه
+   ```
+
+7. **چک کردن هماهنگی JWT_SECRET:**
+   ```bash
+   # چک کردن .env
+   cat .env | grep JWT_SECRET
+
+   # چک کردن src/lib/auth.ts
+   grep JWT_SECRET src/lib/auth.ts
+
+   # باید هر دو یکسان باشن (در development)
+   ```
+
+8. **برای ایجاد API route جدید با احراز هویت:**
+   ```typescript
+   import { verifyToken } from '@/lib/auth';
+
+   export async function GET(request: NextRequest) {
+     const user = await verifyToken(request);
+     if (!user) {
+       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+     }
+
+     // استفاده درست: user.userId نه user.id
+     const data = await db.model.findMany({
+       where: { userId: user.userId }
+     });
+
+     return NextResponse.json(data);
+   }
+   ```
+
+9. **قانون طلایی برای API routes با احراز هویت:**
+   > همیشه از `user.userId` استفاده کن، نه `user.id`. تابع `verifyToken` از `@/lib/auth` همیشه `{ userId, phone }` برمی‌گردونه.
 
 ---
 

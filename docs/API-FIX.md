@@ -127,12 +127,103 @@ bun run scripts/test-api.ts
 3. **IPv4 را در curl استفاده کنید** (`-4` flag) برای اطمینان از اتصال صحیح.
 4. **Error handling جامع داشته باشید** - هم در سمت کلاینت، هم در سمت سرور.
 5. **از helperها و wrapperها استفاده کنید** برای جلوگیری از تکرار کد و مدیریت بهتر.
+6. **احراز هویت در API Routes** - هنگام استفاده از `verifyToken` از `@/lib/auth`، همیشه از `user.userId` استفاده کنید (نه `user.id`).
+7. **هماهنگی JWT_SECRET** - مقدار `JWT_SECRET` در `.env` باید با default در `src/lib/auth.ts` هماهنگ باشد (در development: `hamsou-dev-secret-key`).
+
+---
+
+## آپدیت ۲۰۲۵-۰۱-۱۸: اصلاحات احراز هویت
+
+### مشکلات حل شده
+
+1. **JWT_SECRET mismatch**:
+   - **مشکل**: مقدار JWT_SECRET در `.env` (`hamsou-dev-secret-key-change-in-production`) با default در `src/lib/auth.ts` (`hamsou-dev-secret-key`) فرق داشت
+   - **نتیجه**: همه APIها خطای "invalid signature" می‌دادند
+   - **راه‌حل**: اصلاح JWT_SECRET در `.env` و `.env.local` به `hamsou-dev-secret-key`
+
+2. **user.id به جای user.userId**:
+   - **مشکل**: بعضی API routes از `user.id` استفاده می‌کردند در حالی که `verifyToken` `{ userId, phone }` برمی‌گرداند
+   - **نتیجه**: خطای `Cannot read properties of undefined (reading 'id')`
+   - **فایل‌های اصلاح شده**:
+     - `src/app/api/notifications/route.ts`
+     - `src/app/api/notifications/[id]/route.ts`
+     - `src/app/api/notifications/mark-read/route.ts`
+     - `src/app/api/plans/route.ts`
+     - `src/app/api/plans/[id]/route.ts`
+     - `src/app/api/plans/[id]/progress/route.ts`
+     - `src/app/api/ai/service-test/route.ts`
+   - **راه‌حل**: جایگزینی همه `user.id` با `user.userId`
+
+3. **غلط استفاده از verifyToken در /api/auth/verify**:
+   - **مشکل**: این endpoint از `verifyToken(request)` استفاده می‌کرد که `NextRequest` می‌خواهد
+   - **راه‌حل**: تغییر به `verifyTokenString(token)` که برای string مناسب است
+
+### قانون طلایی برای Authentication
+
+```typescript
+// ✅ درست
+import { verifyToken } from '@/lib/auth';
+
+export async function GET(request: NextRequest) {
+  const user = await verifyToken(request);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // استفاده درست: user.userId نه user.id
+  const data = await db.model.findMany({
+    where: { userId: user.userId }
+  });
+}
+
+// ❌ غلط
+const data = await db.model.findMany({
+  where: { userId: user.id }  // user.id undefined هست!
+});
+```
+
+### پیشگیری از مشکلات احراز هویت
+
+1. **قبل از ایجاد API route جدید**:
+   - چک کنید که `verifyToken` از `@/lib/auth` را import می‌کنید
+   - همیشه از `user.userId` استفاده کنید
+   - تابع درست را import کنید: `verifyToken` برای API routes، `verifyTokenString` برای مستقیم
+
+2. **بعد از تغییر JWT_SECRET**:
+   - سرور را ریستارت کنید
+   - کاربر باید `localStorage.clear()` کند و دوباره login کند
+
+3. **چک کردن هماهنگی JWT_SECRET**:
+   ```bash
+   # باید هر دو یکسان باشند (در development)
+   cat .env | grep JWT_SECRET
+   grep JWT_SECRET src/lib/auth.ts
+   ```
+
+---
 
 ## تغییرات فایل‌ها
 
+### نسخه ۱.۰ (اصلی)
 - ✅ `src/lib/api.ts` - جدید ایجاد شد
 - ✅ `src/app/(auth)/login/page.tsx` - بهبود error handling
 - ✅ `src/app/page.tsx` - استفاده از API helper
 - ✅ `src/app/reports/page.tsx` - استفاده از API helper
 - ✅ `src/app/api/reports/generate/route.ts` - استفاده از absolute URL
 - ❌ `src/middleware.ts` - حذف شد
+
+### نسخه ۱.۱ (آپدیت ۲۰۲۵-۰۱-۱۸: اصلاحات احراز هویت)
+- ✅ `.env` - اصلاح JWT_SECRET به `hamsou-dev-secret-key`
+- ✅ `.env.local` - اصلاح JWT_SECRET به `hamsou-dev-secret-key`
+- ✅ `src/app/api/auth/verify/route.ts` - تغییر به استفاده از `verifyTokenString`
+- ✅ `src/app/api/notifications/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `src/app/api/notifications/[id]/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `src/app/api/notifications/mark-read/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `src/app/api/plans/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `src/app/api/plans/[id]/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `src/app/api/plans/[id]/progress/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `src/app/api/ai/service-test/route.ts` - اصلاح `user.id` به `user.userId`
+- ✅ `docs/DEVELOPMENT-GUIDE.md` - افزودن بخش احراز هویت و JWT_SECRET
+- ✅ `docs/TROUBLESHOOTING.md` - افزودن مشکلات احراز هویت و راه‌حل‌ها
+- ✅ `docs/DEV-TOOLS.md` - افزودن بخش احراز هویت
+- ✅ `docs/API-FIX.md` - افزودن این بخش آپدیت
