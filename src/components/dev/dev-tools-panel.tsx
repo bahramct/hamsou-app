@@ -94,6 +94,10 @@ export function DevToolsPanel() {
       // Auto-hide message after 5 seconds
       setTimeout(() => setMessage(null), 5000);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        return;
+      }
       setMessage({
         type: 'error',
         text: error.message || 'خطا در تغییر پلن',
@@ -109,7 +113,11 @@ export function DevToolsPanel() {
       setTestDataExists(data.exists);
       setDataInfo(data);
       setWeeks([]); // Clear weeks on manual refresh
-    } catch (error) {
+    } catch (error: any) {
+      // Silently handle auth errors - user will be redirected by main page
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        return;
+      }
       // API might not exist, ignore
       console.log('Dev tools not available:', error);
     }
@@ -119,7 +127,11 @@ export function DevToolsPanel() {
     try {
       const data = await authApiGet('/api/dev/create-test-notification');
       setNotificationTypes(data.availableTypes || []);
-    } catch (error) {
+    } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        return;
+      }
       console.log('Notification test not available:', error);
     }
   };
@@ -157,6 +169,11 @@ export function DevToolsPanel() {
       // Auto-hide message after 6 seconds
       setTimeout(() => setMessage(null), 6000);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
+      }
       setMessage({
         type: 'error',
         text: error.message || 'خطا در تولید داده',
@@ -200,6 +217,11 @@ export function DevToolsPanel() {
       // Auto-hide message after 5 seconds
       setTimeout(() => setMessage(null), 5000);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
+      }
       setMessage({
         type: 'error',
         text: error.message || 'خطا در حذف داده',
@@ -224,6 +246,11 @@ export function DevToolsPanel() {
       // Auto-hide message after 4 seconds
       setTimeout(() => setMessage(null), 4000);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setCreatingNotification(false);
+        return;
+      }
       setMessage({
         type: 'error',
         text: error.message || 'خطا در ایجاد نوتیفیکیشن',
@@ -361,6 +388,11 @@ export function DevToolsPanel() {
       // Auto-hide message after 4 seconds
       setTimeout(() => setMessage(null), 4000);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setCreatingYesterdayCommitment(false);
+        return;
+      }
       console.error('Error creating yesterday commitment:', error);
       setMessage({
         type: 'error',
@@ -402,6 +434,11 @@ export function DevToolsPanel() {
       // Auto-hide message after 4 seconds
       setTimeout(() => setMessage(null), 4000);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setDeletingYesterdayCommitment(false);
+        return;
+      }
       console.error('Error deleting yesterday commitment:', error);
       setMessage({
         type: 'error',

@@ -27,7 +27,11 @@ export function PDFExportSimple({ timeRange }: { timeRange: string }) {
         stats: overview,
         trends: trends || [],
       };
-    } catch (error) {
+    } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        return null;
+      }
       console.error('Error fetching report data:', error);
       return null;
     }

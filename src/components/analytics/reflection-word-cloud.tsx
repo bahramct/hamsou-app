@@ -26,6 +26,11 @@ export function ReflectionWordCloud({ timeRange }: { timeRange: string }) {
         setWords(data.words);
       }
     } catch (err: any) {
+      // Silently handle auth errors
+      if (err.message && (err.message.includes('توکن نامعتبر') || err.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
+      }
       console.error('Error loading reflection word cloud:', err);
       setError('خطا در بارگذاری ابر کلمات');
     } finally {

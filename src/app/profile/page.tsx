@@ -56,11 +56,12 @@ export default function ProfilePage() {
       const statsData = await authApiGet<UserStats>('/api/profile/stats');
       setStats(statsData);
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
-      if (error.message?.includes('401') || error.message?.includes('توکن نامعتبر')) {
-        localStorage.removeItem('token');
-        router.push('/login');
+      // Silently handle auth errors - user will be redirected by main page
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
       }
+      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }

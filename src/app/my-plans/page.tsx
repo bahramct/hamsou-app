@@ -86,6 +86,11 @@ export default function MyPlansPage() {
       const data = await authApiGet<Plan[]>('/api/plans');
       setPlans(data);
     } catch (error: any) {
+      // Silently handle auth errors - user will be redirected by main page
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
+      }
       console.error('Error loading plans:', error);
       toast({
         title: 'خطا',

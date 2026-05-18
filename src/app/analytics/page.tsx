@@ -136,7 +136,16 @@ export default function AnalyticsPage() {
       } else {
         setHeatmapData([]);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Silently handle auth errors - user will be redirected by main page
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        // Set empty data to prevent crashes
+        setTrendData([]);
+        setDistributionData([]);
+        setHeatmapData([]);
+        return;
+      }
       console.error('Error loading analytics:', error);
       // Set empty data on error to prevent crashes
       setTrendData([]);

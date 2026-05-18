@@ -56,6 +56,11 @@ export function ExcelExport({ timeRange }: ExcelExportProps) {
       link.click();
       document.body.removeChild(link);
     } catch (error: any) {
+      // Silently handle auth errors
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
+      }
       console.error('Error generating Excel:', error);
       const errorMessage = error.message || 'خطا در تولید فایل Excel. لطفاً دوباره تلاش کنید.';
       setError(errorMessage);

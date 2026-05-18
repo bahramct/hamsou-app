@@ -49,6 +49,11 @@ export function AIReportGenerator() {
       setCanGenerate(daysCount >= 3);
 
     } catch (err: any) {
+      // Silently handle auth errors
+      if (err.message && (err.message.includes('توکن نامعتبر') || err.message.includes('Unauthorized'))) {
+        setCheckingData(false);
+        return;
+      }
       console.error('Error checking data:', err);
     } finally {
       setCheckingData(false);

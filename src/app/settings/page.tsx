@@ -49,11 +49,12 @@ export default function SettingsPage() {
       setNotificationTime(data.notificationTime);
       setName(data.name || '');
     } catch (error: any) {
-      console.error('Error fetching settings:', error);
-      if (error.message?.includes('401') || error.message?.includes('توکن نامعتبر')) {
-        clearToken();
-        router.push('/login');
+      // Silently handle auth errors - user will be redirected by main page
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        setLoading(false);
+        return;
       }
+      console.error('Error fetching settings:', error);
     } finally {
       setLoading(false);
     }
