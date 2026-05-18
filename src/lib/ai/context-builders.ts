@@ -7,6 +7,7 @@
 
 import { db } from '@/lib/db';
 import { startOfDay, subDays, subWeeks, subMonths, isSameDay, format } from 'date-fns';
+import { faIR } from 'date-fns/locale';
 
 // ============================================================
 // Types
@@ -414,7 +415,7 @@ export async function buildAnalyticsContext(
   };
 
   commitments.forEach(c => {
-    const day = format(new Date(c.date), 'EEEE', { locale: 'fa-IR' });
+    const day = format(new Date(c.date), 'EEEE', { locale: faIR });
     if (dayOfWeekBreakdown[day] !== undefined) {
       dayOfWeekBreakdown[day]++;
     }
