@@ -34,7 +34,7 @@ bun install
 
 ```env
 # Database - Production
-DATABASE_URL="file:db/hamsou-prod.db?connection_limit=1"
+DATABASE_URL="file:./db/hamsou-prod.db"
 
 # JWT Secret - حتماً تغییر دهید!
 JWT_SECRET="<generate-secure-random-string>"

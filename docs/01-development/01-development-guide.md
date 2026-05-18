@@ -24,7 +24,6 @@
 
 **مسیر فایل‌های مشکل‌دار:**
 - `.env`
-- `.env.local`
 
 **مشکل:**
 ```bash
@@ -37,16 +36,17 @@ DATABASE_URL="file:../db/hamsou.db?connection_limit=1"
 **راه حل:**
 ```bash
 # ✅ درست
-DATABASE_URL="file:db/hamsou.db?connection_limit=1"
+DATABASE_URL="file:/home/z/my-project/db/hamsou.db"
 ```
 
 #### مشکل ۲: سرور مدام خاموش می‌شد
 
-**دلیل:**
-وقتی `bun run dev` با `nohup` یا `&` در background اجرا می‌شد، به خاطر pipe با `tee` و مدیریت session، process بعد از مدتی kill می‌شد.
+**دلیل اصلی:**
+1. Bug در Next.js 16.1.3 + React 19.2.3 که باعث `TypeError: t.unmask is not a function` می‌شود
+2. وقتی `bun run dev` با `nohup` یا `&` در background اجرا می‌شد، به خاطر pipe با `tee` و مدیریت session، process بعد از مدتی kill می‌شد
 
-**راه حل:**
-استفاده از اسکریپت `.zscripts/dev.sh` که از `disown` استفاده می‌کند.
+**راه حل نهایی:**
+استفاده از اسکریپت `start-dev-bg.sh` که با یک daemon، سرور را در loop اجرا می‌کند و اگر crash شد، خودکار restart می‌کند.
 
 ---
 
@@ -56,8 +56,8 @@ DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 
 **فایل‌های اصلاح شده:**
 - `prisma/schema.prisma` - استفاده از `env("DATABASE_URL")` به جای path سخت‌کد شده
-- `.env` - اصلاح path دیتابیس
-- `.env.local` - اصلاح path دیتابیس
+- `.env` - اصلاح path دیتابیس به absolute path
+- `.env.local` - حذف شده (تا جلوگیری از تداخل با `.env`)
 
 **وضعیت:** ✅ تکمیل شده
 
@@ -87,13 +87,18 @@ if (process.env.NODE_ENV === 'production') {
 
 #### متغیرهای محیطی:
 
-**در `.env` و `.env.local`:**
+**در `.env`:**
 ```bash
 NODE_ENV="development"
 JWT_SECRET="hamsou-dev-secret-key"
 AI_PROVIDER="zai"
-DATABASE_URL="file:db/hamsou.db?connection_limit=1"
+DATABASE_URL="file:/home/z/my-project/db/hamsou.db"
 ```
+
+**⚠️ نکته مهم در مورد DATABASE_URL:**
+- در `.env` از absolute path استفاده می‌شود: `file:/home/z/my-project/db/hamsou.db`
+- در production می‌توانید از relative path استفاده کنید: `file:./db/hamsou.db`
+- از path های اشتباه مثل `file:../db/hamsou.db` استفاده نکنید
 
 **⚠️ نکته مهم در مورد JWT_SECRET:**
 - مقدار `JWT_SECRET` در `.env` حتماً باید با مقدار default در `src/lib/auth.ts` یکسان باشد
@@ -105,7 +110,7 @@ DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 ```bash
 NODE_ENV="production"
 JWT_SECRET="should-be-changed-in-production"
-DATABASE_URL="file:./db/hamsou.db?connection_limit=1"
+DATABASE_URL="file:./db/hamsou.db"
 ```
 
 ### 3. ساختار دیتابیس و Prisma
@@ -134,58 +139,49 @@ datasource db {
 ### 4. اجرای سرور توسعه
 
 **هشدار مهم:**
-سرور به دلیل یک bug در Next.js 16.1.3 + React 19.2.3 (`TypeError: t.unmask is not a function`) گاهی crash می‌کند. باید از اسکریپت auto-restart استفاده کنید.
+سرور به دلیل یک bug در Next.js 16.1.3 + React 19.2.3 (`TypeError: t.unmask is not a function`) گاهی crash می‌کند. **باید از اسکریپت auto-restart استفاده کنید.**
 
 **روش پیشنهادی (با auto-restart):**
 ```bash
 cd /home/z/my-project
-bash start-dev.sh
+bash start-dev-bg.sh
 ```
 
 این اسکریپت:
+- یک daemon در background ایجاد می‌کند
 - سرور را با تنظیمات زیر اجرا می‌کند: Port `3000`, Host `0.0.0.0`
-- اگر سرور crash کرد، خودکار ریسارتار می‌کند
+- اگر سرور crash کرد، خودکار بعد از 3 ثانیه restart می‌کند
 - خروجی را در `dev.log` ذخیره می‌کند
-
-**برای اجرا در background:**
-```bash
-# روش 1: با screen (پیشنهادی)
-screen -S hamsou-dev
-cd /home/z/my-project
-bash start-dev.sh
-# خروج از screen بدون توقف: Ctrl+A, D
-# برگشت به screen: screen -r hamsou-dev
-
-# روش 2: با tmux
-tmux new -s hamsou-dev
-cd /home/z/my-project
-bash start-dev.sh
-# خروج: Ctrl+B, D
-# برگشت: tmux attach -t hamsou-dev
-
-# روش 3: با nohup
-nohup bash start-dev.sh > /dev/null 2>&1 &
-# برای توقف: pkill -f "start-dev"
-```
+- مستقل از session شما (حتی اگر ترمینال بسته شود، سرور می‌ماند)
 
 **خروجی نمونه:**
 ```
-▲ Next.js 16.1.3 (Turbopack)
-- Local:         http://localhost:3000
-- Network:       http://0.0.0.0:3000
-- Environments: .env.local, .env
-
-✓ Starting...
-✓ Ready in ~1000ms
+✅ Dev server started successfully!
+📝 Logs: tail -f dev.log
+🔍 Check status: ps aux | grep 'next dev'
 ```
+
+**اسکریپت‌های موجود:**
+- `start-dev-bg.sh` - **پیشنهادی** (با daemon و auto-restart)
+- `start-dev.sh` - اسکریپت auto-restart (باید با screen/tmux/nohup اجرا شود)
+- `bun run dev` - اجرای مستقیم (بدون auto-restart، فقط برای تست)
 
 **برای بررسی وضعیت:**
 ```bash
 # چک کردن آیا سرور در حال اجراست
-ps aux | grep "next-server" | grep -v grep
+ps aux | grep "next dev" | grep -v grep
 
-# مشاهده لاگ‌ها
+# چک کردن آیا daemon در حال اجراست
+ps aux | grep "final-runner" | grep -v grep
+
+# مشاهده لاگ‌های سرور
 tail -f dev.log
+
+# مشاهده لاگ‌های startup و restart
+tail -f startup.log
+
+# مشاهده لاگ‌های daemon
+tail -f /tmp/hamsu-daemon.log
 
 # تست سرور
 curl -s http://localhost:3000/ > /dev/null && echo "✅ Server OK"
@@ -193,15 +189,18 @@ curl -s http://localhost:3000/ > /dev/null && echo "✅ Server OK"
 
 **برای توقف سرور:**
 ```bash
+# روش 1: توقف کامل (پیشنهادی)
 pkill -f "next dev"
+pkill -f "final-runner"
 pkill -f "start-dev"
-# یا
+
+# روش 2: توقف با port
 lsof -ti:3000 | xargs kill -9
 ```
 
 **روش‌های غلط:**
 ```bash
-# ❌ این روش‌ها مشکلاتی در ایجاد می‌کنن
+# ❌ این روش‌ها مشکلاتی ایجاد می‌کنن
 nohup bun run dev &
 bun run dev 2>&1 &
 ./node_modules/.bin/next dev -p 3000 &
@@ -223,7 +222,7 @@ bun run dev 2>&1 &
 ### ۲. تغییرات در Environment Variables
 
 **قبل از تغییر .env:**
-1. چک کن path دیتابیس درست هست (`db/` نه `../db/`)
+1. چک کن path دیتابیس درست هست (`file:/home/z/my-project/db/hamsou.db` نه `../db/`)
 2. اطمینان حاصل کن `NODE_ENV` روی `development` هست
 3. اگر JWT_SECRET رو عوض کردی، احتمالاً کاربر log out میشه
 
@@ -306,7 +305,7 @@ bun run db:push      # sync schema with database
 قبل از اینکه فیچر جدیدی رو commit کنی، این چک‌لیست رو اجرا کن:
 
 ### 1. چک کردن Environment Variables
-- [ ] `DATABASE_URL` path درست هست (`db/hamsou.db` نه `../db/hamsou.db`)
+- [ ] `DATABASE_URL` path درست هست (`file:/home/z/my-project/db/hamsou.db` نه `../db/`)
 - [ ] `NODE_ENV` روی `development` در dev و `production` در production
 - [ ] `JWT_SECRET` در development با `src/lib/auth.ts` هماهنگ است (حالا: `hamsou-dev-secret-key`)
 - [ ] `JWT_SECRET` در development فرق می‌کنه با production
@@ -325,8 +324,9 @@ bun run db:push      # sync schema with database
 - [ ] DevToolsPanel دو لایه حفاظتی داره (داخل کامپوننت و در صفحه)
 
 ### 5. تست سرور
-- [ ] سرور با `bun run dev` اجرا شده
-- [ ] سرور پایدار می‌مونه و خاموش نمیشه
+- [ ] سرور با `bash /home/z/my-project/start-dev-bg.sh` اجرا شده
+- [ ] daemon در حال اجراست (`ps aux | grep "final-runner"`)
+- [ ] سرور پایدار می‌مونه و اگر crash شد، خودکار restart می‌شه
 - [ ] API routes درست کار می‌کنن
 - [ ] DevToolsPanel در development هست و در production نیست
 
@@ -354,11 +354,11 @@ bun run db:push      # sync schema with database
 
 **راه حل:**
 ```bash
-# 1. چک کردن .env و .env.local
+# 1. چک کردن .env
 cat .env | grep DATABASE_URL
 
-# 2. اصلاح path
-DATABASE_URL="file:db/hamsou.db?connection_limit=1"
+# 2. اصلاح path (در صورت نیاز)
+DATABASE_URL="file:/home/z/my-project/db/hamsou.db"
 
 # 3. چک کردن prisma/schema.prisma
 # باید اینطوری باشه:
@@ -368,36 +368,60 @@ datasource db {
 }
 
 # 4. ریستارت سرور
-killall node
-bash .zscripts/dev.sh
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
 ```
 
 ### مشکل: سرور مدام خاموش میشه
 
-**دلیل:**
-استفاده از روش‌های غلط مثل `nohup bun run dev &` بدون درست pipe کردن خروجی.
+**دلایل اصلی:**
+1. Bug در Next.js 16.1.3 + React 19.2.3 که باعث `TypeError: t.unmask is not a function` می‌شود و سرور را crash می‌کند
+2. استفاده از روش‌های غلط مثل `nohup bun run dev &` بدون درست pipe کردن خروجی
 
-**راه حل:**
+**راه حل نهایی:**
 ```bash
-# ✅ استفاده از دستور صحیح
-bun run dev
+# ✅ استفاده از اسکریپت auto-restart با daemon
+bash /home/z/my-project/start-dev-bg.sh
 ```
 
-این دستور:
+این اسکریپت:
+- یک daemon در background ایجاد می‌کند که مستقل از session است
 - سرور را با `0.0.0.0:3000` اجرا می‌کند
-- خروجی را هم در terminal و هم در `dev.log` ذخیره می‌کند
-- سرور را پایدار نگه می‌دارد
+- خروجی را در `dev.log` ذخیره می‌کند
+- اگر سرور crash شد، خودکار بعد از 3 ثانیه restart می‌کند
 
 **برای بررسی وضعیت سرور:**
 ```bash
 # چک کردن آیا سرور در حال اجراست
-ps aux | grep "next-server" | grep -v grep
+ps aux | grep "next dev" | grep -v grep
+
+# چک کردن آیا daemon در حال اجراست
+ps aux | grep "final-runner" | grep -v grep
 
 # مشاهده لاگ‌ها
 tail -f dev.log
+tail -f startup.log
 
-# توقف سرور
+# توقف سرور و daemon
 pkill -f "next dev"
+pkill -f "final-runner"
+```
+
+**اگر هنوز مشکل دارید:**
+```bash
+# 1. همه چیز رو kill کن
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+pkill -9 -f "start-dev"
+
+# 2. دوباره اجرا کن
+bash /home/z/my-project/start-dev-bg.sh
+
+# 3. چک کن
+sleep 5
+ps aux | grep "next dev" | grep -v grep
+curl http://localhost:3000/
 ```
 
 ### مشکل: فیچر قبلی خراب شده
@@ -412,8 +436,10 @@ pkill -f "next dev"
 **راه حل:**
 ```bash
 # 1. ریستارت سرور
-killall node
-bash .zscripts/dev.sh
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+pkill -9 -f "start-dev"
+bash /home/z/my-project/start-dev-bg.sh
 
 # 2. Sync دیتابیس
 bun run db:push
@@ -443,8 +469,9 @@ grep JWT_SECRET src/lib/auth.ts
 # باید: const JWT_SECRET = process.env.JWT_SECRET || 'hamsou-dev-secret-key'; باشه
 
 # 3. اگر فرق داشتن، .env رو اصلاح کن و سرور رو ریستارت کن
-killall node
-bash .zscripts/dev.sh
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
 
 # 4. کاربر باید localStorage رو پاک کنه و دوباره login کنه
 # در console مرورگر:
@@ -482,7 +509,7 @@ const data = await db.model.findMany({
 ### نکات کلیدی برای جلوگیری از خراب شدن فیچرها:
 
 1. **Environment Variables:**
-   - همیشه path دیتابیس رو چک کن (`db/` نه `../db/`)
+   - همیشه path دیتابیس رو چک کن (`file:/home/z/my-project/db/hamsou.db` نه `../db/`)
    - NODE_ENV رو درست تنظیم کن
    - JWT_SECRET در development باید با `src/lib/auth.ts` هماهنگ باشه
 
@@ -500,9 +527,10 @@ const data = await db.model.findMany({
    - دو لایه حفاظتی داشته باش (داخل کامپوننت و در صفحه)
 
 5. **سرور:**
-   - از `bun run dev` استفاده کن
+   - همیشه از `bash /home/z/my-project/start-dev-bg.sh` استفاده کن (با auto-restart daemon)
    - از `nohup bun run dev &` استفاده نکن
-   - خروجی سرور در `dev.log` ذخیره می‌شود
+   - خروجی سرور در `dev.log` و `startup.log` ذخیره می‌شود
+   - اگر سرور crash شد، daemon خودکار restart می‌کند
 
 6. **تست:**
    - بعد از هر فیچر جدید، فیچرهای قبلی رو هم تست کن
@@ -514,12 +542,17 @@ const data = await db.model.findMany({
 ## آخرین بروزرسانی
 
 - **تاریخ:** ۲۰۲۵-۰۱-۱۸
-- **نسخه:** 1.1.0
+- **نسخه:** 1.2.0
 - **تغییرات:**
+  - **آپدیت مهم:** اصلاح کامل راه‌حل سرور خاموش شدن
+  - **آپدیت مهم:** افزودن `start-dev-bg.sh` با daemon و auto-restart
+  - اصلاح مستندات برای bug `TypeError: t.unmask is not a function`
+  - بروزرسانی همه بخش‌های مربوط به اجرای سرور
+  - افزودن اطلاعات بیشتر در مورد daemon و log files
   - اصلاح JWT_SECRET در .env و .env.local به `hamsou-dev-secret-key`
   - اصلاح prisma/schema.prisma برای استفاده از env
   - مستندسازی راهنمای توسعه
-  - **آپدیت جدید:** اصلاح API routes برای استفاده از `user.userId` به جای `user.id`
-  - **آپدیت جدید:** اصلاح `/api/auth/verify` برای استفاده از `verifyTokenString`
-  - **آپدیت جدید:** افزودن بخش احراز هویت و token handling
-  - **آپدیت جدید:** مستندسازی مشکلات احراز هویت و راه‌حل‌ها
+  - اصلاح API routes برای استفاده از `user.userId` به جای `user.id`
+  - اصلاح `/api/auth/verify` برای استفاده از `verifyTokenString`
+  - افزودن بخش احراز هویت و token handling
+  - مستندسازی مشکلات احراز هویت و راه‌حل‌ها

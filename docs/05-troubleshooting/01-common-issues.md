@@ -65,7 +65,7 @@ Error: attempt to write a readonly database
 ```
 
 **دلایل احتمالی:**
-1. `DATABASE_URL` path اشتباه داره (`../db/` به جای `db/`)
+1. `DATABASE_URL` path اشتباه داره (`../db/` یا `db/` به جای absolute path)
 2. Prisma schema path سخت‌کد شده
 3. فایل دیتابیس permission اشتباه داره
 
@@ -73,7 +73,7 @@ Error: attempt to write a readonly database
 ```bash
 # 1. چک کردن .env
 cat .env | grep DATABASE_URL
-# باید: DATABASE_URL="file:db/hamsou.db?connection_limit=1"
+# باید: DATABASE_URL="file:/home/z/my-project/db/hamsou.db"
 
 # 2. چک کردن prisma/schema.prisma
 # باید اینطوری باشه:
@@ -83,8 +83,9 @@ datasource db {
 }
 
 # 3. ریستارت سرور
-killall node
-bun run dev
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
 ```
 
 ---
@@ -110,8 +111,9 @@ bun run prisma generate
 tail -f dev.log
 
 # 3. ریستارت سرور
-pkill -f "bun run dev"
-bun run dev
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
 ```
 
 ---
@@ -128,9 +130,12 @@ CORS policy error
 **راه‌حل:**
 ```bash
 # 1. چک کردن سرور
-ps aux | grep "bun run dev"
+ps aux | grep "next dev"
 
-# 2. تست با curl
+# 2. چک کردن daemon
+ps aux | grep "final-runner"
+
+# 3. تست با curl
 curl -4 http://localhost:3000/api/auth/send-otp \
   -X POST \
   -H "Content-Type: application/json" \
@@ -217,12 +222,13 @@ grep JWT_SECRET src/lib/auth.ts
 
 **راه‌حل:**
 ```bash
-# 1. اصلاح .env و .env.local
+# 1. اصلاح .env
 JWT_SECRET="hamsou-dev-secret-key"
 
 # 2. ریستارت سرور
 pkill -9 -f "next dev"
-bun run dev
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
 
 # 3. کاربر localStorage.clear() کنه و دوباره login کنه
 ```
@@ -261,7 +267,9 @@ if (process.env.NODE_ENV === 'production') {
 ls -la .env*
 
 # 2. ریستارت سرور
-bun run dev
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
 ```
 
 ---
@@ -307,7 +315,7 @@ netstat -tlnp | grep :3000
 kill -9 <PID>
 
 # یا با پورت دیگری
-PORT=3001 bun run dev
+PORT=3001 ./node_modules/.bin/next dev -p 3001 -H 0.0.0.0
 ```
 
 ---
@@ -319,19 +327,25 @@ PORT=3001 bun run dev
 tail -f dev.log
 ```
 
-### 6.2 تست API با curl
+### 6.2 چک کردن لاگ‌های daemon
+```bash
+tail -f startup.log
+tail -f /tmp/hamsu-daemon.log
+```
+
+### 6.3 تست API با curl
 ```bash
 curl -X POST http://localhost:3000/api/auth/send-otp \
   -H "Content-Type: application/json" \
   -d '{"phone":"09123456789"}'
 ```
 
-### 6.3 مشاهده دیتابیس
+### 6.4 مشاهده دیتابیس
 ```bash
 bun run prisma studio
 ```
 
-### 6.4 چک کردن Console مرورگر
+### 6.5 چک کردن Console مرورگر
 - F12 یا Ctrl+Shift+I
 - تب Console برای errorها
 - تب Network برای requestها
@@ -356,7 +370,10 @@ bun run prisma studio
 # چک کردن کد
 bun run lint
 
-# شروع سرور
+# شروع سرور (با auto-restart - پیشنهادی)
+bash /home/z/my-project/start-dev-bg.sh
+
+# یا شروع سرور (بدون auto-restart - فقط برای تست)
 bun run dev
 ```
 
@@ -367,8 +384,10 @@ bun run dev
 - [ ] `bun install` اجرا شده
 - [ ] `bun run prisma generate` اجرا شده
 - [ ] `bun run db:push` اجرا شده
-- [ ] سرور ریستارت شده
+- [ ] سرور با `bash /home/z/my-project/start-dev-bg.sh` اجرا شده
+- [ ] daemon در حال اجراست (`ps aux | grep "final-runner"`)
 - [ ] `tail -f dev.log` چک شده
+- [ ] `tail -f startup.log` چک شده
 - [ ] Console مرورگر چک شده
 - [ ] Network tab مرورگر چک شده
 - [ ] JWT_SECRET هماهنگ است

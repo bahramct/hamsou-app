@@ -46,17 +46,17 @@ bun install
 
 ### 3. تنظیم Environment Variables
 
-ایجاد فایل `.env.local`:
+ایجاد فایل `.env` (اگر وجود ندارد):
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-ویرایش `.env.local`:
+ویرایش `.env`:
 
 ```env
 # Database - استفاده از SQLite محلی
-DATABASE_URL="file:db/hamsou.db?connection_limit=1"
+DATABASE_URL="file:/home/z/my-project/db/hamsou.db"
 
 # JWT Secret - فقط برای توسعه
 JWT_SECRET="hamsou-dev-secret-key"
@@ -73,6 +73,11 @@ AI_PROVIDER="zai"
 ```bash
 openssl rand -base64 32
 ```
+
+**⚠️ نکته مهم در مورد DATABASE_URL:**
+- در development از absolute path استفاده می‌شود: `file:/home/z/my-project/db/hamsou.db`
+- در production می‌توانید از relative path استفاده کنید: `file:./db/hamsou.db`
+- از path های اشتباه مثل `file:../db/hamsou.db` استفاده نکنید
 
 ### 4. تولید Prisma Client (بسیار مهم!)
 
@@ -96,6 +101,18 @@ bun run db:push
 
 ### 6. اجرای پروژه
 
+**روش پیشنهادی (با auto-restart):**
+```bash
+bash /home/z/my-project/start-dev-bg.sh
+```
+
+این اسکریپت:
+- سرور را با تنظیمات زیر اجرا می‌کند: Port `3000`, Host `0.0.0.0`
+- اگر سرور crash کرد، خودکار بعد از 3 ثانیه restart می‌کند
+- خروجی را در `dev.log` و `startup.log` ذخیره می‌کند
+- مستقل از session شما (حتی اگر ترمینال بسته شود، سرور می‌ماند)
+
+**روش ساده (بدون auto-restart - فقط برای تست):**
 ```bash
 bun run dev
 ```
@@ -137,7 +154,8 @@ hamsu/
 │   └── schema.prisma        # Database schema
 ├── db/                      # Database files (git-ignored)
 ├── docs/                    # Documentation
-├── .env.local               # Development environment (git-ignored)
+├── .env                     # Environment configuration (git-ignored)
+├── .env.example             # Example environment variables
 └── package.json
 ```
 
@@ -170,10 +188,10 @@ bun run prisma format
 ## چک‌لیست نصب
 
 - [ ] `bun install` - نصب dependencies
-- [ ] ایجاد و ویرایش `.env.local` - تنظیم environment variables
+- [ ] ایجاد و ویرایش `.env` - تنظیم environment variables
 - [ ] `bun run prisma generate` - **بسیار مهم!**
 - [ ] `bun run db:push` - راه‌اندازی دیتابیس
-- [ ] `bun run dev` - اجرای پروژه
+- [ ] `bash /home/z/my-project/start-dev-bg.sh` - اجرای پروژه با auto-restart
 - [ ] باز کردن `http://localhost:3000` در مرورگر
 
 ---
@@ -182,7 +200,7 @@ bun run prisma format
 
 ### مشکل: "DATABASE_URL not found"
 
-**راه‌حل:** مطمئن شوید فایل `.env.local` وجود دارد و `DATABASE_URL` در آن تنظیم شده است.
+**راه‌حل:** مطمئن شوید فایل `.env` وجود دارد و `DATABASE_URL` در آن تنظیم شده است.
 
 ### مشکل: "Module not found: @/lib/db"
 
@@ -190,14 +208,27 @@ bun run prisma format
 
 ### مشکل: "Database is readonly"
 
-**راه‌حل:** چک کردن دسترسی فایل دیتابیس:
+**راه‌حل 1:** چک کردن path دیتابیس در `.env`:
+```bash
+cat .env | grep DATABASE_URL
+# باید این باشد: DATABASE_URL="file:/home/z/my-project/db/hamsou.db"
+```
+
+**راه‌حل 2:** چک کردن دسترسی فایل دیتابیس:
 ```bash
 chmod 666 db/hamsou.db
 ```
 
+**راه‌حل 3:** ریستارت سرور:
+```bash
+pkill -9 -f "next dev"
+pkill -9 -f "final-runner"
+bash /home/z/my-project/start-dev-bg.sh
+```
+
 ### مشکل: "Dev tools not working"
 
-**راه‌حل:** مطمئن شوید `NODE_ENV="development"` در `.env.local` تنظیم شده و سرور را ریستارت کنید.
+**راه‌حل:** مطمئن شوید `NODE_ENV="development"` در `.env` تنظیم شده و سرور را ریستارت کنید.
 
 ---
 
@@ -205,10 +236,10 @@ chmod 666 db/hamsou.db
 
 برای استقرار در production:
 
-1. ایجاد `.env.production`:
+1. ایجاد `.env.production` (یا اصلاح `.env`):
 ```env
 # Database - Production database
-DATABASE_URL="file:db/hamsou-prod.db?connection_limit=1"
+DATABASE_URL="file:./db/hamsou-prod.db"
 
 # JWT Secret - حتماً تغییر دهید!
 JWT_SECRET="<generate-secure-random-string-here>"
@@ -229,6 +260,8 @@ bun run build
 ```bash
 bun run start
 ```
+
+**نکته:** در production از `start-dev-bg.sh` استفاده نکنید. این اسکریپت فقط برای development است.
 
 ---
 
