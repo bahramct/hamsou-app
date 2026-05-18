@@ -19,6 +19,7 @@ import { CommitmentWordCloud } from '@/components/analytics/commitment-word-clou
 import { ReflectionWordCloud } from '@/components/analytics/reflection-word-cloud';
 import { TemplateSelector } from '@/components/analytics/template-selector';
 import { ShareButton } from '@/components/analytics/share-button';
+import { AIReportGenerator } from '@/components/analytics/ai-report-generator';
 import { useTestDataChange } from '@/hooks/useTestDataSync';
 
 interface OverviewStats {
@@ -642,6 +643,9 @@ export default function AnalyticsPage() {
                       </div>
                     </div>
 
+                    {/* AI Report Generator */}
+                    <AIReportGenerator />
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <Card>
                         <CardHeader>
@@ -666,18 +670,12 @@ export default function AnalyticsPage() {
                         <CardContent>
                           <ul className="space-y-2 text-sm text-gray-600">
                             <li className="flex items-center gap-2">✓ لیست کامل تعهدات</li>
-                            <li className="flex items-center gap-2">✓ تاریخچه بازتاب‌ها</li>
+                            <li className="flex items-center gap-2">✓ تاریخچه بازتف‌ها</li>
                             <li className="flex items-center gap-2">✓ وضعیت برنامه‌ها</li>
                             <li className="flex items-center gap-2">✓ داده‌های تفکیک‌شده</li>
                           </ul>
                         </CardContent>
                       </Card>
-                    </div>
-
-                    <div className="text-center py-12 text-gray-500">
-                      <Brain className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <p className="text-lg font-medium mb-2">به زودی...</p>
-                      <p className="text-sm">تحلیل‌های پیشرفته‌تر AI-Powered در آینده اضافه خواهند شد</p>
                     </div>
                   </div>
                 ) : (
