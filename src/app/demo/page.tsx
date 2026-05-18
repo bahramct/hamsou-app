@@ -156,8 +156,28 @@ export default function Dashboard() {
       return;
     }
 
-    // لود کردن داده‌ها
-    loadData();
+    // Verify token is valid
+    fetch('/api/auth/verify', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    }).then(res => {
+      if (!res.ok) {
+        // Token is invalid, redirect to login
+        clearToken();
+        setUser(null);
+        router.push('/login');
+        return;
+      }
+      // Token is valid, load data
+      loadData();
+    }).catch(err => {
+      console.error('Token verification error:', err);
+      // On error, also redirect to login
+      clearToken();
+      setUser(null);
+      router.push('/login');
+    });
   }, [router]);
 
   // Sync with DevToolsPanel - refresh data when test data changes
