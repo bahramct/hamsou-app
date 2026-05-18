@@ -39,7 +39,11 @@ export function NotificationsDropdown() {
       const data = await authApiGet('/api/notifications');
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
-    } catch (error) {
+    } catch (error: any) {
+      // Silently handle auth errors - user will be redirected by the main page
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+        return;
+      }
       console.error('Error loading notifications:', error);
     } finally {
       setLoading(false);
