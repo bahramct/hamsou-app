@@ -91,7 +91,7 @@ if (process.env.NODE_ENV === 'production') {
 ```bash
 NODE_ENV="development"
 JWT_SECRET="hamsou-dev-secret-key"
-AI_PROVIDER="z-ai"
+AI_PROVIDER="zai"
 DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 ```
 

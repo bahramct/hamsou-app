@@ -45,7 +45,7 @@ AI_PROVIDER="zai"
 # ============================================================
 
 # Database - Development SQLite
-DATABASE_URL="file:db/hamsou-dev.db?connection_limit=1"
+DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 
 # JWT Secret - Development Only
 JWT_SECRET="hamsou-dev-secret-key"
@@ -120,7 +120,7 @@ openssl rand -base64 32
 ### Development Database
 
 ```env
-DATABASE_URL="file:db/hamsou-dev.db?connection_limit=1"
+DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 ```
 
 - **نوع:** SQLite

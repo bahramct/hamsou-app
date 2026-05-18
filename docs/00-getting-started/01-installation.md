@@ -56,7 +56,7 @@ cp .env.example .env.local
 
 ```env
 # Database - استفاده از SQLite محلی
-DATABASE_URL="file:db/hamsou-dev.db?connection_limit=1"
+DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 
 # JWT Secret - فقط برای توسعه
 JWT_SECRET="hamsou-dev-secret-key"
@@ -185,7 +185,7 @@ bun run prisma format
 
 **راه‌حل:** چک کردن دسترسی فایل دیتابیس:
 ```bash
-chmod 666 db/hamsou-dev.db
+chmod 666 db/hamsou.db
 ```
 
 ### مشکل: "Dev tools not working"

@@ -144,9 +144,9 @@ The feature uses the central AI system:
 
 Required in `.env.local`:
 ```env
-DATABASE_URL="file:../db/hamsou.db?connection_limit=1"
+DATABASE_URL="file:db/hamsou.db?connection_limit=1"
 JWT_SECRET="hamsou-dev-secret-key"
-AI_PROVIDER="z-ai"
+AI_PROVIDER="zai"
 ```
 
 ### Testing
