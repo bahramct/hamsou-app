@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aiService } from '@/lib/ai';
-import { z } from 'zod';
+import { aiClient } from '@/lib/ai/ai-client';
+import { buildAnalyticsContext } from '@/lib/ai/context-builders';
+import { SYSTEM_PROMPTS, addContextToPrompt } from '@/lib/ai/system-prompts';
+import { db } from '@/lib/db';
+import { format, startOfDay, subDays } from 'date-fns';
 import jwt from 'jsonwebtoken';
-import { startOfWeek, startOfMonth, format } from 'date-fns';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'hamsou-dev-secret-key';
-
-// Validation schema
-const generateReportRequestSchema = z.object({
-  type: z.enum(['weekly', 'monthly']),
-  date: z.string().optional(), // فرمت: YYYY-MM-DD
-});
 
 // Helper function
 function verifyToken(token: string) {
@@ -42,56 +38,87 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Validation
-    const body = await request.json();
-    const { type, date } = generateReportRequestSchema.parse(body);
+    const userId = decoded.userId;
 
-    // 3. محاسبه تاریخ شروع گزارش
-    const reportDate = date ? new Date(date) : new Date();
+    // 2. دریافت روزهای منحصر به فرد تعهدات کاربر
+    const commitments = await db.commitment.findMany({
+      where: { userId },
+      select: { date: true },
+      orderBy: { date: 'desc' },
+      take: 365, // حداکثر ۳۶۵ روز
+    });
 
-    let reportStart: Date;
-    let reportType: string;
+    // استخراج روزهای منحصر به فرد
+    const uniqueDates = Array.from(
+      new Set(commitments.map(c => format(startOfDay(new Date(c.date)), 'yyyy-MM-dd')))
+    );
 
-    if (type === 'weekly') {
-      reportStart = startOfWeek(reportDate, { weekStartsOn: 6 }); // شنبه = 6
-      reportType = 'هفتگی';
-    } else {
-      reportStart = startOfMonth(reportDate);
-      reportType = 'ماهانه';
+    const daysWithData = uniqueDates.length;
+
+    // 3. بررسی حداقل داده لازم
+    if (daysWithData < 3) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'برای تولید گزارش حداقل به ۳ روز داده نیاز دارید',
+          currentDays: daysWithData,
+          requiredDays: 3,
+        },
+        { status: 400 }
+      );
     }
 
-    // 4. تولید گزارش با AI (فقط با context کاربر)
-    let response;
-    if (type === 'weekly') {
-      response = await aiService.generateWeeklyReport(decoded.userId, reportStart);
+    // 4. محاسبه بازه زمانی گزارش
+    let startDate: Date;
+    const endDate = new Date();
+
+    if (daysWithData > 90) {
+      // اگر بیشتر از ۹۰ روز داده داره، فقط ۳۰ روز آخر
+      startDate = subDays(endDate, 30);
     } else {
-      response = await aiService.generateMonthlyReport(decoded.userId, reportStart);
+      // در غیر این صورت، همه داده‌ها
+      startDate = startOfDay(new Date(uniqueDates[uniqueDates.length - 1]));
     }
 
+    // 5. دریافت context کامل
+    const context = await buildAnalyticsContext(userId, [startDate, endDate]);
+
+    // 6. ساخت system prompt
+    let systemPrompt = SYSTEM_PROMPTS.REPORT_GENERATOR;
+    systemPrompt = addContextToPrompt(systemPrompt, {
+      statistics: context.statistics,
+      streak: context.streak,
+      dateRange: context.dateRange,
+    });
+
+    // 7. پیام کاربر
+    const userMessage = `یک گزارش جامع و کاربردی از پیشرفت من در بازه ${format(startDate, 'yyyy/MM/dd')} تا ${format(endDate, 'yyyy/MM/dd')} تولید کن. گزارش شامل آمار، نکات مثبت، چالش‌ها و پیشنهادات عملی باشد.`;
+
+    // 8. ارسال به AI
+    const provider = aiClient.getProvider();
+    const result = await provider.chat({
+      messages: [{ role: 'user', content: userMessage }],
+      systemPrompt,
+      temperature: 0.5,
+    });
+
+    // 9. بازگرداندن نتیجه
     return NextResponse.json({
       success: true,
       report: {
-        type,
-        startDate: format(reportStart, 'yyyy-MM-dd'),
-        content: response.content,
-        usage: response.usage,
-        model: response.model,
+        content: result.content,
+        dateRange: {
+          start: format(startDate, 'yyyy-MM-dd'),
+          end: format(endDate, 'yyyy-MM-dd'),
+        },
+        daysUsed: daysWithData > 90 ? 30 : daysWithData,
+        totalDaysWithData: daysWithData,
+        model: result.model,
       },
     });
 
   } catch (error: any) {
     console.error('[API] Generate Report Error:', error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'خطا در ورودی‌ها',
-          details: error.errors,
-        },
-        { status: 400 }
-      );
-    }
 
     return NextResponse.json(
       {
@@ -129,29 +156,32 @@ export async function GET(request: NextRequest) {
       success: true,
       endpoint: '/api/ai/generate-report',
       method: 'POST',
-      description: 'تولید گزارش هفتگی یا ماهانه با AI',
-      parameters: {
-        type: {
-          type: 'enum',
-          values: ['weekly', 'monthly'],
-          required: true,
-          description: 'نوع گزارش (هفتگی یا ماهانه)',
-        },
-        date: {
-          type: 'string',
-          format: 'YYYY-MM-DD',
-          required: false,
-          description: 'تاریخ گزارش (پیش‌فرض: امروز)',
-        },
+      description: 'تولید گزارش هوشمند از پیشرفت کاربر با AI',
+      logic: {
+        minDaysRequired: 3,
+        maxDaysLimit: 90,
+        description: 'اگر کاربر کمتر از ۳ روز داده داشته باشد، گزارش غیرفعال است. اگر بیش از ۹۰ روز داده داشته باشد، از ۳۰ روز آخر استفاده می‌شود.',
       },
       example: {
-        weekly: {
-          type: 'weekly',
-          date: '2025-01-20',
+        request: {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer <token>',
+            'Content-Type': 'application/json',
+          },
         },
-        monthly: {
-          type: 'monthly',
-          date: '2025-01-01',
+        response: {
+          success: true,
+          report: {
+            content: 'گزارش تولید شده...',
+            dateRange: {
+              start: '2025-01-01',
+              end: '2025-01-30',
+            },
+            daysUsed: 30,
+            totalDaysWithData: 95,
+            model: 'gpt-4',
+          },
         },
       },
     });

@@ -4,49 +4,65 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Calendar, TrendingUp, AlertCircle, CheckCircle2, LogOut, Home } from 'lucide-react';
+import { ArrowRight, Calendar, TrendingUp, AlertCircle, FileText, LogOut, Home, Sparkles, Info } from 'lucide-react';
 import { authApiPost, authApiGet, getUser, clearToken, isAuthenticated } from '@/lib/api';
 import { toPersianNumber } from '@/lib/utils/persian';
 import { useTestDataChange } from '@/hooks/useTestDataSync';
+import { format } from 'date-fns';
 
-interface WeeklyReport {
-  id: string;
-  weekStart: string;
-  weekEnd: string;
-  consistencyScore: number;
-  completionPattern: {
-    totalCommitments: number;
-    completedCount: number;
-    notCompletedCount: number;
-    completionRate: number;
-    mostCommonReason?: Record<string, number>;
+interface AIReport {
+  content: string;
+  dateRange: {
+    start: string;
+    end: string;
   };
-  weeklySummary?: string;
-  behavioralInsight?: string;
-  suggestedDirection?: string;
-  needsAI?: boolean;
+  daysUsed: number;
+  totalDaysWithData: number;
+  model: string;
 }
 
 export default function ReportsPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [report, setReport] = useState<WeeklyReport | null>(null);
+  const [report, setReport] = useState<AIReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
+  const [daysWithData, setDaysWithData] = useState<number>(0);
+  const [canGenerate, setCanGenerate] = useState(false);
+
+  const checkDataAvailability = async () => {
+    try {
+      const commitments = await authApiGet('/api/commitments?limit=365');
+
+      // استخراج روزهای منحصر به فرد
+      const commitmentsArray = (commitments?.items && Array.isArray(commitments.items))
+        ? commitments.items
+        : (Array.isArray(commitments) ? commitments : []);
+
+      const uniqueDates = new Set(
+        commitmentsArray.map((c: any) => {
+          const date = new Date(c.date);
+          return format(date, 'yyyy-MM-dd');
+        })
+      );
+
+      const daysCount = uniqueDates.size;
+      setDaysWithData(daysCount);
+      setCanGenerate(daysCount >= 3);
+
+    } catch (err: any) {
+      console.error('Error checking data:', err);
+    }
+  };
 
   const fetchReport = async () => {
     try {
       setLoading(true);
-      const data = await authApiGet<WeeklyReport>('/api/reports/weekly');
-      setReport(data);
+      const data = await authApiGet<AIReport>('/api/reports/weekly');
+      // اگر گزارش هفتگی قدیمی وجود داره، نادیده بگیر و از AI استفاده کن
     } catch (err: any) {
-      setError(err.message);
-      // اگر token منقضی شده، به صفحه login برویم
-      if (err.message?.includes('401') || err.message?.includes('توکن نامعتبر')) {
-        clearToken();
-        router.push('/login');
-      }
+      // خطا رو نادیده بگیر چون ممکن است گزارش هفتگی قدیمی وجود نداشته باشه
     } finally {
       setLoading(false);
     }
@@ -61,25 +77,26 @@ export default function ReportsPage() {
     try {
       setUser(getUser());
       fetchReport();
+      checkDataAvailability();
     } catch (error) {
       router.push('/login');
     }
   }, [router]);
 
   // Sync with DevToolsPanel - reload report when test data changes
-  useTestDataChange(fetchReport);
+  useTestDataChange(() => {
+    checkDataAvailability();
+    setReport(null);
+  });
 
   const generateReport = async () => {
-    if (!report) return;
-
     try {
       setGenerating(true);
-      const data = await authApiPost<{ report: WeeklyReport }>('/api/reports/generate', {
-        reportId: report.id,
-      });
+      setError('');
+      const data = await authApiPost<{ success: boolean; report: AIReport }>('/api/ai/generate-report', {});
       setReport(data.report);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'خطا در تولید گزارش');
     } finally {
       setGenerating(false);
     }
@@ -107,9 +124,9 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col" dir="rtl">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -119,7 +136,10 @@ export default function ReportsPage() {
             >
               <Home className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-gray-900">گزارش هفتگی</h1>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">گزارش هوشمند</h1>
+              <p className="text-xs text-gray-500">تحلیل با AI</p>
+            </div>
           </div>
           <Button variant="ghost" size="icon" onClick={handleLogout}>
             <LogOut className="w-5 h-5" />
@@ -128,7 +148,7 @@ export default function ReportsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-2xl mx-auto px-4 py-8 w-full">
         {error && (
           <Card className="p-6 mb-6 border-l-4 border-l-red-500 bg-red-50">
             <div className="flex items-start gap-3">
@@ -138,147 +158,142 @@ export default function ReportsPage() {
           </Card>
         )}
 
-        {report && (
-          <>
-            {/* Week Info */}
-            <Card className="p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Calendar className="w-6 h-6 text-gray-700" />
-                <h2 className="text-xl font-semibold text-gray-900">هفته جاری</h2>
+        {/* Data Availability Info */}
+        <Card className="p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-6 h-6 text-gray-700" />
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">اطلاعات شما</h2>
+                <p className="text-sm text-gray-500">
+                  {toPersianNumber(daysWithData)} روز داده ثبت شده
+                </p>
               </div>
-              <div className="flex items-center justify-between text-gray-600">
-                <span>{formatDate(report.weekStart)}</span>
-                <ArrowRight className="w-4 h-4 rotate-180" />
-                <span>{formatDate(report.weekEnd)}</span>
+            </div>
+            {daysWithData >= 90 && (
+              <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full">
+                <Info className="w-3.5 h-3.5" />
+                <span>از ۳۰ روز آخر استفاده می‌شود</span>
               </div>
-            </Card>
-
-            {/* Consistency Score */}
-            <Card className="p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <TrendingUp className="w-6 h-6 text-gray-700" />
-                <h2 className="text-xl font-semibold text-gray-900">نمره ثبات</h2>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 transition-all duration-500"
-                      style={{ width: `${(report.consistencyScore || 0) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="text-2xl font-bold text-gray-900">
-                  {toPersianNumber(((report.consistencyScore || 0) * 100).toFixed(0))}٪
-                </span>
-              </div>
-            </Card>
-
-            {/* Completion Pattern */}
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">آمار تعهدات</h2>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900">
-                    {toPersianNumber(report.completionPattern?.totalCommitments || 0)}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">کل تعهدات</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">
-                    {toPersianNumber(report.completionPattern?.completedCount || 0)}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">انجام شده</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-red-600">
-                    {toPersianNumber(report.completionPattern?.notCompletedCount || 0)}
-                  </div>
-                  <div className="text-sm text-gray-600 mt-1">انجام نشده</div>
-                </div>
-              </div>
-
-              {report.completionPattern?.mostCommonReason &&
-                Object.keys(report.completionPattern.mostCommonReason).length > 0 && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">دلایل تکراری عدم انجام:</h3>
-                    <div className="space-y-2">
-                      {Object.entries(report.completionPattern.mostCommonReason)
-                        .sort((a, b) => b[1] - a[1])
-                        .map(([reason, count]) => (
-                          <div key={reason} className="flex items-center gap-2 text-sm text-gray-600">
-                            <span className="w-2 h-2 bg-red-400 rounded-full flex-shrink-0" />
-                            <span>{reason}</span>
-                            <span className="text-gray-400">({toPersianNumber(count)} بار)</span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-            </Card>
-
-            {/* AI Generated Content */}
-            {report.needsAI && (
-              <Card className="p-6 mb-6 border-l-4 border-l-blue-500 bg-blue-50">
-                <div className="text-center">
-                  <p className="text-gray-700 mb-4">
-                    گزارش هفتگی آماده است. برای دریافت insightها و تحلیل‌های AI، دکمه زیر را بزنید.
-                  </p>
-                  <Button
-                    onClick={generateReport}
-                    disabled={generating}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {generating ? 'در حال تولید...' : 'تولید گزارش با AI'}
-                  </Button>
-                </div>
-              </Card>
             )}
+          </div>
+        </Card>
 
-            {!report.needsAI && (
-              <>
-                {/* Weekly Summary */}
-                {report.weeklySummary && (
-                  <Card className="p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">خلاصه هفته</h2>
-                    <p className="text-gray-700 leading-relaxed">{report.weeklySummary}</p>
-                  </Card>
-                )}
-
-                {/* Behavioral Insight */}
-                {report.behavioralInsight && (
-                  <Card className="p-6 mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      Insight رفتاری
-                    </h2>
-                    <p className="text-gray-700 leading-relaxed">{report.behavioralInsight}</p>
-                  </Card>
-                )}
-
-                {/* Suggested Direction */}
-                {report.suggestedDirection && (
-                  <Card className="p-6 mb-6 border-l-4 border-l-purple-500">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-4">جهت آگاهی</h2>
-                    <p className="text-gray-700 leading-relaxed">{report.suggestedDirection}</p>
-                  </Card>
-                )}
-              </>
+        {/* Generate Report Button */}
+        {!report && (
+          <Card className="p-8 mb-6 text-center">
+            {!canGenerate ? (
+              <div className="py-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                  <FileText className="w-8 h-8 text-gray-400" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  داده کافی برای تولید گزارش ندارید
+                </h2>
+                <p className="text-gray-600 mb-4">
+                  حداقل به {toPersianNumber(3)} روز داده نیاز دارید
+                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-gray-700">
+                  <span>داده فعلی:</span>
+                  <span className="font-bold">{toPersianNumber(daysWithData)} روز</span>
+                </div>
+              </div>
+            ) : (
+              <div className="py-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mb-4">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  گزارش هوشمند پیشرفت شما
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  AI یک تحلیل جامع از پیشرفت شما تولید می‌کند
+                </p>
+                <Button
+                  onClick={generateReport}
+                  disabled={generating}
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 text-lg shadow-lg"
+                >
+                  {generating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white ml-2" />
+                      در حال تولید گزارش...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5 ml-2" />
+                      تولید گزارش با AI
+                    </>
+                  )}
+                </Button>
+              </div>
             )}
-          </>
+          </Card>
         )}
 
-        {!report && !loading && (
-          <Card className="p-12 text-center">
-            <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">گزارشی یافت نشد</h2>
-            <p className="text-gray-600 mb-6">
-              هنوز داده‌ای برای تولید گزارش هفتگی وجود ندارد.
-            </p>
-            <Button onClick={() => router.push('/')}>
-              بازگشت به داشبورد
-            </Button>
-          </Card>
+        {/* Generated Report */}
+        {report && (
+          <>
+            {/* Date Range Info */}
+            <Card className="p-6 mb-6">
+              <div className="flex items-center gap-3 mb-3">
+                <Calendar className="w-5 h-5 text-gray-700" />
+                <h2 className="text-lg font-semibold text-gray-900">بازه زمانی گزارش</h2>
+              </div>
+              <div className="flex items-center justify-between text-gray-600">
+                <span>{formatDate(report.dateRange.start)}</span>
+                <ArrowRight className="w-4 h-4 rotate-180" />
+                <span>{formatDate(report.dateRange.end)}</span>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between text-sm text-gray-500">
+                <span>روزهای استفاده شده: {toPersianNumber(report.daysUsed)}</span>
+                {report.daysUsed !== report.totalDaysWithData && (
+                  <span>کل داده‌ها: {toPersianNumber(report.totalDaysWithData)} روز</span>
+                )}
+              </div>
+            </Card>
+
+            {/* Report Content */}
+            <Card className="p-6 mb-6">
+              <div className="flex items-center gap-3 mb-4">
+                <TrendingUp className="w-5 h-5 text-purple-600" />
+                <h2 className="text-lg font-semibold text-gray-900">تحلیل پیشرفت شما</h2>
+              </div>
+              <div className="prose prose-gray max-w-none">
+                <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                  {report.content}
+                </div>
+              </div>
+            </Card>
+
+            {/* Regenerate Button */}
+            <Card className="p-6">
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">
+                  می‌خواهید گزارش جدیدی تولید کنید؟
+                </p>
+                <Button
+                  onClick={generateReport}
+                  disabled={generating}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {generating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 ml-2" />
+                      در حال تولید...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 ml-2" />
+                      تولید مجدد گزارش
+                    </>
+                  )}
+                </Button>
+              </div>
+            </Card>
+          </>
         )}
       </main>
     </div>
