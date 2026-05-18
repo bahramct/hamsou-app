@@ -3,6 +3,22 @@ import { db, getFreshDb } from '@/lib/db';
 
 // DELETE /api/dev/clear-leaderboard-test-data - حذف داده‌های تستی جامعه
 export async function DELETE(request: NextRequest) {
+  // Environment check - only work in development
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json(
+      { error: 'This endpoint is only available in development mode' },
+      { status: 404 }
+    );
+  }
+
+  // Additional safety check - disable if explicitly disabled
+  if (process.env.DISABLE_DEV_TOOLS === 'true') {
+    return NextResponse.json(
+      { error: 'Dev tools are disabled' },
+      { status: 404 }
+    );
+  }
+
   try {
     const freshDb = getFreshDb();
 

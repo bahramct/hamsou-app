@@ -4,6 +4,22 @@ import { v4 as uuidv4 } from 'uuid';
 
 // POST /api/dev/create-leaderboard-test-data - ایجاد داده‌های تستی لیدربورد
 export async function POST(request: NextRequest) {
+  // Environment check - only work in development
+  if (process.env.NODE_ENV !== 'development') {
+    return NextResponse.json(
+      { error: 'This endpoint is only available in development mode' },
+      { status: 404 }
+    );
+  }
+
+  // Additional safety check - disable if explicitly disabled
+  if (process.env.DISABLE_DEV_TOOLS === 'true') {
+    return NextResponse.json(
+      { error: 'Dev tools are disabled' },
+      { status: 404 }
+    );
+  }
+
   try {
     const freshDb = getFreshDb();
 

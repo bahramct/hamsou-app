@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { z } from 'zod';
 import { aiClient } from '@/lib/ai';
+import { verifyToken } from '@/lib/auth';
 
 // Validation schema
 const suggestCommitmentsSchema = z.object({
@@ -14,8 +15,25 @@ const suggestCommitmentsSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Verify authentication
+    const user = await verifyToken(req);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'توکن نامعتبر است' },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { userId, count, category, timeOfDay, context } = suggestCommitmentsSchema.parse(body);
+
+    // Check if userId matches authenticated user
+    if (userId !== user.userId) {
+      return NextResponse.json(
+        { success: false, error: 'دسترسی غیرمجاز' },
+        { status: 403 }
+      );
+    }
 
     // بررسی حداقل داده کافی (حداقل 7 روز تعهد)
     const totalCommitments = await db.commitment.count({
@@ -189,6 +207,15 @@ ${failedReflections.map(r => `- ${r.reason} (${r.commitment.text})`).join('\n')}
 // GET برای دریافت آمار و اطلاعات مرتبط
 export async function GET(req: NextRequest) {
   try {
+    // Verify authentication
+    const user = await verifyToken(req);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'توکن نامعتبر است' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
@@ -196,6 +223,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'userId الزامی است' },
         { status: 400 }
+      );
+    }
+
+    // Check if userId matches authenticated user
+    if (userId !== user.userId) {
+      return NextResponse.json(
+        { success: false, error: 'دسترسی غیرمجاز' },
+        { status: 403 }
       );
     }
 

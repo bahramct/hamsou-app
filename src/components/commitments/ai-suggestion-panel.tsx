@@ -124,10 +124,13 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
     setShowInsights(false);
 
     try {
+      const token = localStorage.getItem('token');
+      
       const response = await fetch('/api/ai/suggest-commitments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
           userId,
@@ -137,6 +140,11 @@ export function AIDecisionPanel({ userId, onAcceptSuggestion, hasCommitmentToday
           context: context || undefined,
         }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'خطا در ارتباط با سرور' }));
+        throw new Error(errorData.error || 'خطا در دریافت پیشنهادات');
+      }
 
       const data = await response.json();
 
