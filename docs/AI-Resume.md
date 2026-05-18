@@ -72,8 +72,8 @@ https://github.com/bahramct/hamsou-app.git
 ## 📂 فایل‌های کلیدی برای مطالعه
 
 ### 1. فایل‌های نقشه راه
-- **roadmap.md** - نقشه راه کامل پروژه با تمام فازها (شامل فاز 13+: همسوگرام)
-- **roadmap-progress.md** - وضعیت دقیق تکمیل هر فیچر
+- **docs/roadmap.md** - نقشه راه کامل پروژه با تمام فازها (شامل فاز 13+: همسوگرام)
+- **docs/roadmap-progress.md** - وضعیت دقیق تکمیل هر فیچر
 
 ### 2. اسکیمای دیتابیس
 - **prisma/schema.prisma** - مدل‌های دیتابیس (User, Commitment, Reflection, Plan, Notification, Post, Like, Comment, Follow, Challenge, ChallengeParticipant, etc.)
@@ -92,7 +92,7 @@ https://github.com/bahramct/hamsou-app.git
 - **src/components/ui/** - کامپوننت‌های shadcn/ui
 
 ### 5. فایل‌های کاربر
-- **agent-guidelines.md** - قوانین کار (این فایل را حتماً بخوانید!)
+- **docs/agent-guidelines.md** - قوانین کار (این فایل را حتماً بخوانید!)
 
 ---
 
@@ -144,8 +144,8 @@ chore: description
 </div>
 
 ### 5. قبل از شروع کار
-- فایل `roadmap.md` را بخوانید تا بفهمید در چه مرحله‌ای هستیم
-- فایل `roadmap-progress.md` را بخوانید تا ببینید چه چیزهایی تکمیل شده
+- فایل `docs/roadmap.md` را بخوانید تا بفهمید در چه مرحله‌ای هستیم
+- فایل `docs/roadmap-progress.md` را بخوانید تا ببینید چه چیزهایی تکمیل شده
 - اگر کاربر بپرسد "کجاییم و چی مونده؟"، پاسخ باید بر اساس این دو فایل باشد
 
 ---

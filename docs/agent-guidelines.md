@@ -56,7 +56,7 @@
 
 ### ۳.۱. قبل از شروع توسعه
 - ✅ بررسی وجود پروژه قبلی و وضعیت جاری
-- ✅ مطالعه فایل‌های roadmap.md و roadmap-progress.md
+- ✅ مطالعه فایل‌های docs/roadmap.md و docs/roadmap-progress.md
 - ✅ درک دقیق درخواست کاربر
 - ✅ شناسایی Skills مرتبط با درخواست
 - ✅ ایجاد todo list با استفاده از TodoWrite
@@ -136,8 +136,8 @@
 ❌ **استفاده از list type در Prisma schema**: primitive types فقط
 
 ### ۵.۳. محدودیت‌های مستندات
-❌ **ویرایش roadmap.md**: فقط زمانی که فیچر جدید اضافه می‌شود
-❌ **ویرایش roadmap-progress.md**: فقط پس از تکمیل فیچر و تأیید کاربر
+❌ **ویرایش docs/roadmap.md**: فقط زمانی که فیچر جدید اضافه می‌شود
+❌ **ویرایش docs/roadmap-progress.md**: فقط پس از تکمیل فیچر و تأیید کاربر
 ❌ **ایجاد README یا مستندات اضافی**: مگر درخواست صریح
 
 ### ۵.۴. استراتژی GitHub (Dev vs Main) ⚠️ **حیاتی برای امنیت کدها**
@@ -365,8 +365,8 @@ tail -30 /home/z/my-project/dev.log
 
 ### ۷.۲. کار با Subagents
 - هر subagent باید Task ID داشته باشد (مثلاً: 1، 2-a، 2-b، 3)
-- subagent باید قبل از شروع `/home/z/my-project/worklog.md` را بخواند
-- subagent باید پس از اتمام به `/home/z/my-project/worklog.md` اضافه کند
+- subagent باید قبل از شروع `/home/z/my-project/docs/worklog.md` را بخواند
+- subagent باید پس از اتمام به `/home/z/my-project/docs/worklog.md` اضافه کند
 - هر بخش جدید با `---` شروع شود
 - قالب:
 ```markdown
@@ -414,9 +414,9 @@ Stage Summary:
 ## ۹. فایل‌های کلیدی پروژه
 
 ### ۹.۱. مستندات
-- `/roadmap.md`: نقشه راه کامل پروژه
-- `/roadmap-progress.md`: پیشرفت فیچرهای تکمیل شده
-- `/agent-guidelines.md`: این فایل - دستورالعمل‌های ایجنت
+- `/docs/roadmap.md`: نقشه راه کامل پروژه
+- `/docs/roadmap-progress.md`: پیشرفت فیچرهای تکمیل شده
+- `/docs/agent-guidelines.md`: این فایل - دستورالعمل‌های ایجنت
 
 ### ۹.۲. تنظیمات
 - `/package.json`: وابستگی‌های پروژه
@@ -426,7 +426,7 @@ Stage Summary:
 
 ### ۹.۳. لاگ‌ها
 - `/home/z/my-project/dev.log`: لاگ‌های dev server
-- `/home/z/my-project/worklog.md`: لاگ کار subagents
+- `/home/z/my-project/docs/worklog.md`: لاگ کار subagents
 
 ---
 

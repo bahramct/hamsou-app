@@ -804,7 +804,7 @@
 - ✅ تکمیل فاز 3: سیستم بازتاب با AI
 - ✅ تکمیل فاز 4: سیستم برنامه‌ریزی
 - ✅ تکمیل فاز 5 (MVP): سیستم نوتیفیکیشن
-- 📝 ایجاد فایل‌های roadmap.md و roadmap-progress.md
+- 📝 ایجاد فایل‌های docs/roadmap.md و docs/roadmap-progress.md
 
 ---
 
@@ -837,9 +837,9 @@
 
 ## 🔗 لینک‌های مفید
 
-- [Roadmap کامل](./roadmap.md)
-- [مستندات API](./docs/api.md) - (آینده)
-- [راهنمای توسعه‌دهنده](./docs/developer-guide.md) - (آینده)
+- [Roadmap کامل](./docs/roadmap.md)
+- [مستندات API](./api.md) - (آینده)
+- [راهنمای توسعه‌دهنده](./developer-guide.md) - (آینده)
 
 ---
 
