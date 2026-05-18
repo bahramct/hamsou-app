@@ -133,15 +133,40 @@ datasource db {
 
 ### 4. اجرای سرور توسعه
 
-**روش درست:**
+**هشدار مهم:**
+سرور به دلیل یک bug در Next.js 16.1.3 + React 19.2.3 (`TypeError: t.unmask is not a function`) گاهی crash می‌کند. باید از اسکریپت auto-restart استفاده کنید.
+
+**روش پیشنهادی (با auto-restart):**
 ```bash
-bun run dev
+cd /home/z/my-project
+bash start-dev.sh
 ```
 
-این دستور سرور را با تنظیمات زیر اجرا می‌کند:
-- Port: `3000`
-- Host: `0.0.0.0` (قابل دسترس از همه شبکه‌ها)
-- Log: خروجی در `dev.log` ذخیره می‌شود
+این اسکریپت:
+- سرور را با تنظیمات زیر اجرا می‌کند: Port `3000`, Host `0.0.0.0`
+- اگر سرور crash کرد، خودکار ریسارتار می‌کند
+- خروجی را در `dev.log` ذخیره می‌کند
+
+**برای اجرا در background:**
+```bash
+# روش 1: با screen (پیشنهادی)
+screen -S hamsou-dev
+cd /home/z/my-project
+bash start-dev.sh
+# خروج از screen بدون توقف: Ctrl+A, D
+# برگشت به screen: screen -r hamsou-dev
+
+# روش 2: با tmux
+tmux new -s hamsou-dev
+cd /home/z/my-project
+bash start-dev.sh
+# خروج: Ctrl+B, D
+# برگشت: tmux attach -t hamsou-dev
+
+# روش 3: با nohup
+nohup bash start-dev.sh > /dev/null 2>&1 &
+# برای توقف: pkill -f "start-dev"
+```
 
 **خروجی نمونه:**
 ```
@@ -154,10 +179,25 @@ bun run dev
 ✓ Ready in ~1000ms
 ```
 
-**نکات مهم:**
-- سرور به طور خودکار در background اجرا می‌شود
-- خروجی هم در terminal نمایش داده می‌شود و هم در `dev.log` ذخیره می‌شود
-- برای توقف سرور: `pkill -f "next dev"` یا `Ctrl+C` اگر در foreground اجرا شده
+**برای بررسی وضعیت:**
+```bash
+# چک کردن آیا سرور در حال اجراست
+ps aux | grep "next-server" | grep -v grep
+
+# مشاهده لاگ‌ها
+tail -f dev.log
+
+# تست سرور
+curl -s http://localhost:3000/ > /dev/null && echo "✅ Server OK"
+```
+
+**برای توقف سرور:**
+```bash
+pkill -f "next dev"
+pkill -f "start-dev"
+# یا
+lsof -ti:3000 | xargs kill -9
+```
 
 **روش‌های غلط:**
 ```bash
@@ -166,10 +206,6 @@ nohup bun run dev &
 bun run dev 2>&1 &
 ./node_modules/.bin/next dev -p 3000 &
 ```
-
-**مشکل روش‌های غلط:**
-- استفاده از `nohup` و `&` می‌تونه باعث خاموش شدن سرور بشه
-- بدون pipe با `tee`، خروجی ذخیره نمیشه
 
 ---
 
