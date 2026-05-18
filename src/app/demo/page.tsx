@@ -649,17 +649,17 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Weekly Report Card */}
+        {/* Analytics Card */}
         <Card className="p-6 mb-6 shadow-sm border-0 cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => router.push('/reports')}>
+              onClick={() => router.push('/analytics?tab=insights')}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">گزارش هفتگی</h2>
-                <p className="text-sm text-gray-500">برای مشاهده insightها کلیک کنید</p>
+                <h2 className="text-xl font-semibold text-gray-900">داشبورد تحلیلی</h2>
+                <p className="text-sm text-gray-500">تحلیل پیشرفت و بینش‌های AI</p>
               </div>
             </div>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

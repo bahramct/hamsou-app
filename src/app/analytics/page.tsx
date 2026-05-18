@@ -74,6 +74,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+  const [activeTab, setActiveTab] = useState('commitments');
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [commitmentAnalytics, setCommitmentAnalytics] = useState<CommitmentAnalytics | null>(null);
   const [reflectionAnalytics, setReflectionAnalytics] = useState<ReflectionAnalytics | null>(null);
@@ -152,6 +153,14 @@ export default function AnalyticsPage() {
       router.push('/login');
       return;
     }
+
+    // Check for tab in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['commitments', 'reflections', 'plans', 'insights'].includes(tab)) {
+      setActiveTab(tab);
+    }
+
     loadAnalytics();
   }, [router, timeRange]);
 
@@ -283,7 +292,7 @@ export default function AnalyticsPage() {
         )}
 
         {/* Main Content */}
-        <Tabs defaultValue="commitments" className="space-y-6" dir="rtl">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6" dir="rtl">
           <TabsList className="w-full !inline-flex !w-full">
             <TabsTrigger value="commitments" className="flex-1">تعهدات</TabsTrigger>
             <TabsTrigger value="reflections" className="flex-1">بازتاب‌ها</TabsTrigger>
