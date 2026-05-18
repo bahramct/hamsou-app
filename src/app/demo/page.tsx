@@ -138,9 +138,8 @@ export default function Dashboard() {
         setPlans(plansData);
       }
     } catch (error: any) {
-      // اگر خطای 401 بود، یعنی token منقضی شده
-      if (error.message && error.message.includes('توکن نامعتبر')) {
-        // ساکت هندل کن - ریدایرکت قبلاً در verifyToken انجام شده
+      // اگر خطای 401 بود، یعنی token منقضی شده - ساکت هندل کن
+      if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
         return;
       }
       console.error('Error loading data:', error);
@@ -179,7 +178,18 @@ export default function Dashboard() {
         }
 
         // Token is valid, load data
-        await loadData();
+        try {
+          await loadData();
+        } catch (error: any) {
+          // If loadData fails with auth error, redirect to login
+          if (error.message && (error.message.includes('توکن نامعتبر') || error.message.includes('Unauthorized'))) {
+            clearToken();
+            setUser(null);
+            router.push('/login');
+            return;
+          }
+          // Other errors are already handled in loadData
+        }
       } catch (err) {
         // On any error, redirect to login silently
         clearToken();
