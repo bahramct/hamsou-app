@@ -135,22 +135,41 @@ datasource db {
 
 **روش درست:**
 ```bash
-bash .zscripts/dev.sh
+bun run dev
 ```
 
-**اسکریپت dev.sh چه کار می‌کنه؟**
-1. بسته‌ها رو نصب می‌کنه (`bun install`)
-2. دیتابیس رو sync می‌کنه (`bun run db:push`)
-3. سرور رو در background اجرا می‌کنه
-4. از `disown` استفاده می‌کنه تا process پایدار بمونه
+این دستور سرور را با تنظیمات زیر اجرا می‌کند:
+- Port: `3000`
+- Host: `0.0.0.0` (قابل دسترس از همه شبکه‌ها)
+- Log: خروجی در `dev.log` ذخیره می‌شود
+
+**خروجی نمونه:**
+```
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+- Environments: .env.local, .env
+
+✓ Starting...
+✓ Ready in ~1000ms
+```
+
+**نکات مهم:**
+- سرور به طور خودکار در background اجرا می‌شود
+- خروجی هم در terminal نمایش داده می‌شود و هم در `dev.log` ذخیره می‌شود
+- برای توقف سرور: `pkill -f "next dev"` یا `Ctrl+C` اگر در foreground اجرا شده
 
 **روش‌های غلط:**
 ```bash
-# ❌ این روش‌ها باعث خاموش شدن سرور میشن
+# ❌ این روش‌ها مشکلاتی در ایجاد می‌کنن
 nohup bun run dev &
-bun run dev &
+bun run dev 2>&1 &
 ./node_modules/.bin/next dev -p 3000 &
 ```
+
+**مشکل روش‌های غلط:**
+- استفاده از `nohup` و `&` می‌تونه باعث خاموش شدن سرور بشه
+- بدون pipe با `tee`، خروجی ذخیره نمیشه
 
 ---
 
@@ -270,7 +289,7 @@ bun run db:push      # sync schema with database
 - [ ] DevToolsPanel دو لایه حفاظتی داره (داخل کامپوننت و در صفحه)
 
 ### 5. تست سرور
-- [ ] سرور با `.zscripts/dev.sh` اجرا شده
+- [ ] سرور با `bun run dev` اجرا شده
 - [ ] سرور پایدار می‌مونه و خاموش نمیشه
 - [ ] API routes درست کار می‌کنن
 - [ ] DevToolsPanel در development هست و در production نیست
@@ -320,12 +339,29 @@ bash .zscripts/dev.sh
 ### مشکل: سرور مدام خاموش میشه
 
 **دلیل:**
-استفاده از `nohup bun run dev &` یا روش‌های مشابه
+استفاده از روش‌های غلط مثل `nohup bun run dev &` بدون درست pipe کردن خروجی.
 
 **راه حل:**
 ```bash
-# ✅ استفاده از اسکریپت dev.sh
-bash .zscripts/dev.sh
+# ✅ استفاده از دستور صحیح
+bun run dev
+```
+
+این دستور:
+- سرور را با `0.0.0.0:3000` اجرا می‌کند
+- خروجی را هم در terminal و هم در `dev.log` ذخیره می‌کند
+- سرور را پایدار نگه می‌دارد
+
+**برای بررسی وضعیت سرور:**
+```bash
+# چک کردن آیا سرور در حال اجراست
+ps aux | grep "next-server" | grep -v grep
+
+# مشاهده لاگ‌ها
+tail -f dev.log
+
+# توقف سرور
+pkill -f "next dev"
 ```
 
 ### مشکل: فیچر قبلی خراب شده
@@ -428,8 +464,9 @@ const data = await db.model.findMany({
    - دو لایه حفاظتی داشته باش (داخل کامپوننت و در صفحه)
 
 5. **سرور:**
-   - از `.zscripts/dev.sh` استفاده کن
+   - از `bun run dev` استفاده کن
    - از `nohup bun run dev &` استفاده نکن
+   - خروجی سرور در `dev.log` ذخیره می‌شود
 
 6. **تست:**
    - بعد از هر فیچر جدید، فیچرهای قبلی رو هم تست کن
