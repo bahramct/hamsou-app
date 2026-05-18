@@ -630,82 +630,37 @@ export default function AnalyticsPage() {
 
           {/* Insights Tab */}
           <TabsContent value="insights" className="space-y-6" dir="rtl">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5" />
-                  تحلیل‌های هوش مصنوعی
-                </CardTitle>
-                <CardDescription>گزارش‌ها و بینش‌های پیشرفته</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {userPlan === 'pro' || userPlan === 'plus' ? (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">خروجی و اشتراک‌گذاری گزارش</h3>
-                        <p className="text-sm text-gray-600">گزارش کامل پیشرفت خود را دانلود یا به اشتراک بگذارید</p>
-                      </div>
-                      <div className="flex gap-3">
-                        <TemplateSelector timeRange={timeRange} />
-                        <ShareButton timeRange={timeRange} />
-                      </div>
-                    </div>
+            {/* AI Report Generator */}
+            <AIReportGenerator />
 
-                    {/* AI Report Generator */}
-                    <AIReportGenerator />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">گزارش PDF</CardTitle>
-                          <CardDescription>گزارش تحلیلی کامل با نمودارها و تحلیل‌ها</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2 text-sm text-gray-600">
-                            <li className="flex items-center gap-2">✓ خلاصه آمار و ارقام</li>
-                            <li className="flex items-center gap-2">✓ نمودارهای پیشرفت</li>
-                            <li className="flex items-center gap-2">✓ تحلیل روند هفتگی</li>
-                            <li className="flex items-center gap-2">✓ توصیه‌های شخصی‌سازی شده</li>
-                          </ul>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">گزارش Excel</CardTitle>
-                          <CardDescription>داده‌های خام برای تحلیل بیشتر</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="space-y-2 text-sm text-gray-600">
-                            <li className="flex items-center gap-2">✓ لیست کامل تعهدات</li>
-                            <li className="flex items-center gap-2">✓ تاریخچه بازتف‌ها</li>
-                            <li className="flex items-center gap-2">✓ وضعیت برنامه‌ها</li>
-                            <li className="flex items-center gap-2">✓ داده‌های تفکیک‌شده</li>
-                          </ul>
-                        </CardContent>
-                      </Card>
-                    </div>
+            {userPlan === 'pro' || userPlan === 'plus' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="w-5 h-5 text-purple-600" />
+                    اشتراک‌گذاری گزارش
+                  </CardTitle>
+                  <CardDescription>گزارش کامل پیشرفت خود را به اشتراک بگذارید</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-end">
+                    <ShareButton timeRange={timeRange} />
                   </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full mb-6">
-                      <Brain className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">قابلیت ویژه</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      خروجی گرفتن از گزارش‌ها فقط برای کاربران پلن‌های Pro و Plus فعال است
+                </CardContent>
+              </Card>
+            )}
+
+            {userPlan !== 'pro' && userPlan !== 'plus' && (
+              <Card>
+                <CardContent className="py-8">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600">
+                      برای اشتراک‌گذاری گزارش‌ها به پلن Pro یا Plus ارتقا دهید
                     </p>
-                    <Button
-                      onClick={() => router.push('/plans')}
-                      className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-                    >
-                      مشاهده پلن‌ها
-                    </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
       </div>

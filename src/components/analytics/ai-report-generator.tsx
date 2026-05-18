@@ -92,37 +92,13 @@ export function AIReportGenerator() {
 
   return (
     <div className="space-y-6">
-      {/* Data Availability Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-gray-700" />
-            اطلاعات شما
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {checkingData ? (
-            <div className="flex items-center justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="text-2xl font-bold text-gray-900">
-                  {toPersianNumber(daysWithData)}
-                </div>
-                <div className="text-sm text-gray-600">روز داده ثبت شده</div>
-              </div>
-              {daysWithData >= 90 && (
-                <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full">
-                  <Info className="w-3.5 h-3.5" />
-                  <span>از ۳۰ روز آخر استفاده می‌شود</span>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Info Banner - اگر بیشتر از ۹۰ روز داده داره */}
+      {!checkingData && daysWithData >= 90 && (
+        <div className="flex items-center justify-center gap-2 text-xs text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
+          <Info className="w-3.5 h-3.5" />
+          <span>از ۳۰ روز آخر استفاده می‌شود</span>
+        </div>
+      )}
 
       {/* Generate Button Card */}
       {!report && (
@@ -137,7 +113,11 @@ export function AIReportGenerator() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!canGenerate ? (
+            {checkingData ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-500" />
+              </div>
+            ) : !canGenerate ? (
               <div className="text-center py-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
                   <FileText className="w-8 h-8 text-gray-400" />
