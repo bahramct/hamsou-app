@@ -24,6 +24,4 @@ while true; do
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Server exited with code: $EXIT_CODE" >> /home/z/my-project/startup.log
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] Restarting in 3 seconds..." >> /home/z/my-project/startup.log
   sleep 3
-done &
-
-disown $! 2>/dev/null
+done
