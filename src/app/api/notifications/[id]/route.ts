@@ -21,7 +21,7 @@ export async function PATCH(
     const existingNotification = await db.notification.findFirst({
       where: {
         id: id,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 
@@ -67,7 +67,7 @@ export async function DELETE(
     const existingNotification = await db.notification.findFirst({
       where: {
         id: id,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 

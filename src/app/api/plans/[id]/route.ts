@@ -16,7 +16,7 @@ export async function GET(
     const plan = await db.plan.findFirst({
       where: {
         id: params.id,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 
@@ -51,7 +51,7 @@ export async function PATCH(
     const existingPlan = await db.plan.findFirst({
       where: {
         id: params.id,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 
@@ -104,7 +104,7 @@ export async function DELETE(
     const existingPlan = await db.plan.findFirst({
       where: {
         id: params.id,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 

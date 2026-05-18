@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get('unreadOnly') === 'true';
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    const where: any = { userId: user.id };
+    const where: any = { userId: user.userId };
 
     if (unreadOnly) {
       where.read = false;
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // شمارش نوتیفیکیشن‌های خوانده نشده
     const unreadCount = await db.notification.count({
-      where: { userId: user.id, read: false },
+      where: { userId: user.userId, read: false },
     });
 
     return NextResponse.json({
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     const notification = await db.notification.create({
       data: {
-        userId: user.id,
+        userId: user.userId,
         type,
         title,
         message,

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     const result = await db.notification.updateMany({
       where: {
-        userId: user.id,
+        userId: user.userId,
         read: false,
       },
       data: {

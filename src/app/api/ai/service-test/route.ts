@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         if (!message) {
           return NextResponse.json({ error: 'message is required' }, { status: 400 });
         }
-        result = await aiService.chat(user.id, message, history || []);
+        result = await aiService.chat(user.userId, message, history || []);
         break;
       }
       
@@ -45,14 +45,14 @@ export async function POST(request: NextRequest) {
           subDays(new Date(), days),
           new Date(),
         ];
-        result = await aiService.analyzeUser(user.id, dateRange, params.detailed ?? true);
+        result = await aiService.analyzeUser(user.userId, dateRange, params.detailed ?? true);
         break;
       }
       
       // 3. تست پیشنهاد تعهدات
       case 'suggestCommitments': {
         const count = params.count || 5;
-        result = await aiService.suggestCommitments(user.id, count);
+        result = await aiService.suggestCommitments(user.userId, count);
         break;
       }
       
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         if (!text) {
           return NextResponse.json({ error: 'text is required' }, { status: 400 });
         }
-        result = await aiService.analyzeSentiment(user.id, text);
+        result = await aiService.analyzeSentiment(user.userId, text);
         break;
       }
       
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
           subDays(new Date(), days),
           new Date(),
         ];
-        result = await aiService.analyzeSentimentFromReflections(user.id, dateRange);
+        result = await aiService.analyzeSentimentFromReflections(user.userId, dateRange);
         break;
       }
       
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         const weekStart = params.weekStart
           ? new Date(params.weekStart)
           : startOfWeek(new Date(), { weekStartsOn: 6 }); // شنبه
-        result = await aiService.generateWeeklyReport(user.id, weekStart);
+        result = await aiService.generateWeeklyReport(user.userId, weekStart);
         break;
       }
       
@@ -91,21 +91,21 @@ export async function POST(request: NextRequest) {
         const monthStart = params.monthStart
           ? new Date(params.monthStart)
           : startOfMonth(new Date());
-        result = await aiService.generateMonthlyReport(user.id, monthStart);
+        result = await aiService.generateMonthlyReport(user.userId, monthStart);
         break;
       }
       
       // 8. تست راهنمایی بهبود
       case 'provideImprovementGuide': {
         const { area } = params;
-        result = await aiService.provideImprovementGuide(user.id, area);
+        result = await aiService.provideImprovementGuide(user.userId, area);
         break;
       }
       
       // 9. تست پیشنهاد اهداف
       case 'suggestGoals': {
         const count = params.count || 5;
-        result = await aiService.suggestGoals(user.id, count);
+        result = await aiService.suggestGoals(user.userId, count);
         break;
       }
       
@@ -159,8 +159,8 @@ export async function GET(request: NextRequest) {
       success: true,
       provider: aiService.getProviderInfo(),
       user: {
-        id: user.id,
-        name: user.name,
+        id: user.userId,
+        name: user.phone,
       },
       actions,
     });

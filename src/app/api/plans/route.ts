@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type'); // daily, weekly, monthly, custom
 
     // ساخت query بر اساس فیلترها
-    const where: any = { userId: user.id };
+    const where: any = { userId: user.userId };
 
     if (status) {
       where.status = status;
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     // ایجاد برنامه جدید
     const plan = await db.plan.create({
       data: {
-        userId: user.id,
+        userId: user.userId,
         title,
         description,
         type,

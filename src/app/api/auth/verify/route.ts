@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyTokenString } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -7,13 +7,20 @@ export async function GET(request: Request) {
 
     if (!token) {
       return NextResponse.json(
-        { error: 'No token provided' },
+        { valid: false, error: 'No token provided' },
         { status: 401 }
       );
     }
 
     // Verify token
-    const decoded = verifyToken(token);
+    const decoded = verifyTokenString(token);
+
+    if (!decoded) {
+      return NextResponse.json(
+        { valid: false, error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
 
     return NextResponse.json({
       valid: true,
@@ -25,7 +32,7 @@ export async function GET(request: Request) {
   } catch (error: any) {
     console.error('Token verification failed:', error);
     return NextResponse.json(
-      { error: 'Invalid token' },
+      { valid: false, error: 'Invalid token' },
       { status: 401 }
     );
   }

@@ -20,7 +20,7 @@ export async function POST(
     const plan = await db.plan.findFirst({
       where: {
         id: params.id,
-        userId: user.id,
+        userId: user.userId,
       },
     });
 
