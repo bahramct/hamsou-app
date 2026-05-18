@@ -138,6 +138,11 @@ export default function Dashboard() {
         setPlans(plansData);
       }
     } catch (error: any) {
+      // اگر خطای 401 بود، یعنی token منقضی شده
+      if (error.message && error.message.includes('توکن نامعتبر')) {
+        // ساکت هندل کن - ریدایرکت قبلاً در verifyToken انجام شده
+        return;
+      }
       console.error('Error loading data:', error);
       // اگر تعهد امروز وجود نداشت، فرم جدید نمایش می‌دهیم
       setCommitment(null);
@@ -150,35 +155,41 @@ export default function Dashboard() {
 
   // چک کردن احراز هویت و لود کردن داده‌ها
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    // Verify token is valid
-    fetch('/api/auth/verify', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }).then(res => {
-      if (!res.ok) {
-        // Token is invalid, redirect to login
-        clearToken();
-        setUser(null);
+    const verifyAndLoad = async () => {
+      const token = getToken();
+      if (!token) {
         router.push('/login');
         return;
       }
-      // Token is valid, load data
-      loadData();
-    }).catch(err => {
-      console.error('Token verification error:', err);
-      // On error, also redirect to login
-      clearToken();
-      setUser(null);
-      router.push('/login');
-    });
-  }, [router]);
+
+      // Verify token is valid
+      try {
+        const res = await fetch('/api/auth/verify', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          // Token is invalid, redirect to login silently
+          clearToken();
+          setUser(null);
+          router.push('/login');
+          return;
+        }
+
+        // Token is valid, load data
+        await loadData();
+      } catch (err) {
+        // On any error, redirect to login silently
+        clearToken();
+        setUser(null);
+        router.push('/login');
+      }
+    };
+
+    verifyAndLoad();
+  }, []); // Run only once on mount
 
   // Sync with DevToolsPanel - refresh data when test data changes
   useTestDataChange(() => {
