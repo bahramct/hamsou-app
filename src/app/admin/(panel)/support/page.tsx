@@ -5,6 +5,7 @@
 
 import Link from "next/link";
 import { requirePermission } from "@/lib/admin/auth-server";
+import { AutoRefresh } from "@/components/admin/AutoRefresh";
 import { prisma } from "@/lib/db/client";
 import {
   TICKET_STATUSES,
@@ -85,6 +86,7 @@ export default async function AdminSupportPage({
 
   return (
     <div className="space-y-6">
+      <AutoRefresh intervalMs={10_000} />
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl font-semibold text-ink">تیکت‌های پشتیبانی</h1>

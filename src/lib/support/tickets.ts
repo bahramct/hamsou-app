@@ -27,7 +27,7 @@ export const TICKET_CATEGORIES: CatalogItem[] = [
 ];
 
 // ─── اولویت ───────────────────────────────────────────────────────────────────
-// کاربر اولویت را تعیین نمی‌کند؛ پیش‌فرض normal و فقط پشتیبان از پنل تغییر می‌دهد.
+// کاربر می‌تواند اولویت را هنگام ثبت تیکت مشخص کند (پیش‌فرض normal)؛ پشتیبان می‌تواند بعداً تغییر دهد.
 export const TICKET_PRIORITIES: CatalogItem[] = [
   { key: "low", label: "کم", tone: "neutral" },
   { key: "normal", label: "عادی", tone: "info" },

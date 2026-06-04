@@ -13,6 +13,7 @@ import { UserActions } from "@/components/admin/users/UserActions";
 import { toFaDigits } from "@/lib/utils/digits";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { StatusBadge, CategoryLabel } from "@/components/features/support/badges";
+import { AutoRefresh } from "@/components/admin/AutoRefresh";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,7 @@ export default async function AdminUserDetailPage({
 
   return (
     <div className="space-y-6 max-w-5xl">
+      <AutoRefresh intervalMs={10_000} />
 
       {/* بازگشت */}
       <Link

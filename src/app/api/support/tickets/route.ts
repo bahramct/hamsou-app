@@ -9,8 +9,10 @@ import { getNow } from "@/lib/dev/time";
 import { getTicketingContext } from "@/lib/support/server";
 import {
   Categories,
+  Priorities,
   DEFAULT_CATEGORY,
   DEFAULT_CHANNEL,
+  DEFAULT_PRIORITY,
   TICKET_LIMITS,
 } from "@/lib/support/tickets";
 
@@ -27,6 +29,7 @@ export async function POST(req: NextRequest) {
   const subject = typeof b.subject === "string" ? b.subject.trim() : "";
   const message = typeof b.message === "string" ? b.message.trim() : "";
   const category = typeof b.category === "string" && Categories.is(b.category) ? b.category : DEFAULT_CATEGORY;
+  const priority = typeof b.priority === "string" && Priorities.is(b.priority) ? b.priority : DEFAULT_PRIORITY;
 
   if (subject.length < TICKET_LIMITS.subjectMin || subject.length > TICKET_LIMITS.subjectMax) {
     return NextResponse.json({ error: "موضوع باید بین ۳ تا ۱۲۰ نویسه باشد." }, { status: 400 });
@@ -41,6 +44,7 @@ export async function POST(req: NextRequest) {
       userId: ctx.userId,
       subject,
       category,
+      priority,
       status: "open",
       channel: DEFAULT_CHANNEL,
       lastMessageAt: now,

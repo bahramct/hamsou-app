@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db/client";
 import { getTicketingContext } from "@/lib/support/server";
 import { NewTicketForm } from "@/components/features/support/NewTicketForm";
 import { StatusBadge, CategoryLabel } from "@/components/features/support/badges";
+import { MarkNotificationsRead } from "@/components/notifications/MarkNotificationsRead";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,8 @@ export default async function SupportPage() {
 
   return (
     <AppShell>
+      {/* به‌محض ورود به بخش تیکت‌ها badge اعلان‌های support.* پاک می‌شود */}
+      <MarkNotificationsRead typePrefix="support" />
       <div className="flex-1 max-w-3xl mx-auto w-full px-5 py-8 sm:py-12 space-y-6 animate-fade-up">
         <header>
           <h1 className="text-xl font-semibold text-ink">پشتیبانی</h1>
