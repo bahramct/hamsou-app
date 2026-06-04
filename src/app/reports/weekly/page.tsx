@@ -85,9 +85,10 @@ export default async function WeeklyReportPage({ searchParams }: PageProps) {
   // پلن کاربر برای plan gate تب تأمل
   const fullUser = await prisma.user.findUnique({
     where: { id: user.userId },
-    select: { plan: true },
+    select: { plan: true, planPaidSince: true },
   });
   const userPlan = fullUser?.plan ?? "FREE";
+  const planPaidSince = fullUser?.planPaidSince?.toISOString() ?? null;
 
   const currentWeek = getCurrentWeekRange();
   const todayForDB = getTodayDateForDB();
@@ -195,7 +196,7 @@ export default async function WeeklyReportPage({ searchParams }: PageProps) {
           <>
             {pageSlots.map((slot) =>
               slot.report ? (
-                <WeeklyReportCard key={slot.weekStart} report={slot.report} userPlan={userPlan} />
+                <WeeklyReportCard key={slot.weekStart} report={slot.report} userPlan={userPlan} planPaidSince={planPaidSince} />
               ) : (
                 <GhostCard key={slot.weekStart} slot={slot} />
               )

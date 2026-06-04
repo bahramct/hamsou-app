@@ -13,7 +13,6 @@ import { JalaliDatePicker } from "@/components/ui/JalaliDatePicker";
 interface Props {
   displayName: string | null;
   bio: string | null;
-  companionName: string | null;
   /** ISO "yyyy-mm-dd" یا "" برای حالت پیش‌فرض */
   birthDate: string;
 }
@@ -21,18 +20,14 @@ interface Props {
 export function PersonalInfoSection({
   displayName: initName,
   bio: initBio,
-  companionName: initCompanion,
   birthDate: initBirthDate,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState(initName ?? "");
   const [bio, setBio] = useState(initBio ?? "");
-  const [companion, setCompanion] = useState(initCompanion ?? "");
   const [birthDate, setBirthDate] = useState(initBirthDate);
   const [error, setError] = useState<string | null>(null);
-
-  const companionDisplayed = companion.trim() || "همدم";
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +40,6 @@ export function PersonalInfoSection({
         body: JSON.stringify({
           displayName: name.trim() || null,
           bio: bio.trim() || null,
-          companionName: companion.trim() || null,
           birthDate: birthDate || null,
         }),
       });
@@ -122,29 +116,6 @@ export function PersonalInfoSection({
             clearable
             placeholder="انتخاب تاریخ تولد"
           />
-          <p className="text-[11px] text-fog">برای ارسال پیام تبریک تولد استفاده می‌شود.</p>
-        </div>
-
-        {/* نام همدم */}
-        <div className="space-y-1.5 pt-1 border-t border-black/5">
-          <label htmlFor="companionName" className="text-xs text-stone pt-3 block">
-            نام همدم <span className="text-fog/60">(دستیار چت)</span>
-          </label>
-          <input
-            id="companionName"
-            type="text"
-            value={companion}
-            onChange={(e) => setCompanion(e.target.value)}
-            maxLength={30}
-            placeholder="همدم"
-            className="w-full rounded-xl border border-black/10 bg-paper/60 px-4 py-2.5
-                       text-sm text-ink placeholder:text-fog/50
-                       focus:outline-none focus:border-stone/50 transition-colors"
-            dir="rtl"
-          />
-          <p className="text-[11px] text-fog">
-            در چت با نام «{companionDisplayed}» نمایش داده می‌شود
-          </p>
         </div>
 
         {error && <p className="text-xs text-ember">{error}</p>}

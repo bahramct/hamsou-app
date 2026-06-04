@@ -119,7 +119,6 @@ export default async function ProfileSettingsPage() {
           <PersonalInfoSection
             displayName={user.displayName}
             bio={user.bio}
-            companionName={user.companionName}
             birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
           />
           <IdentityCard

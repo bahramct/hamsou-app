@@ -6,6 +6,7 @@ import { getAdminSession, can } from "@/lib/admin/auth-server";
 import { logAdminAction } from "@/lib/admin/audit";
 import { isUserPlan } from "@/constants/plans";
 import { createNotification } from "@/lib/notifications/server";
+import { getNow } from "@/lib/dev/time";
 
 export async function POST(
   req: NextRequest,
@@ -32,7 +33,15 @@ export async function POST(
     return NextResponse.json({ ok: true, plan });
   }
 
-  await prisma.user.update({ where: { id }, data: { plan } });
+  // planPaidSince: ارتقا از FREE → تنظیم؛ تنزل به FREE → پاک کردن؛ بین پلن‌های پولی → دست نزن
+  const planPaidUpdate: { planPaidSince?: Date | null } = {};
+  if (user.plan === "FREE" && plan !== "FREE") {
+    planPaidUpdate.planPaidSince = getNow();
+  } else if (plan === "FREE") {
+    planPaidUpdate.planPaidSince = null;
+  }
+
+  await prisma.user.update({ where: { id }, data: { plan, ...planPaidUpdate } });
   await logAdminAction({
     actorId: ctx.admin.id,
     action: "user.plan.change",

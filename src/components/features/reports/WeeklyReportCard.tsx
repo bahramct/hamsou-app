@@ -7,8 +7,9 @@
 // نرمال‌سازی محتوا برای سازگاری با گزارش‌های قدیمی (v1/v2).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { getJalaaliWeekRange } from "@/lib/utils/date";
 import { ShareModal } from "@/components/features/reports/ShareModal";
 import type {
   SerializedWeeklyReport,
@@ -92,9 +93,11 @@ function normalize(c: WeeklyReportContent): ReportView {
 interface Props {
   report: SerializedWeeklyReport;
   userPlan: string;
+  /** زمان آخرین ارتقا به پلن پولی (ISO) — null یعنی کاربر قدیمی (پیش‌فرض: دسترسی کامل) */
+  planPaidSince?: string | null;
 }
 
-export function WeeklyReportCard({ report, userPlan }: Props) {
+export function WeeklyReportCard({ report, userPlan, planPaidSince = null }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("summary");
   const { jalaliStart, jalaliEnd, meta, generatedAt } = report;
   const view = normalize(report.content);
@@ -104,7 +107,15 @@ export function WeeklyReportCard({ report, userPlan }: Props) {
     timeZone: "Asia/Tehran",
   });
 
-  const isPaidPlan = userPlan === "PLUS" || userPlan === "PRO";
+  // تب تأمل/اشتراک‌گذاری فقط برای هفته‌هایی که کاربر پلن پولی داشته باز است.
+  // اگر planPaidSince=null (کاربر قدیمی) و پلن پولی → دسترسی کامل.
+  // اگر planPaidSince دارد → فقط هفته‌هایی که weekStart ≥ ابتدای هفتهٔ ارتقا.
+  const isPaidPlan = useMemo(() => {
+    if (userPlan === "FREE") return false;
+    if (!planPaidSince) return true;
+    const upgradeWeekStart = getJalaaliWeekRange(new Date(planPaidSince)).weekStart;
+    return new Date(report.weekStart) >= upgradeWeekStart;
+  }, [userPlan, planPaidSince, report.weekStart]);
 
   return (
     <article className="glass rounded-3xl overflow-hidden animate-fade-up">

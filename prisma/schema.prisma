@@ -78,6 +78,7 @@ model User {
   // GET فقط پیام‌های بعد از این تاریخ برمی‌گرداند؛ داده‌ها برای AI context در DB حفظ می‌شوند.
   chatClearedAt DateTime?
   birthDate     DateTime? // تاریخ تولد اختیاری — برای پیامک تبریک و کد تخفیف روز میلاد
+  planPaidSince DateTime? // زمان آخرین ارتقا به پلن پولی — برای gate تب تأمل/اشتراک‌گذاری گزارش
   createdAt     DateTime @default(now())
 
   entries       DailyEntry[]
