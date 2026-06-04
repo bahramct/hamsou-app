@@ -58,7 +58,7 @@ export default async function AdminUserDetailPage({
     select: {
       id: true, phone: true, email: true, emailVerifiedAt: true,
       username: true, passwordHash: true, displayName: true, bio: true,
-      avatarImage: true, plan: true, isBanned: true, createdAt: true, companionName: true,
+      avatarImage: true, plan: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
       _count: { select: { entries: true, gaps: true, weeklyReports: true, chatMessages: true } },
     },
   });
@@ -160,7 +160,12 @@ export default async function AdminUserDetailPage({
             {user.bio && (
               <p className="text-xs text-stone mt-1.5 leading-relaxed max-w-sm">{user.bio}</p>
             )}
-            <p className="text-xs text-fog/60 mt-2">عضو از {faDate(user.createdAt)}</p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-2">
+              <p className="text-xs text-fog/60">عضو از {faDate(user.createdAt)}</p>
+              {user.birthDate && (
+                <p className="text-xs text-fog/60">تولد: {faDate(user.birthDate)}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -68,6 +68,7 @@ export async function PATCH(request: NextRequest) {
     bio?: string | null;
     companionName?: string | null;
     avatarImage?: string | null;
+    birthDate?: Date | null;
   } = {};
 
   // displayName
@@ -110,6 +111,20 @@ export async function PATCH(request: NextRequest) {
       );
     }
     data.companionName = val || null;
+  }
+
+  // birthDate — تاریخ تولد اختیاری (ISO "yyyy-mm-dd")
+  if ("birthDate" in body) {
+    const raw = body.birthDate;
+    if (raw === null || raw === undefined) {
+      data.birthDate = null;
+    } else if (typeof raw === "string" && raw.trim()) {
+      const d = new Date(raw.trim());
+      if (isNaN(d.getTime())) {
+        return NextResponse.json({ ok: false, error: "invalid_date", message: "تاریخ نامعتبر است" }, { status: 422 });
+      }
+      data.birthDate = d;
+    }
   }
 
   // avatarImage — base64 JPEG فشرده‌شده از کراپ (DECISION-057)

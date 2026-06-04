@@ -77,6 +77,7 @@ model User {
   // watermark پاک‌کردن چت همدم (DECISION-052): کاربر «پاک کن» را بزند → این = الان.
   // GET فقط پیام‌های بعد از این تاریخ برمی‌گرداند؛ داده‌ها برای AI context در DB حفظ می‌شوند.
   chatClearedAt DateTime?
+  birthDate     DateTime? // تاریخ تولد اختیاری — برای پیامک تبریک و کد تخفیف روز میلاد
   createdAt     DateTime @default(now())
 
   entries       DailyEntry[]

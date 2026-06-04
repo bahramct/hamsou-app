@@ -43,6 +43,7 @@ export default async function ProfileSettingsPage() {
       bio: true,
       companionName: true,
       avatarImage: true,
+      birthDate: true,
       plan: true,
       createdAt: true,
     },
@@ -119,6 +120,7 @@ export default async function ProfileSettingsPage() {
             displayName={user.displayName}
             bio={user.bio}
             companionName={user.companionName}
+            birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
           />
           <IdentityCard
             phone={user.phone}

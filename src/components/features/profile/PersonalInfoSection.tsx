@@ -1,26 +1,35 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PersonalInfoSection — ویرایش نام نمایشی و بیوگرافی
+// PersonalInfoSection — ویرایش نام نمایشی، بیوگرافی و تاریخ تولد
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/notifications/toast";
 import { Spinner } from "@/components/ui/Spinner";
+import { JalaliDatePicker } from "@/components/ui/JalaliDatePicker";
 
 interface Props {
   displayName: string | null;
   bio: string | null;
   companionName: string | null;
+  /** ISO "yyyy-mm-dd" یا "" برای حالت پیش‌فرض */
+  birthDate: string;
 }
 
-export function PersonalInfoSection({ displayName: initName, bio: initBio, companionName: initCompanion }: Props) {
+export function PersonalInfoSection({
+  displayName: initName,
+  bio: initBio,
+  companionName: initCompanion,
+  birthDate: initBirthDate,
+}: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState(initName ?? "");
   const [bio, setBio] = useState(initBio ?? "");
   const [companion, setCompanion] = useState(initCompanion ?? "");
+  const [birthDate, setBirthDate] = useState(initBirthDate);
   const [error, setError] = useState<string | null>(null);
 
   const companionDisplayed = companion.trim() || "همدم";
@@ -30,7 +39,6 @@ export function PersonalInfoSection({ displayName: initName, bio: initBio, compa
     setError(null);
 
     startTransition(async () => {
-      // یک ذخیرهٔ واحد برای همهٔ موارد: نام نمایشی + بیوگرافی + نام همدم
       const res = await fetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -38,6 +46,7 @@ export function PersonalInfoSection({ displayName: initName, bio: initBio, compa
           displayName: name.trim() || null,
           bio: bio.trim() || null,
           companionName: companion.trim() || null,
+          birthDate: birthDate || null,
         }),
       });
       const data = await res.json() as { ok: boolean; message?: string };
@@ -102,7 +111,21 @@ export function PersonalInfoSection({ displayName: initName, bio: initBio, compa
           )}
         </div>
 
-        {/* نام همدم — پیش‌تر بخش جدا بود؛ حالا اینجا با یک ذخیرهٔ واحد */}
+        {/* تاریخ تولد */}
+        <div className="space-y-1.5">
+          <label className="text-xs text-stone">
+            تاریخ تولد <span className="text-fog/60">(اختیاری)</span>
+          </label>
+          <JalaliDatePicker
+            value={birthDate}
+            onChange={setBirthDate}
+            clearable
+            placeholder="انتخاب تاریخ تولد"
+          />
+          <p className="text-[11px] text-fog">برای ارسال پیام تبریک تولد استفاده می‌شود.</p>
+        </div>
+
+        {/* نام همدم */}
         <div className="space-y-1.5 pt-1 border-t border-black/5">
           <label htmlFor="companionName" className="text-xs text-stone pt-3 block">
             نام همدم <span className="text-fog/60">(دستیار چت)</span>

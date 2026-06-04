@@ -100,11 +100,16 @@ export function IdentityCard({ phone, email, emailVerified, username, hasPasswor
         onToggle={() => toggle("password")}
         actionLabel={hasPassword ? "تغییر" : "تنظیم"}
       >
-        <PasswordEdit hasPassword={hasPassword} onDone={() => setOpen(null)} />
+        <PasswordEdit
+          hasPassword={hasPassword}
+          email={email}
+          emailVerified={emailVerified}
+          onDone={() => setOpen(null)}
+        />
       </Row>
 
-      {/* حذف حساب — کنارِ خط جدا‌کننده، بازکنندهٔ مودال */}
-      <div className="border-t border-black/5 pt-3">
+      {/* حذف حساب */}
+      <div className="pt-3">
         <button
           type="button"
           onClick={() => setShowDelete(true)}
@@ -114,7 +119,6 @@ export function IdentityCard({ phone, email, emailVerified, username, hasPasswor
         </button>
       </div>
 
-      {/* مودال حذف حساب */}
       {showDelete && (
         <DeleteModal
           phone={phone}
@@ -170,6 +174,41 @@ function Row({
         )}
       </div>
       {open && !locked && <div className="pb-4 pr-11 animate-fade-in">{children}</div>}
+    </div>
+  );
+}
+
+// ─── input رمز عبور با toggle نمایش/پنهان ────────────────────────────────────
+function PwInput({
+  value, onChange, placeholder, disabled, autoComplete,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  autoComplete?: string;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="relative">
+      <input
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        autoComplete={autoComplete}
+        dir="ltr"
+        placeholder={placeholder}
+        className={`${inp} pr-16`}
+      />
+      <button
+        type="button"
+        onClick={() => setShow((v) => !v)}
+        tabIndex={-1}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-stone hover:text-ink transition-colors"
+      >
+        {show ? "پنهان" : "نمایش"}
+      </button>
     </div>
   );
 }
@@ -349,8 +388,43 @@ function UsernameEdit({ initial, onDone }: { initial: string | null; onDone: () 
   );
 }
 
-// ─── رمز عبور ────────────────────────────────────────────────────────────────
-function PasswordEdit({ hasPassword, onDone }: { hasPassword: boolean; onDone: () => void }) {
+// ─── رمز عبور (مستقیم + از طریق ایمیل) ──────────────────────────────────────
+function PasswordEdit({
+  hasPassword,
+  email,
+  emailVerified,
+  onDone,
+}: {
+  hasPassword: boolean;
+  email: string | null;
+  emailVerified: boolean;
+  onDone: () => void;
+}) {
+  const [mode, setMode] = useState<"direct" | "email">("direct");
+
+  return mode === "email" && email && emailVerified ? (
+    <PasswordEmailReset email={email} onDone={onDone} onBack={() => setMode("direct")} />
+  ) : (
+    <PasswordDirect
+      hasPassword={hasPassword}
+      canEmailReset={!!email && emailVerified}
+      onDone={onDone}
+      onSwitchToEmail={() => setMode("email")}
+    />
+  );
+}
+
+function PasswordDirect({
+  hasPassword,
+  canEmailReset,
+  onDone,
+  onSwitchToEmail,
+}: {
+  hasPassword: boolean;
+  canEmailReset: boolean;
+  onDone: () => void;
+  onSwitchToEmail: () => void;
+}) {
   const router = useRouter();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -376,15 +450,135 @@ function PasswordEdit({ hasPassword, onDone }: { hasPassword: boolean; onDone: (
   return (
     <div className="space-y-2">
       {hasPassword && (
-        <input type="password" autoComplete="current-password" dir="ltr" placeholder="رمز فعلی"
-          value={current} onChange={(e) => setCurrent(e.target.value)} disabled={busy} className={inp} />
+        <PwInput
+          value={current}
+          onChange={setCurrent}
+          placeholder="رمز فعلی"
+          disabled={busy}
+          autoComplete="current-password"
+        />
       )}
-      <input type="password" autoComplete="new-password" dir="ltr" placeholder="رمز جدید (حداقل ۸ کاراکتر)"
-        value={next} onChange={(e) => setNext(e.target.value)} disabled={busy} className={inp} />
-      <input type="password" autoComplete="new-password" dir="ltr" placeholder="تکرار رمز جدید"
-        value={confirm} onChange={(e) => setConfirm(e.target.value)} disabled={busy} className={inp} />
-      <button onClick={save} disabled={busy || next.length < 8 || !confirm || (hasPassword && !current)} className={btn}>
+      <PwInput
+        value={next}
+        onChange={setNext}
+        placeholder="رمز جدید (حداقل ۸ کاراکتر)"
+        disabled={busy}
+        autoComplete="new-password"
+      />
+      <PwInput
+        value={confirm}
+        onChange={setConfirm}
+        placeholder="تکرار رمز جدید"
+        disabled={busy}
+        autoComplete="new-password"
+      />
+      <button
+        onClick={save}
+        disabled={busy || next.length < 8 || !confirm || (hasPassword && !current)}
+        className={btn}
+      >
         {busy && <Spinner />}{hasPassword ? "تغییر رمز" : "تنظیم رمز"}
+      </button>
+      {canEmailReset && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={onSwitchToEmail}
+            className="text-[11px] text-stone hover:text-sage-deep transition-colors"
+          >
+            تغییر از طریق ایمیل ←
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PasswordEmailReset({
+  email,
+  onDone,
+  onBack,
+}: {
+  email: string;
+  onDone: () => void;
+  onBack: () => void;
+}) {
+  const router = useRouter();
+  const [step, setStep] = useState<"send" | "verify">("send");
+  const [code, setCode] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
+
+  const maskedEmail = email.replace(/(.{2}).+(@.+)/, "$1…$2");
+
+  async function send() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/reset-password/request", { method: "POST" });
+      const d = (await res.json()) as { error?: string; devCode?: string };
+      if (!res.ok) { toast.error(d.error ?? "خطا."); return; }
+      if (typeof d.devCode === "string") setDevCode(d.devCode);
+      setStep("verify");
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  async function verify() {
+    if (next !== confirm) { toast.error("رمز جدید و تکرارش یکسان نیستند."); return; }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/reset-password/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, newPassword: next }),
+      });
+      const d = (await res.json()) as { error?: string };
+      if (!res.ok) { toast.error(d.error ?? "خطا."); return; }
+      toast.success("رمز با موفقیت تغییر کرد");
+      onDone(); router.refresh();
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="space-y-3">
+      {step === "send" ? (
+        <>
+          <p className="text-xs text-fog leading-relaxed">
+            یک کد تأیید به <span dir="ltr" className="num-latin text-stone">{maskedEmail}</span> ارسال می‌شود.
+          </p>
+          <button onClick={send} disabled={busy} className={btn}>
+            {busy && <Spinner />}ارسال کد
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="text-xs text-fog">کد ارسال‌شده به <span dir="ltr" className="num-latin text-stone">{maskedEmail}</span></p>
+          <input
+            inputMode="numeric" dir="ltr" placeholder="کد ۶ رقمی"
+            value={code}
+            onChange={(e) => setCode(onlyDigits(e.target.value).slice(0, 6))}
+            disabled={busy} className={codeInp}
+          />
+          <PwInput value={next} onChange={setNext} placeholder="رمز جدید" disabled={busy} autoComplete="new-password" />
+          <PwInput value={confirm} onChange={setConfirm} placeholder="تکرار رمز جدید" disabled={busy} autoComplete="new-password" />
+          <button
+            onClick={verify}
+            disabled={busy || code.length < 6 || next.length < 8 || !confirm}
+            className={btn}
+          >
+            {busy && <Spinner />}تأیید و تغییر رمز
+          </button>
+          <DevOnly><DevOtpPanel code={devCode} onFill={(c) => setCode(onlyDigits(c).slice(0, 6))} /></DevOnly>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={onBack}
+        className="text-[11px] text-stone hover:text-ink transition-colors"
+      >
+        → بازگشت
       </button>
     </div>
   );
@@ -439,7 +633,6 @@ function DeleteModal({ phone, email, onClose }: { phone: string | null; email: s
       onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}
     >
       <div className="glass-strong rounded-3xl w-full max-w-sm animate-fade-up">
-        {/* هدر */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h2 className="text-sm font-semibold text-ember">حذف حساب کاربری</h2>
           <button
@@ -461,18 +654,12 @@ function DeleteModal({ phone, email, onClose }: { phone: string | null; email: s
               </p>
               <p className="text-xs text-fog">این عملیات قابل بازگشت نیست.</p>
               <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 py-2.5 rounded-xl border border-bone text-sm text-stone hover:text-ink transition-colors"
-                >
+                <button type="button" onClick={onClose}
+                  className="flex-1 py-2.5 rounded-xl border border-bone text-sm text-stone hover:text-ink transition-colors">
                   انصراف
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  className="flex-1 py-2.5 rounded-xl border border-ember/40 bg-ember/5 text-sm text-ember hover:bg-ember/10 transition-colors"
-                >
+                <button type="button" onClick={() => setStep(2)}
+                  className="flex-1 py-2.5 rounded-xl border border-ember/40 bg-ember/5 text-sm text-ember hover:bg-ember/10 transition-colors">
                   ادامه
                 </button>
               </div>
@@ -498,20 +685,15 @@ function DeleteModal({ phone, email, onClose }: { phone: string | null; email: s
               />
               {error && <p className="text-xs text-ember">{error}</p>}
               <div className="flex gap-3">
-                <button
-                  type="button"
+                <button type="button"
                   onClick={() => { setStep(1); setConfirmInput(""); setError(null); }}
                   disabled={busy}
-                  className="flex-1 py-2.5 rounded-xl border border-bone text-sm text-stone hover:text-ink transition-colors disabled:opacity-50"
-                >
+                  className="flex-1 py-2.5 rounded-xl border border-bone text-sm text-stone hover:text-ink transition-colors disabled:opacity-50">
                   انصراف
                 </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
+                <button type="button" onClick={handleDelete}
                   disabled={busy || !confirmInput.trim()}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ember/10 border border-ember/40 text-sm text-ember hover:bg-ember/20 disabled:opacity-40 transition-colors"
-                >
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ember/10 border border-ember/40 text-sm text-ember hover:bg-ember/20 disabled:opacity-40 transition-colors">
                   {busy && <Spinner />}
                   حذف نهایی
                 </button>
