@@ -46,15 +46,6 @@ interface NavCounts {
 
 const COUNTS_POLL_MS = 20000;
 
-// کلیدهای localStorage برای timestamp آخرین بازدید هر بخش
-const LS_TKT = "hs-admin-tkt-seen";
-const LS_CHAT = "hs-admin-chat-seen";
-
-function getSeenMs(key: string): number {
-  try { return parseInt(localStorage.getItem(key) ?? "0", 10) || 0; }
-  catch { return 0; }
-}
-
 interface Props {
   admin: { displayName: string; username: string; avatarPreset: number; avatarImage: string | null };
   role: { label: string };
@@ -71,16 +62,10 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
   const visible = NAV_ITEMS.filter((i) => permSet.has(i.perm));
   const canSeeSupport = permSet.has("support.read");
 
-  // poll آرامِ شمارهٔ badgeها — timestamps آخرین بازدید را از localStorage می‌خواند
-  // تا فقط «جدیدهای بعد از آخرین بازدید» را بشمارد.
+  // poll آرامِ شمارهٔ badgeها (تیکت باز + چت خوانده‌نشده) — فقط برای دارندگان دسترسی پشتیبانی
   const refreshCounts = useCallback(async () => {
     try {
-      const ts = getSeenMs(LS_TKT);
-      const cs = getSeenMs(LS_CHAT);
-      const params = new URLSearchParams();
-      if (ts) params.set("ts", String(ts));
-      if (cs) params.set("cs", String(cs));
-      const res = await fetch(`/api/admin/nav-counts?${params}`, { cache: "no-store" });
+      const res = await fetch("/api/admin/nav-counts", { cache: "no-store" });
       const data = await res.json();
       if (data?.ok) setCounts({ openTickets: data.openTickets ?? 0, unreadChats: data.unreadChats ?? 0 });
     } catch {
@@ -88,7 +73,6 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
     }
   }, []);
 
-  // interval polling — فقط برای دارندگان دسترسی
   useEffect(() => {
     if (!canSeeSupport) return;
     const t = setInterval(() => {
@@ -99,25 +83,8 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
     return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
   }, [canSeeSupport, refreshCounts]);
 
-  // هر بار که pathname تغییر کند:
-  // ۱) اگر وارد بخش تیکت/چت شدیم → timestamp «الان» را ذخیره کن (badge = 0 از این لحظه به بعد)
-  // ۲) در هر صورت → refreshCounts اجرا کن تا badge صفحهٔ جدید دقیق باشد
-  useEffect(() => {
-    if (!canSeeSupport) return;
-    if (pathname.startsWith("/admin/support")) {
-      try { localStorage.setItem(LS_TKT, Date.now().toString()); } catch {}
-    } else if (pathname.startsWith("/admin/livechat")) {
-      try { localStorage.setItem(LS_CHAT, Date.now().toString()); } catch {}
-    }
-    void refreshCounts();
-  }, [pathname, canSeeSupport, refreshCounts]);
-
-  // badge‌ها را روی صفحهٔ جاری پنهان کن (کاربر همین‌جا است — می‌بیند)
-  const effectiveOpenTickets = pathname.startsWith("/admin/support") ? 0 : counts.openTickets;
-  const effectiveUnreadChats = pathname.startsWith("/admin/livechat") ? 0 : counts.unreadChats;
-
   const badgeValue = (key?: BadgeKey): number =>
-    key === "tickets" ? effectiveOpenTickets : key === "chat" ? effectiveUnreadChats : 0;
+    key === "tickets" ? counts.openTickets : key === "chat" ? counts.unreadChats : 0;
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";

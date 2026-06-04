@@ -204,8 +204,8 @@ export default async function AdminUsersPage({
                           </span>
                         )}
                       </div>
-                      {/* شماره تلفن/ایمیل — همیشه LTR تا علامت + سمت چپ باشد */}
-                      <p className="text-[11px] text-fog mt-0.5 truncate fa-num" dir="ltr">
+                      {/* شماره تلفن/ایمیل: dir="ltr" تا علامت + سمت چپ، text-right تا زیر نام قرار گیرد */}
+                      <p className="text-[11px] text-fog mt-0.5 truncate fa-num text-right" dir="ltr">
                         {identity}
                       </p>
                     </div>
