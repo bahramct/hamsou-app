@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /admin/users — لیست کاربران + جستجو + فیلتر پلن (enforce: users.read)
+// /admin/users — لیست کاربران + جستجوی زنده + فیلتر پلن (enforce: users.read)
 // طراحی کارت‌محور با آواتار، آمار و badge پلن — جایگزین جدول ساده
 // حریم خصوصی (DECISION-026 §۷): محتوای تعهد نمایش داده نمی‌شود؛ فقط متادیتا.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db/client";
 import { USER_PLANS, type UserPlan } from "@/constants/plans";
 import { toFaDigits } from "@/lib/utils/digits";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,14 @@ const PLAN_STYLE: Record<string, { pill: string; ring: string; dot: string }> = 
 function toFa(n: number) { return n.toLocaleString("fa-IR"); }
 function faDate(d: Date) {
   return d.toLocaleDateString("fa-IR", { year: "numeric", month: "short", timeZone: "Asia/Tehran" });
+}
+
+// href فیلتر پلن — searchQuery را حفظ می‌کند
+function planHref(plan: string, q: string) {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (plan) params.set("plan", plan);
+  return `/admin/users?${params.toString()}`;
 }
 
 export default async function AdminUsersPage({
@@ -112,21 +121,21 @@ export default async function AdminUsersPage({
       </header>
 
       {/* ─── جستجو + فیلتر ─── */}
-      <form method="GET" className="flex items-center gap-2 flex-wrap">
-        <input
-          name="q"
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* جستجوی زنده — client component */}
+        <AdminSearchInput
           defaultValue={q}
+          currentPlan={planFilter ?? ""}
+          basePath="/admin/users"
           placeholder="جستجو با نام، موبایل، ایمیل یا نام‌کاربری…"
-          dir="rtl"
-          className="flex-1 min-w-52 rounded-xl px-4 py-2.5 text-sm bg-white/60 border border-bone text-ink placeholder:text-fog focus:outline-none focus:border-sage focus:ring-2 focus:ring-sage/20 transition-all"
         />
+
+        {/* فیلتر پلن — Link (بدون form) */}
         <div className="flex items-center gap-1.5 bg-white/50 border border-bone rounded-xl px-2 py-1.5">
           {["", ...USER_PLANS].map((p) => (
-            <button
+            <Link
               key={p}
-              type="submit"
-              name="plan"
-              value={p}
+              href={planHref(p, q)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                 (planFilter ?? "") === p
                   ? "bg-ink text-paper shadow-sm"
@@ -134,15 +143,10 @@ export default async function AdminUsersPage({
               }`}
             >
               {p === "" ? "همه" : PLAN_LABELS[p]}
-            </button>
+            </Link>
           ))}
         </div>
-        <button
-          type="submit"
-          className="px-4 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors"
-        >
-          جستجو
-        </button>
+
         {(q || planFilter) && (
           <Link
             href="/admin/users"
@@ -151,7 +155,7 @@ export default async function AdminUsersPage({
             پاک
           </Link>
         )}
-      </form>
+      </div>
 
       {/* ─── کارت‌ها ─── */}
       {users.length === 0 ? (
@@ -161,8 +165,8 @@ export default async function AdminUsersPage({
           {users.map((u) => {
             const planStyle = PLAN_STYLE[u.plan] ?? PLAN_STYLE.FREE;
             const initLetter = u.displayName?.trim()[0] ?? u.phone?.[0] ?? u.email?.[0] ?? "؟";
+            // شماره تلفن و ایمیل هر دو LTR هستند — علامت + باید سمت چپ باشد
             const identity = u.phone ? toFaDigits(u.phone) : (u.email ?? "—");
-            const isEmail = !u.phone && !!u.email;
 
             return (
               <div
@@ -173,7 +177,7 @@ export default async function AdminUsersPage({
                 <div className="absolute top-0 inset-x-0 h-px bg-black/8 rounded-t-2xl" />
 
                 <div className="px-4 pt-4 pb-3.5 space-y-3">
-                  {/* ردیف اول: آواتار + اطلاعات اصلی + badge پلن */}
+                  {/* ردیف اول: آواتار + نام/شناسه + پلن/یوزرنیم */}
                   <div className="flex items-start gap-3">
                     {/* آواتار */}
                     <div
@@ -200,24 +204,24 @@ export default async function AdminUsersPage({
                           </span>
                         )}
                       </div>
-                      <p
-                        className={`text-[11px] text-fog mt-0.5 truncate ${isEmail ? "num-latin" : "fa-num"}`}
-                        dir={isEmail ? "ltr" : "rtl"}
-                      >
+                      {/* شماره تلفن/ایمیل — همیشه LTR تا علامت + سمت چپ باشد */}
+                      <p className="text-[11px] text-fog mt-0.5 truncate fa-num" dir="ltr">
                         {identity}
                       </p>
+                    </div>
+
+                    {/* پلن + نام‌کاربری (زیر هم، سمت راست) */}
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                      <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${planStyle.pill}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${planStyle.dot}`} />
+                        {PLAN_LABELS[u.plan] ?? u.plan}
+                      </span>
                       {u.username && (
-                        <p className="text-[10px] text-stone/60 mt-0.5 num-latin" dir="ltr">
+                        <p className="text-[10px] text-stone/60 num-latin leading-none" dir="ltr">
                           @{u.username}
                         </p>
                       )}
                     </div>
-
-                    {/* badge پلن */}
-                    <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${planStyle.pill}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${planStyle.dot}`} />
-                      {PLAN_LABELS[u.plan] ?? u.plan}
-                    </span>
                   </div>
 
                   {/* ردیف دوم: آمار + دکمه */}
