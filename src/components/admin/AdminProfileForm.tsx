@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toast } from "@/lib/notifications/toast";
@@ -220,12 +221,13 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
         ذخیرهٔ اطلاعات
       </button>
 
-      {cropSource && (
+      {cropSource && createPortal(
         <AvatarCropModal
           source={cropSource}
           onCancel={() => setCropSource(null)}
           onCropped={handleCropped}
-        />
+        />,
+        document.body
       )}
     </section>
   );
