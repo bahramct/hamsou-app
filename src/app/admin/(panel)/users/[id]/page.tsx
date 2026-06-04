@@ -10,6 +10,7 @@ import { requirePermission, can } from "@/lib/admin/auth-server";
 import { prisma } from "@/lib/db/client";
 import { UserActions } from "@/components/admin/users/UserActions";
 import { toFaDigits } from "@/lib/utils/digits";
+import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function AdminUserDetailPage({
       passwordHash: true,
       displayName: true,
       bio: true,
+      avatarImage: true,
       plan: true,
       isBanned: true,
       createdAt: true,
@@ -68,8 +70,15 @@ export default async function AdminUserDetailPage({
 
       {/* هدر */}
       <header className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-ember/15 text-ember flex items-center justify-center text-lg font-semibold shrink-0">
-          {(user.displayName || user.phone || user.email || user.username || "—").slice(-2)}
+        <div className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center text-lg font-semibold shrink-0"
+          style={user.avatarImage ? {} : { backgroundColor: AVATAR_COLOR.bg, color: AVATAR_COLOR.fg }}
+        >
+          {user.avatarImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.avatarImage} alt="آواتار" className="w-full h-full object-cover" />
+          ) : (
+            (user.displayName?.trim()?.[0] ?? user.phone?.[0] ?? user.email?.[0] ?? "؟")
+          )}
         </div>
         <div className="min-w-0">
           <h1 className="text-lg font-semibold text-ink flex items-center gap-2">
