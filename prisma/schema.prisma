@@ -1,0 +1,515 @@
+// همسو — Prisma Schema
+// منبع حقیقت مدل داده: CLAUDE.md §۷
+// در فاز MVP از SQLite استفاده می‌شود (DECISION-003)
+// محدودیت‌های SQLite در DECISION-012 ثبت شده‌اند
+
+generator client {
+  provider = "prisma-client-js"
+  // در نسخه‌های جدید Prisma v7، خروجی client به‌صورت پیش‌فرض درون node_modules است
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OtpCode — کدهای یکبارمصرف برای احراز هویت
+// هر درخواست OTP یک رکورد جدید می‌سازد.
+// پس از تأیید isUsed=true می‌شود.
+// رکوردهای منقضی در cleanup job حذف می‌شوند (فاز ۲).
+// ─────────────────────────────────────────────────────────────────────────────
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// User — کاربر همسو
+// مقادیر مجاز plan: "FREE" | "PLUS" | "PRO"  (constants/plans.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+model User {
+  id            String   @id @default(cuid())
+  phone         String   @unique
+  plan          String   @default("FREE")
+  displayName   String?  // اسم نمایشی اختیاری — TASK-PROFILE-BASE
+  companionName String?  // نام سفارشی دستیار — پیش‌فرض «همدم» در کد (TASK-AI-CHAT)
+  bio           String?  // بیوگرافی کوتاه — TASK-PROFILE-BASE
+  avatarPreset  Int      @default(3) // ایندکس آواتار انتخابی (0-11) — پیش‌فرض سبز (sage) — DECISION-056
+  avatarImage   String?  // تصویر فشرده‌شده base64 (JPEG ≤100KB) — DECISION-056
+  isBanned      Boolean  @default(false) // مسدودسازی از پنل ادمین (DECISION-026/036)
+  // watermark مخفی‌سازی چت آنلاین (DECISION-049): کاربر «پاک کردن» را بزند → این = الان.
+  // کاربر فقط پیام‌های بعد از این لحظه را می‌بیند؛ پنل همه‌چیز را نگه می‌دارد (فلسفهٔ داده).
+  supportChatHiddenUntil DateTime?
+  // watermark پاک‌کردن چت همدم (DECISION-052): کاربر «پاک کن» را بزند → این = الان.
+  // GET فقط پیام‌های بعد از این تاریخ برمی‌گرداند؛ داده‌ها برای AI context در DB حفظ می‌شوند.
+  chatClearedAt DateTime?
+  createdAt     DateTime @default(now())
+
+  entries       DailyEntry[]
+  gaps          GapRecord[]
+  weeklyReports WeeklyReport[]
+  chatMessages  ChatMessage[]
+  supportTickets SupportTicket[]
+  ticketMessages TicketMessage[] @relation("UserTicketMessages")
+  notifications  Notification[]
+  supportChatSessions SupportChatSession[]
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notification — اعلان ماندگار درون‌برنامه‌ای (DECISION-046)
+// کاتالوگ‌محور: type کلیدِ src/lib/notifications/catalog.ts است → افزودن نوع جدید
+//   بدون migration. data: JSON اختیاری که کاتالوگ از آن متن/لینک می‌سازد.
+// channel: الگوی channelِ تیکت — "inapp" حالا؛ "push"/"sms" در آینده بدون بازنویسی.
+// readAt=null → خوانده‌نشده (در شمارش ناقوس). هرگز حذف نمی‌شود (data-philosophy).
+// ─────────────────────────────────────────────────────────────────────────────
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String // کلید کاتالوگ — منبع حقیقت متن/تن/آیکن/لینک
+  data      String? // JSON payload اختیاری (مثل {ticketId, subject})
+  linkUrl   String? // override اختیاری لینک کاتالوگ
+  channel   String    @default("inapp") // "inapp" | (آینده) "push" | "sms"
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DailyEntry — تعهد روزانه
+// قانون: حداکثر یک تعهد در روز برای هر کاربر (unique on userId + date)
+// editableUntil = createdAt + ENTRY_EDIT_WINDOW_HOURS
+// پس از قفل شدن، content غیرقابل تغییر است
+// ─────────────────────────────────────────────────────────────────────────────
+model DailyEntry {
+  id            String    @id @default(cuid())
+  userId        String
+  content       String
+  date          DateTime  // تاریخ روز تعهد (begin-of-day)
+  createdAt     DateTime  @default(now())
+  editableUntil DateTime
+  editedAt      DateTime?
+  isLocked      Boolean   @default(false)
+  devSeed       Boolean?  // فقط در dev — داده seed را از داده واقعی جدا می‌کند (DECISION-021)
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback EntryFeedback?
+
+  @@unique([userId, date])
+  @@index([userId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EntryFeedback — بازخورد تعهد قبلی
+// مقادیر مجاز status: "DONE" | "NOT_DONE"  (constants/feedback.ts)
+// رابطه ۱:۱ با DailyEntry (entryId @unique)
+// ─────────────────────────────────────────────────────────────────────────────
+model EntryFeedback {
+  id        String   @id @default(cuid())
+  entryId   String   @unique
+  status    String
+  note      String?
+  createdAt DateTime @default(now())
+  devSeed   Boolean? // فقط در dev — داده seed را از داده واقعی جدا می‌کند (DECISION-021)
+
+  entry DailyEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GapRecord — فاصله غیرفعالی
+// ─────────────────────────────────────────────────────────────────────────────
+model GapRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  fromDate  DateTime
+  toDate    DateTime
+  note      String?
+  createdAt DateTime @default(now())
+  devSeed   Boolean? // فقط در dev — داده seed را از داده واقعی جدا می‌کند (DECISION-021)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, fromDate])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WeeklyReport — گزارش هفتگی AI
+// aiContent: JSON serialized (SQLite + Prisma بدون پشتیبانی native JSON)
+// در application layer parse می‌شود (types/ai.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+model WeeklyReport {
+  id          String   @id @default(cuid())
+  userId      String
+  weekStart   DateTime
+  weekEnd     DateTime
+  aiContent   String
+  generatedAt DateTime @default(now())
+  isShared    Boolean  @default(false)
+  devSeed     Boolean? // فقط در dev — داده seed را از داده واقعی جدا می‌کند (DECISION-021)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ChatMessage — پیام‌های مکالمه با دستیار
+// role: "user" | "assistant"
+// expiresAt = createdAt + 30 روز (پاک‌سازی فاز ۲)
+// محدودیت روزانه: ۱۰ پیام کاربر (role="user") — در API Route اجرا می‌شود
+// ─────────────────────────────────────────────────────────────────────────────
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String   // "user" | "assistant"
+  content   String
+  createdAt DateTime @default(now())
+  expiresAt DateTime // createdAt + 30 روز
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin RBAC — پنل مدیریتی (DECISION-036)
+// هویت ادمین کاملاً جدا از User است. دسترسی granular بر اساس permission key.
+// نقش = مجموعه‌ای از permission؛ هیچ دسترسی‌ای به نام نقش hardcode نمی‌شود.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// AdminUser — کارمند پنل (مالک، ادمین، تولیدکننده محتوا، پشتیبان، …)
+// ورود با OTP (همان SMSAdapter)؛ auto-create نمی‌شود — فقط توسط OWNER/seed ساخته می‌شود.
+model AdminUser {
+  id                  String    @id @default(cuid())
+  username            String    @unique // هویت ورود (DECISION-038)
+  passwordHash        String // scrypt: "salt:hash" — هرگز plain ذخیره نمی‌شود
+  mustChangePassword  Boolean   @default(true) // اجبار تغییر در ورود اول (حساب‌های auto-generate)
+  displayName         String
+  phone               String? // اختیاری — فقط برای تماس، نه ورود
+  avatarPreset        Int       @default(0) // ایندکس آواتار (0-11) — پروفایل ادمین
+  avatarImage         String?  // تصویر فشرده‌شده base64 (JPEG ≤100KB) — DECISION-056
+  roleId              String
+  isActive            Boolean   @default(true)
+  failedLoginAttempts Int       @default(0) // محافظت brute-force (DECISION-038)
+  lockedUntil         DateTime? // تا این زمان حساب قفل است
+  createdAt           DateTime  @default(now())
+  lastLoginAt         DateTime?
+  lastSeenAt          DateTime? // presence چت آنلاین (DECISION-049) — heartbeat هنگام باز بودن کنسول
+
+  role      AdminRole       @relation(fields: [roleId], references: [id])
+  auditLogs AdminAuditLog[]
+  ticketMessages TicketMessage[]
+  supportChatMessages SupportChatMessage[] @relation("AdminSupportChatMessages")
+
+  @@index([roleId])
+}
+
+// AdminRole — نقش. نقش‌های پایه isSystem=true (غیرقابل حذف، permission قابل ویرایش).
+// نقش جدید بدون migration فقط با داده اضافه می‌شود.
+model AdminRole {
+  id          String   @id @default(cuid())
+  key         String   @unique // owner | admin | content | support | ...
+  label       String // برچسب فارسی
+  description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  permissions AdminRolePermission[]
+  admins      AdminUser[]
+}
+
+// AdminPermission — کاتالوگ permission. منبع‌حقیقت کلیدها: src/lib/admin/permissions.ts
+model AdminPermission {
+  id    String @id @default(cuid())
+  key   String @unique // "users.plan.write"
+  label String // برچسب فارسی برای UI
+  group String // "users" | "ai" | "sms" | ...
+
+  roles AdminRolePermission[]
+}
+
+// AdminRolePermission — رابطه many-to-many نقش ↔ permission
+model AdminRolePermission {
+  roleId       String
+  permissionId String
+
+  role       AdminRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission AdminPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+// AdminAuditLog — لاگ تغییرناپذیر اعمال ادمین (که، چه، روی چه، کِی)
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String // "user.plan.change" | "user.ban" | "admin.login" | ...
+  targetType String? // "user" | "admin" | "plan" | ...
+  targetId   String?
+  meta       String? // JSON serialized
+  createdAt  DateTime @default(now())
+
+  actor AdminUser @relation(fields: [actorId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Config Override — لایهٔ override روی منبع فایل/env (DECISION-037)
+// قاعده: فایل/env = پیش‌فرض و fallback؛ این جدول‌ها = override زنده.
+// نبود override → رفتار دقیقاً مثل امروز. override نامعتبر → fallback خودکار.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// AiPromptOverride — override نسخه‌دار پرامپت یک نقش (system + user)
+// چند نسخه per (roleKey, locale)؛ حداکثر یکی isActive. نبود active → فایل خوانده می‌شود.
+model AiPromptOverride {
+  id             String   @id @default(cuid())
+  roleKey        String // "weekly-report" | "chat-companion" | ...
+  locale         String // "fa" | "en"
+  version        Int // افزایشی per (roleKey, locale)
+  systemTemplate String
+  userTemplate   String
+  isActive       Boolean  @default(false)
+  note           String?
+  createdById    String? // AdminUser.id
+  createdAt      DateTime @default(now())
+
+  @@unique([roleKey, locale, version])
+  @@index([roleKey, locale, isActive])
+}
+
+// AiConfig — تنظیمات کلید-مقدار AI (تنظیمات همدم، پارامتر نقش‌ها، اتصال بخش‌ها)
+// نمونه کلیدها: "chat.companion.defaultName"، "chat.welcome.template"،
+//               "role.weekly-report.temperature"، "bind.chat-companion.IR" (اتصال بخش→سرویس)
+model AiConfig {
+  key         String   @id
+  value       String
+  updatedById String? // AdminUser.id
+  updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AppSetting — تنظیمات عمومی برنامه (غیر-AI) کلید-مقدار (DECISION-049)
+// جدا از AiConfig که فقط برای AI است. نمونه کلیدها:
+//   "support.chat.enabled"، "support.chat.welcome"، "support.chat.hours" (JSON)
+// resolver با cache+fallback در src/lib/settings/app-settings.ts (الگوی ai/config.ts).
+// ─────────────────────────────────────────────────────────────────────────────
+model AppSetting {
+  key         String   @id
+  value       String
+  updatedById String? // AdminUser.id
+  updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// چت آنلاین پشتیبانی (DECISION-049) — کانالی مستقل از تیکت و همدم.
+// SupportChatSession: یک سشن = یک روزِ کاربر (مرز روز ایران، dayKey). سشن امروز=زنده،
+//   روزهای قبل=هیستوری read-only (archived محاسبه‌ای با مقایسهٔ dayKey، بدون cron).
+// PRO-only (planAllows "support.liveChat")؛ ساعات کاری و متن خوش‌آمد از AppSetting.
+// presence پشتیبان از AdminUser.lastSeenAt. soft-delete کاربر از User.supportChatHiddenUntil.
+// ─────────────────────────────────────────────────────────────────────────────
+model SupportChatSession {
+  id          String    @id @default(cuid())
+  userId      String
+  dayKey      String // "YYYY-MM-DD" به وقت ایران — یکتا per user+day
+  status      String    @default("active") // active | archived (محاسبه‌ای)
+  lastUserAt  DateTime? // آخرین پیام کاربر — مرتب‌سازی صف پنل + unread
+  lastAdminAt DateTime? // آخرین پیام پشتیبان
+  createdAt   DateTime  @default(now())
+
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SupportChatMessage[]
+
+  @@unique([userId, dayKey])
+  @@index([status, lastUserAt])
+}
+
+// پیام‌های یک سشن چت — append-only در عمل (داده هرگز حذف نمی‌شود).
+model SupportChatMessage {
+  id            String    @id @default(cuid())
+  sessionId     String
+  authorType    String // "user" | "admin"
+  authorAdminId String? // کدام پشتیبان پاسخ داد
+  body          String
+  readByAdminAt DateTime? // پشتیبان پیام کاربر را دید (unread صف پنل)
+  readByUserAt  DateTime? // کاربر پیام پشتیبان را دید (badge آیکون چت)
+  createdAt     DateTime  @default(now())
+
+  session     SupportChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  authorAdmin AdminUser?         @relation("AdminSupportChatMessages", fields: [authorAdminId], references: [id])
+
+  @@index([sessionId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AiService — سرویس AI قابل‌تنظیم از پنل (DECISION-039)
+// جایگزین مدل تک‌Provider-per-region؛ owner می‌تواند هر تعداد سرویس بسازد.
+// هر سرویس به یک منطقه (ایران/غیرایران) و یک نوع (متنی/تصویری) تعلق دارد.
+// بخش‌های سیستم (همدم، گزارش، تأمل، …) به سرویس‌ها Bind می‌شوند (AiConfig: bind.<role>.<region>).
+// نبود Bind → سرویس پیش‌فرض همان منطقه/نوع (isDefault) بر اساس IP کاربر.
+//
+// providerType: "openai-compatible" (متنی، مثل GapGPT/OpenAI) | "mock" | (آینده) "image-*"
+// apiKey: ذخیره می‌شود اما فقط Owner می‌تواند مقدار واقعی را ببیند/ویرایش کند (DECISION-039).
+model AiService {
+  id           String   @id @default(cuid())
+  label        String // برچسب انسانی، مثل «سرویس متنی ایران (GapGPT)»
+  region       String // "IR" | "INTL"
+  kind         String // "text" | "image"
+  providerType String   @default("openai-compatible") // "openai-compatible" | "mock" | "image-*"
+  baseURL      String? // آدرس سرویس (برای mock خالی)
+  apiKey       String? // کلید — فقط Owner مشاهده/ویرایش می‌کند
+  model        String // نام مدل، مثل "gpt-4o-mini"
+  isActive     Boolean  @default(true)
+  isDefault    Boolean  @default(false) // پیش‌فرض همین (region, kind) — حداکثر یکی فعال
+  sortOrder    Int      @default(0)
+  note         String?
+  createdById  String? // AdminUser.id
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([region, kind, isActive])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Plans — مدیریت پویای پلن‌ها از پنل (DECISION-040)
+// مجموعهٔ کلیدها ثابت (FREE/PLUS/PRO، §۷ CLAUDE.md)، اما محتوا کاملاً پویا.
+// «کاتالوگ امکانات» در کد است (src/lib/plans/features.ts) چون هر امکان enforce کد دارد؛
+// اینجا فقط مقدار هر امکان per پلن + قیمت‌ها + bulletهای متنی + کدهای تخفیف ذخیره می‌شوند.
+// منبع‌حقیقت واحد: سقف چت و گیت تأمل از این می‌خوانند (planAllows/planQuota).
+// قیمت‌ها به تومان (currency=IRT). درگاه پرداخت هنوز نیست (خرید «به‌زودی»).
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Plan — یک پلن (key ثابت: FREE | PLUS | PRO)
+model Plan {
+  key          String   @id // "FREE" | "PLUS" | "PRO"
+  label        String // برچسب فارسی نمایشی
+  description  String?
+  order        Int      @default(0)
+  monthlyPrice Int      @default(0) // تومان — ماهانه
+  annualPrice  Int      @default(0) // تومان — سالانهٔ یکجا
+  currency     String   @default("IRT")
+  highlight    Boolean  @default(false) // پلن «محبوب» (نمایش ویژه در /plans)
+  isActive     Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+
+  features PlanFeatureValue[]
+  bullets  PlanBullet[]
+}
+
+// PlanFeatureValue — ماتریس وضعیت هر امکان per پلن (DECISION-042).
+// visible: نمایش/عدم‌نمایش روی کارت · comingSoon: نمایش خاکستری «به‌زودی» · disabled: خط‌خورده.
+// value: فقط برای featureهای نوع quota (مثل سقف چت). label: override متن امکان (null=کاتالوگ).
+// نبود ردیف → پیش‌فرض کاتالوگ کد. (enabled: ستون legacy — دیگر استفاده نمی‌شود.)
+model PlanFeatureValue {
+  planKey    String
+  featureKey String // باید در کاتالوگ src/lib/plans/features.ts باشد
+  visible    Boolean @default(true) // نمایش روی کارت پلن (Radio نمایش/عدم‌نمایش)
+  comingSoon Boolean @default(false) // فلگ «به‌زودی» — خاکستری
+  disabled   Boolean @default(false) // فلگ «غیرفعال» — خط روی متن
+  value      Int? // فقط برای featureهای نوع quota
+  label      String? // override متن نمایشی امکان (null = برچسب کاتالوگ)
+  enabled    Boolean @default(false) // legacy — حذف‌نشده برای حفظ داده
+
+  plan Plan @relation(fields: [planKey], references: [key], onDelete: Cascade)
+
+  @@id([planKey, featureKey])
+  @@index([featureKey])
+}
+
+// PlanBullet — خط متنی آزاد روی کارت پلن (برای موارد «به‌زودی» بدون کد enforce)
+// PlanBullet — قابلیت سفارشی هر پلن (DECISION-040؛ فلگ‌ها DECISION-042).
+// فراتر از کاتالوگ کد: مالک از پنل قابلیت آزاد اضافه می‌کند که مثل کاتالوگ
+// سه فلگ نمایشی دارد — visible (Radio نمایش/عدم‌نمایش)، comingSoon (خاکستری)،
+// disabled (خط روی متن). صرفاً نمایشی روی کارت پلن (بدون enforcement).
+model PlanBullet {
+  id         String  @id @default(cuid())
+  planKey    String
+  text       String
+  order      Int     @default(0)
+  visible    Boolean @default(true)
+  comingSoon Boolean @default(false)
+  disabled   Boolean @default(false)
+
+  plan Plan @relation(fields: [planKey], references: [key], onDelete: Cascade)
+
+  @@index([planKey])
+}
+
+// DiscountCode — کد تخفیف (DECISION-040). مصرف واقعی موکول به درگاه پرداخت.
+// plans/cycles به‌صورت CSV ذخیره می‌شوند (SQLite آرایه ندارد)؛ خالی = همه.
+model DiscountCode {
+  id          String    @id @default(cuid())
+  code        String    @unique // حساس به حروف نیست — هنگام ذخیره uppercase می‌شود
+  kind        String // "percent" | "fixed"
+  value       Int // percent: 0..100 | fixed: مبلغ تومان
+  plans       String    @default("") // CSV از planKeyهای مشمول؛ "" = همه
+  cycles      String    @default("") // CSV از "monthly"/"annual"؛ "" = همه
+  maxUses     Int? // null = نامحدود
+  usedCount   Int       @default(0)
+  startsAt    DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  note        String?
+  createdById String? // AdminUser.id
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([isActive])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// پشتیبانی و تیکتینگ (DECISION-044)
+// دسترسی کاربر با امکانِ پلن «support.ticketing» گیت می‌شود (هم‌ترازی پنل↔پروژه).
+// مقادیر category/priority/status رشته‌اند (SQLite enum ندارد) و کاتالوگ کد-محور در
+// src/lib/support/tickets.ts منبع‌حقیقت آن‌هاست. فیلد channel برای توسعهٔ آینده
+// (چت آنلاین) از همین مدل استفاده می‌کند: channel="chat".
+// ─────────────────────────────────────────────────────────────────────────────
+model SupportTicket {
+  id            String    @id @default(cuid())
+  userId        String
+  subject       String
+  category      String    @default("other")  // technical | billing | account | suggestion | other
+  priority      String    @default("normal") // low | normal | high | urgent
+  status        String    @default("open")   // open | in_progress | answered | closed
+  channel       String    @default("ticket") // ticket | chat (آینده)
+  lastMessageAt DateTime  @default(now())     // برای مرتب‌سازی فهرست
+  closedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages TicketMessage[]
+
+  @@index([userId, status])
+  @@index([status, lastMessageAt])
+  @@index([channel, status])
+}
+
+// پیام‌های یک تیکت — رشتهٔ گفتگو بین کاربر و پشتیبان (append-only در عمل).
+model TicketMessage {
+  id            String   @id @default(cuid())
+  ticketId      String
+  authorType    String   // "user" | "admin"
+  authorUserId  String?  // اگر فرستنده کاربر باشد
+  authorAdminId String?  // اگر فرستنده ادمین باشد
+  body          String
+  createdAt     DateTime @default(now())
+
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorUser  User?         @relation("UserTicketMessages", fields: [authorUserId], references: [id])
+  authorAdmin AdminUser?    @relation(fields: [authorAdminId], references: [id])
+
+  @@index([ticketId, createdAt])
+}

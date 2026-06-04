@@ -1,0 +1,1111 @@
+# DECISIONS.md — تصمیمات معماری پروژه همسو
+
+> هر تصمیم مهم فنی یا معماری در اینجا ثبت می‌شود.
+> هدف: شفافیت کامل درباره «چرا» تصمیم گرفتیم، نه فقط «چه» تصمیمی گرفتیم.
+
+---
+
+## فرمت ثبت تصمیم
+
+```
+### DECISION-NNN | عنوان تصمیم
+- **تاریخ:** YYYY-MM-DD
+- **وضعیت:** ✅ تأیید شده | ⏳ در بررسی | ❌ رد شده | 🔄 جایگزین شده
+- **زمینه:** چرا این تصمیم لازم بود؟
+- **گزینه‌ها:** چه گزینه‌هایی بررسی شدند؟
+- **تصمیم:** چه انتخابی شد؟
+- **دلیل:** چرا این گزینه انتخاب شد؟
+- **پیامدها:** چه چیزی تغییر می‌کند یا باید رعایت شود؟
+```
+
+---
+
+## تصمیمات ثبت‌شده
+
+### DECISION-001 | انتخاب Next.js App Router به عنوان فریمورک اصلی
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** نیاز به فریمورک وب فول‌استک با SSR، API Routes، و TypeScript کامل
+- **گزینه‌ها:**
+  - Next.js 14+ App Router
+  - Remix
+  - SvelteKit
+- **تصمیم:** Next.js 14+ App Router
+- **دلیل:** اکوسیستم بزرگ‌تر، پشتیبانی بهتر از TypeScript، API Routes داخلی، سهولت توسعه و استقرار
+- **پیامدها:** استفاده از App Router (نه Pages Router)؛ Server Components پیش‌فرض هستند
+
+---
+
+### DECISION-002 | Adapter Pattern برای AI و SMS
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** پروژه باید مستقل از هر Provider خاص باشد (OpenAI، Gemini، Kavenegar، و غیره)
+- **گزینه‌ها:**
+  - استفاده مستقیم از SDK هر Provider
+  - Adapter Pattern با Interface مشترک
+- **تصمیم:** Adapter Pattern اجباری برای تمام سرویس‌های خارجی
+- **دلیل:** اصل استقلال از Provider — تعویض Provider نباید نیاز به تغییر منطق کسب‌وکار داشته باشد
+- **پیامدها:** هر سرویس خارجی باید Interface داشته باشد؛ کد کسب‌وکار فقط با Interface کار می‌کند
+
+---
+
+### DECISION-003 | SQLite + Prisma ORM (در فاز MVP)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷ (به‌روزرسانی بر اساس تصمیم صاحب پروژه)
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** نیاز به دیتابیس رابطه‌ای با تایپ‌سیف بودن در TypeScript؛ نیاز به سرعت بالای توسعه در MVP بدون وابستگی به سرویس خارجی
+- **گزینه‌ها:**
+  - PostgreSQL + Prisma (نسخه قبلی این تصمیم)
+  - SQLite + Prisma
+  - Drizzle ORM
+- **تصمیم:** SQLite + Prisma در فاز MVP — Migration به Postgres در صورت نیاز فاز ۲ یا ۳
+- **دلیل:** صفر-پیکربندی، فایل دیتابیس درون پروژه (`prisma/dev.db`)، حذف وابستگی به نصب Postgres محلی، نگه‌داشتن سرعت اولیه توسعه. Prisma به‌خاطر لایه ORM امکان جابجایی Provider را با تغییر `provider` در `schema.prisma` می‌دهد.
+- **پیامدها:**
+  - فیلدهای SQLite ⟶ محدودیت تایپ‌ها (مثلاً `Enum` به‌صورت `String` ذخیره می‌شود؛ آرایه‌ها پشتیبانی مستقیم ندارند)
+  - در طراحی Schema باید مراقب باشیم که چیزی خاص Postgres استفاده نکنیم (`JSONB`, `arrays`, …)
+  - هر تغییر Schema حتماً از طریق Prisma Migration؛ هرگز دستکاری مستقیم فایل دیتابیس
+  - `DATABASE_URL="file:./dev.db"` در `.env.local`
+  - فایل `prisma/dev.db` در `.gitignore` قرار می‌گیرد
+
+---
+
+### DECISION-004 | Auth با OTP (بدون Password)
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** کاربر ایرانی؛ نیاز به ورود ساده و آشنا
+- **گزینه‌ها:**
+  - Email + Password
+  - Social Login (Google)
+  - شماره موبایل + OTP
+- **تصمیم:** شماره موبایل ایران + OTP
+- **دلیل:** مناسب کاربر ایرانی؛ بدون نیاز به email؛ آشنا و ساده؛ SMS Adapter امکان جایگزینی Provider را می‌دهد
+- **پیامدها:** در MVP کد OTP به‌صورت Mock (ثابت یا log شده) است؛ در فاز بعدی به SMS Provider واقعی متصل می‌شود
+
+### DECISION-005 | AI Provider فاز اول — Mock
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** در MVP کامل از Mock AIAdapter استفاده می‌شود
+- **دلیل:** صاحب پروژه تأیید کرده؛ Provider واقعی در فاز بعدی
+- **پیامدها:** AIAdapter Interface کامل پیاده‌سازی می‌شود اما Implementation موقتاً Mock است
+
+### DECISION-006 | State Management — Zustand
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** Zustand برای global state
+- **دلیل:** ساده، lightweight، بدون boilerplate
+
+### DECISION-007 | نمایش تاریخچه — صفحه مستقل
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** صفحه مستقل `/history`
+- **دلیل:** فضای سکوت بیشتر، UX بهتر برای تاریخچه طولانی
+
+### DECISION-008 | OTP تستی — Console Log
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** کد OTP در log سرور نمایش داده می‌شود
+- **دلیل:** واقعی‌ترین شبیه‌سازی بدون SMS واقعی
+
+### DECISION-009 | زبان گزارش هفتگی — فارسی کامل
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** گزارش هفتگی کاملاً فارسی، اعداد هم به فارسی (۱،۲،۳)
+- **دلیل:** هویت ایرانی محصول — اعداد فارسی: `toLocaleString('fa-IR')`
+
+### DECISION-010 | پلن‌ها — بعد از پیاده‌سازی کامل
+- **تاریخ:** فاز ۰
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** فعلاً همه فیچرها بدون محدودیت پلن پیاده‌سازی می‌شوند
+- **دلیل:** تصمیم پلن‌بندی بعد از دیدن همه فیچرها گرفته می‌شود
+- **پیامدها:** Schema باید `plan` field داشته باشد اما enforcement فعلاً غیرفعال است
+
+### DECISION-011 | پورت Landing Page به Next.js
+- **تاریخ اولیه:** ۲۰۲۶-۰۵-۲۷ | **به‌روزرسانی:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** 🔄 جایگزین شده — پورت کامل به Next.js انجام شد
+- **زمینه:** صفحه Landing از پیش با HTML خام + Tailwind CDN + فونت Pelak ساخته شده بود. صاحب پروژه تصمیم گرفت که جریان صحیح UX این است: `/` (لندینگ) → CTA → `/login` → `/dashboard`. بنابراین پورت کامل انجام شد.
+- **تصمیم نهایی:** پورت کامل `landing.html` به `src/app/page.tsx` (Next.js Server Component)
+- **دلیل:**
+  - جریان UX درست: لندینگ اول، لاگین بعد (با CTA)
+  - یک codebase: نه HTML خام جدا از Next.js
+  - بهینه‌سازی‌های Next.js: Image optimization، font loading، SEO metadata
+  - امکان استفاده از design tokens و globals.css مشترک
+- **پیاده‌سازی:**
+  - `src/app/page.tsx` — Server Component با تمام بخش‌های لندینگ
+  - `src/components/features/landing/LandingEffects.tsx` — Client Component برای scroll reveal + parallax
+  - CSS های landing اضافه‌شده به `src/app/globals.css` (بخش جدید «Landing Page»)
+  - Middleware آپدیت شد: `/` در `PUBLIC_PATHS` اضافه شد؛ کاربر logged-in از `/` به `/dashboard` ریدایرکت می‌شود
+  - CTA های «شروع کن» به `/login` لینک می‌دهند (از `#` تغییر کردند)
+  - `public/landing.html` به عنوان مرجع نگه‌داشته شده (archive)
+
+---
+
+### DECISION-012 | محدودیت‌های SQLite در Schema
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** SQLite برخی تایپ‌ها / فیچرها را که در Postgres طبیعی است پشتیبانی نمی‌کند. این محدودیت‌ها باید در طراحی Schema رعایت شوند تا migration به Postgres در آینده ساده باشد.
+- **تصمیم:** قواعد زیر در `prisma/schema.prisma` رعایت می‌شوند:
+  - **Enum:** SQLite/Prisma از enum پشتیبانی ندارد → فیلدهای enum-like به‌صورت `String` ذخیره می‌شوند. مقادیر مجاز در `src/constants/` تعریف می‌شوند:
+    - `User.plan` → `src/constants/plans.ts` (`FREE` | `PLUS` | `PRO`)
+    - `EntryFeedback.status` → `src/constants/feedback.ts` (`DONE` | `NOT_DONE`)
+  - **JSON:** Prisma+SQLite بدون پشتیبانی native `Json` → `WeeklyReport.aiContent` به‌صورت `String` (JSON serialized) ذخیره می‌شود؛ parse در application layer انجام می‌گیرد.
+  - **Array:** پشتیبانی نمی‌شود — در صورت نیاز از مدل join استفاده می‌شود.
+  - **cuid()** به‌جای uuid() برای `id` (پیش‌فرض Prisma).
+- **پیامدها:**
+  - تمام type-guard ها در `src/constants/*.ts` نوشته می‌شوند (نه در runtime DB)
+  - هنگام migration به Postgres در فاز ۲/۳: اگر تصمیم گرفته شد، می‌توان enum و Json native اضافه کرد بدون شکستن داده‌ها
+
+---
+
+### DECISION-013 | Prisma 6.x (نه 7.x)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** هنگام نصب اولیه، `npm install prisma` نسخه `7.8.0` را نصب کرد. Prisma 7 یک breaking change بزرگ دارد: فیلد `url` در datasource حذف شده و باید از `prisma.config.ts` با driver adapter استفاده شود.
+- **گزینه‌ها:**
+  - الف) ماندن روی Prisma 7 + پیاده‌سازی `prisma.config.ts` + `@prisma/adapter-better-sqlite3`
+  - ب) Downgrade به Prisma 6.x (LTS)
+- **تصمیم:** Prisma 6.19.3 (آخرین 6.x)
+- **دلیل:** workflow سنتی، document بهتر، سادگی برای MVP، سازگاری با CLAUDE.md (که `datasource { url = env(...) }` فرض گرفته)
+- **پیامدها:**
+  - `package.json` → `prisma: ^6, @prisma/client: ^6`
+  - اگر در فاز ۲/۳ تصمیم به upgrade Prisma 7 گرفته شد، باید `prisma.config.ts` نوشته شود و PrismaClient با adapter ساخته شود.
+
+---
+
+### DECISION-014 | Session Management — JWT در HTTP-only Cookie
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** نیاز به مدیریت session برای auth OTP-based بدون NextAuth
+- **گزینه‌ها:**
+  - NextAuth.js
+  - JWT در localStorage
+  - JWT در HTTP-only Cookie با jose
+- **تصمیم:** JWT امضاشده با HS256 (کتابخانه `jose`) — ذخیره در HTTP-only Cookie به نام `hamsoo-session`
+- **دلیل:** بدون وابستگی به NextAuth (که برای OAuth طراحی شده)؛ `jose` در Edge runtime (middleware) کار می‌کند؛ HTTP-only cookie از XSS مصون است؛ simple و قابل کنترل
+- **پیامدها:**
+  - `NEXTAUTH_SECRET` در env به عنوان JWT secret استفاده می‌شود
+  - cookie: `httpOnly, secure(prod), sameSite:strict, maxAge:30d`
+  - middleware با `jose.jwtVerify` token را در Edge runtime بررسی می‌کند
+
+---
+
+### DECISION-015 | Phone Normalization — فرمت ذخیره +98XXXXXXXXXX
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **تصمیم:** همه شماره‌ها قبل از ذخیره در DB به فرمت `+98XXXXXXXXXX` نرمال می‌شوند
+- **دلیل:** جلوگیری از duplicate user با فرمت‌های مختلف (09, 9, +98); DB unique constraint روی phone
+- **پیامدها:** `normalizeIranPhone()` در `src/lib/utils/otp.ts` — قبل از هر کوئری DB باید فراخوانی شود
+
+---
+
+### DECISION-016 | جداسازی Dev/Prod با Mode Layer (معماری ۴ لایه)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** در حین توسعه نیاز داریم بدون SMS واقعی، Provider واقعی AI، و پرداخت واقعی کار کنیم — اما UI باید مثل پروداکشن باشد. این الگو در طول پروژه برای ده‌ها فیچر تکرار خواهد شد، پس نیاز به یک معماری استاندارد داریم که هم راحت باشد و هم تضمین کند کد dev در bundle پروداکشن نشت نمی‌کند.
+- **گزینه‌ها:**
+  - الف) `if (process.env.NODE_ENV === 'development')` در هر فیچر — پراکنده، خطاپذیر، تست‌سخت
+  - ب) فقط استفاده از Mock Adapter ها — کافی نیست؛ UI/UX هم باید تفاوت داشته باشد (مثل نمایش OTP)
+  - ج) معماری ۴ لایه‌ای: env.ts منبع حقیقت + `<DevOnly>` + `devOnlyPayload()` + `<DevModeBadge>`
+- **تصمیم:** گزینه (ج) — معماری ۴ لایه با متغیر `NEXT_PUBLIC_APP_MODE` به عنوان منبع حقیقت
+- **دلیل:**
+  - **یک منبع حقیقت:** فقط `src/lib/env.ts` حالت را تعیین می‌کند؛ بقیه از آن می‌خوانند
+  - **Tree-shaking:** Next.js متغیر `NEXT_PUBLIC_*` را در build inline می‌کند → `if (IS_DEV_MODE)` در prod به `if (false)` تبدیل و حذف می‌شود
+  - **Fail-safe:** هر چیز غیر از `"development"` → `production` (اگر کسی .env را فراموش کرد، حالت امن)
+  - **دفاع در عمق:** هم API پیلود dev را حذف می‌کند، هم UI آن را پنهان می‌کند، هم خود پنل دفاعاً چک می‌کند
+  - **توسعه‌پذیر:** افزودن staging در آینده فقط با گسترش type union و یک سطر منطقی
+- **پیامدها:**
+  - متغیر جدید: `NEXT_PUBLIC_APP_MODE` در `.env.example` و `.env.local`
+  - فایل‌های جدید:
+    - `src/lib/env.ts` — منبع حقیقت
+    - `src/lib/utils/dev-response.ts` — `devOnlyPayload()` helper
+    - `src/components/dev/DevOnly.tsx` — wrapper UI
+    - `src/components/dev/DevModeBadge.tsx` — نشانگر بصری (در root layout نصب شده)
+    - `src/components/dev/DevOtpPanel.tsx` — پنل dev برای OTP (اولین مصرف‌کننده الگو)
+  - قانون جدید در CLAUDE.md §۱۳ — اجباری برای هر فیچر dev-only
+  - DECISION-008 (OTP در console log) همچنان معتبر است اما اکنون با لایه UI تکمیل شده
+
+---
+
+### DECISION-017 | State Management — Zustand
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده (Q-002)
+- **زمینه:** نیاز به global state برای اشتراک داده بین کامپوننت‌های client-side در فاز ۱+
+- **گزینه‌ها:** Zustand | React Context | Jotai
+- **تصمیم:** Zustand
+- **دلیل:** سبک، بدون boilerplate، API ساده، مستقیم با TypeScript — صاحب پروژه تأیید کرده (Q-002)
+- **پیامدها:** `npm install zustand` هنگام اولین نیاز واقعی به global state؛ local state (`useState`) کافی باشد → از Zustand استفاده نشود
+
+---
+
+### DECISION-018 | نمایش تاریخچه — صفحه مستقل
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده (Q-003)
+- **زمینه:** TASK-008 نیاز به تعریف نحوه نمایش تاریخچه دارد
+- **گزینه‌ها:** صفحه مستقل `/history` | Modal | Drawer
+- **تصمیم:** صفحه مستقل در مسیر `/history`
+- **دلیل:** فضای سکوت بیشتر، UX بهتر برای تاریخچه طولانی، جدایی واضح از داشبورد — صاحب پروژه تأیید کرده (Q-003)
+- **پیامدها:** Route جدید `/history` در فاز TASK-008 ساخته می‌شود
+
+---
+
+### DECISION-019 | تاریخ شمسی — jalaali-js
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** اپلیکیشن فارسی — نمایش و منطق تاریخ باید بر اساس تقویم جلالی باشد. تعهد «یک روز» نیز بر اساس روز شمسی تعریف می‌شود.
+- **گزینه‌ها:** `jalaali-js` | `date-fns-jalali` | پیاده‌سازی custom
+- **تصمیم:** `jalaali-js`
+- **دلیل:** سبک‌ترین گزینه (فقط تبدیل Gregorian ↔ Jalali + فرمت‌بندی)؛ برای MVP کاملاً کافی است؛ صاحب پروژه انتخاب کرد
+- **پیامدها:**
+  - `npm install jalaali-js` + `@types/jalaali-js` — ✅ نصب شد
+  - ابزارهای تاریخ در `src/lib/utils/date.ts` — timezone ایران (UTC+3:30) در نظر گرفته می‌شود
+  - اگر در آینده نیاز به عملیات پیچیده‌تر (مقایسه، اضافه/کم کردن روز شمسی) بود → `date-fns-jalali` ارزیابی می‌شود
+
+---
+
+### DECISION-020 | AI Architecture — Registry + Orchestrator
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷ | **به‌روزرسانی:** ۲۰۲۶-۰۵-۲۸ (DECISION-030)
+- **وضعیت:** ✅ تأیید شده — معماری از همان TASK-009 پیاده می‌شود
+- **زمینه:** AI «قلب تپنده» همسوست (مرجع: memory project-ai-as-heart). AIAdapter فعلی (TASK-003) برای یک نقش (گزارش هفتگی) کافی است، اما با اضافه شدن چت‌بات، پیشنهاد پلن، تحلیل الگو و ... به سرعت تبدیل به spaghetti می‌شود.
+- **گزینه‌ها:**
+  - الف) ادامه با AIAdapter ساده + هر نقش به‌صورت ad-hoc در API route ها
+  - ب) Registry/Orchestrator با AI Role های type-safe، prompt نسخه‌پذیر، observability
+  - ج) ساخت Registry از همین حالا (قبل از TASK-009)
+- **تصمیم:** گزینه (ب) — Registry/Orchestrator با ۴ لایه. **timing:** بلافاصله بعد از TASK-009 (گزارش هفتگی) — تا یک نقش عملی به‌عنوان مرجع داشته باشیم. تأیید صاحب پروژه: ۲۰۲۶-۰۵-۲۷
+- **دلیل:**
+  - Single Responsibility برای هر نقش — قابل تست/تغییر مستقل
+  - Provider-agnostic باقی می‌ماند (AIAdapter زیر همه چیز)
+  - Prompt versioning + observability از روز اول
+  - اضافه کردن نقش جدید = ۵ دقیقه، بدون لمس بقیه
+- **پیامدها:**
+  - سند معماری کامل در `docs/features/ai-architecture.md`
+  - TASK-AI-ARCH (با ۸ ساب‌تسک) به TASKS.md اضافه شد
+  - TASK-009 با AIAdapter ساده انجام می‌شود؛ سپس به Registry مهاجرت می‌کند (TASK-AI-ARCH-04)
+  - CLAUDE.md §۸ بعد از TASK-AI-ARCH-08 با pattern «افزودن نقش جدید» آپدیت می‌شود
+
+---
+
+### DECISION-021 | Dev Data Generation — گسترش §۱۳
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** فیچرهای زمان‌محور (بازخورد فردا، گزارش هفتگی، فاصله، یادآوری) و فیچرهای چندکاربره (شبکه اجتماعی، چالش) بدون فریم‌ورک time-travel/seed قابل تست نیستند. memory project-dev-data-generation این نگرانی را cross-cutting می‌داند.
+- **گزینه‌ها:**
+  - الف) seed-on-demand: هر فیچر اسکریپت seed خود را داشته باشد
+  - ب) فقط override timezone در dev
+  - ج) فریم‌ورک یکپارچه: Time Source + Seed API + UI Panels + Data Markers (همان pattern §۱۳)
+- **تصمیم:** گزینه (ج) — `src/lib/dev/time.ts` + `/api/dev/*` + `<DevDataPanel>` + ستون `_devSeed`
+- **دلیل:**
+  - همان pattern §۱۳ (که موفق ثابت شد) را به time و seed گسترش می‌دهد
+  - دفاع در عمق: tree-shake + API guard + UI guard + DB marker
+  - هیچ‌گاه به prod نشت نمی‌کند
+  - هر فیچر زمان‌محور یک ساب‌تسک «dev tooling» اجباری دارد (قانون §۱۳ جدید)
+- **پیامدها:**
+  - سند کامل در `docs/features/dev-data-generation.md`
+  - TASK-DEV-DATA، TASK-DEV-MOCK-USERS، TASK-DEV-AI-INSPECTOR ایجاد شدند
+  - CLAUDE.md §۱۳ بعد از TASK-DEV-DATA-09 با قانون «هر فیچر زمان‌محور = یک ساب‌تسک dev» آپدیت می‌شود
+
+---
+
+### DECISION-022 | i18n Strategy — فارسی default، انگلیسی secondary
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ⏳ در بررسی (تعارض با §۲ «فارسی اصیل»)
+- **زمینه:** صاحب پروژه افزودن انگلیسی به اپ را خواسته. مانیفست §۲ بر «فارسی اصیل» تأکید دارد. این تنش باید با طراحی دقیق حل شود.
+- **گزینه‌ها:**
+  - الف) فقط فارسی (وفاداری مطلق به مانیفست)
+  - ب) فارسی default + انگلیسی secondary (i18n با Locale routing، فارسی محصول کانونیک)
+  - ج) دو محصول جدا (hamsoo.app برای فارسی، en.hamsoo.app برای انگلیسی)
+- **تصمیم پیشنهادی:** گزینه (ب) — فارسی همیشه default، تمام content/prompt های AI ابتدا به فارسی، انگلیسی ترجمه ثانوی
+- **بند سازگاری با مانیفست:** فارسی همیشه canonical است. متن انگلیسی هرگز کیفیت یا تجربه را تعریف نمی‌کند — فقط دسترسی‌پذیری اضافه می‌کند. اگر بین کیفیت فارسی و کامل بودن انگلیسی تضاد بود، فارسی برنده است.
+- **دلیل:**
+  - بازار اولیه ایرانی — فارسی always
+  - مخاطب ثانوی (مهاجر، فارسی‌زبان غیر بومی، کنجکاو خارجی) از انگلیسی بهره می‌برد
+  - هرچه دیرتر شروع شود، migration گران‌تر است — پس زیرساخت i18n باید قبل از انباشت متن فارسی بیشتر آماده شود
+- **پیامدها:**
+  - TASK-I18N-* در TASKS.md (فاز ۲ زیرساخت، فاز ۳ ترجمه)
+  - کتابخانه پیشنهادی: `next-intl` (App Router-native) — تصمیم نهایی در زمان شروع
+  - تمام prompt های AI به فارسی نوشته می‌شوند؛ نقش‌های روزی که خروجی انگلیسی لازم باشد، نسخه `-en` در Registry اضافه می‌کنند
+  - LTR/RTL handling برای UI انگلیسی
+
+---
+
+### DECISION-023 | Notification Strategy — چندلایه، opt-in، ضدفشار
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ⏳ در بررسی (تعارض با §۲ «بدون فشار»)
+- **زمینه:** کاربر سیستم نوتیفیکیشن خواسته. مانیفست §۲ بر «بدون فشار، بدون قضاوت» تأکید دارد. نوتیف بد طراحی شده می‌تواند مستقیماً تبدیل به فشار شود.
+- **گزینه‌ها:**
+  - الف) بدون نوتیفیکیشن (وفاداری مطلق)
+  - ب) نوتیف اختیاری، کاربر خاموش‌کن
+  - ج) نوتیف اختیاری + کنترل granular + لحن غیرقضاوتی + cooldown اجباری
+- **تصمیم پیشنهادی:** گزینه (ج)
+- **بند سازگاری با مانیفست:**
+  - پیش‌فرض: **همه نوتیف‌ها خاموش** — کاربر باید صریحاً روشن کند
+  - هیچ نوتیف «استریک شکسته!» یا «۳ روزه نیومدی» — فقط «حالت چطوره؟» با لحن همسو
+  - حداکثر یک نوتیف در روز برای یک کاربر (cooldown اجباری در سرور)
+  - گزینه «بدون نوتیف هرگز» همیشه در دسترس
+- **گزینه‌های ارسال:**
+  - In-app banner (همیشه ممکن)
+  - Web Push (TASK-MOBILE-05)
+  - SMS (TASK-NOTIF-SMS — هزینه دارد، محدود به critical events)
+  - Email (فاز ۳، اگر کاربر email داد)
+- **پیامدها:**
+  - TASK-NOTIF-* در TASKS.md (فاز ۲)
+  - `NotificationAdapter` مشابه AIAdapter (DECISION-002)
+  - مدل `NotificationPreference` per کاربر، granular per type
+  - DECISION-023 با review prompt هر نوتیف — هیچ متن قضاوتی مجاز نیست
+
+---
+
+### DECISION-024 | Planning System ≠ Task Manager
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ⏳ در بررسی (تعارض صریح با §۱ «همسو Task Manager نیست»)
+- **زمینه:** صاحب پروژه «سیستم برنامه‌ریزی» را خواسته (مثال: «این هفته ۳۰ صفحه کتاب بخوانم»). مانیفست §۱ صریحاً می‌گوید همسو Task Manager نیست. این مرز باید روشن باشد.
+- **مرز کلیدی — تفاوت با Task Manager:**
+  | Plan در همسو (✅) | Task Manager (❌ خط قرمز) |
+  |-------------------|---------------------------|
+  | یک هدف یا نیت در یک بازه («این هفته ۳۰ صفحه») | لیست تسک با ددلاین |
+  | پشتوانه‌ای برای تعهد روزانه (AI پیشنهاد می‌دهد) | watch list تسک‌های روزانه |
+  | تک‌سطحی، بدون sub-task، بدون priority | nested، با dependencies |
+  | هیچ alarm/deadline قاطعی | due dates، escalation |
+  | بازخورد توسط همان جریان روزانه | check-box تسک‌ها |
+- **بند سازگاری با مانیفست:**
+  - یک Plan در همسو فقط یک «نیت بازه‌ای» است که به تعهدهای روزانه context می‌دهد
+  - هیچ‌گاه «Plan صد تسک دارد» اجازه داده نمی‌شود
+  - AI نقش `plan-suggestion` فقط *پیشنهاد* تعهد روزانه از نیت می‌دهد — هیچ‌گاه «امروز باید X کنی» نمی‌گوید
+- **تصمیم پیشنهادی:** پیاده‌سازی Plan با محدودیت‌های ساختاری:
+  - یک Plan = یک عنوان + یک بازه + یک متریک ساده + یک یادداشت
+  - هیچ sub-task، هیچ ddl دقیق، هیچ priority
+  - فقط view به‌صورت «نیت در حال جریان»، نه backlog
+- **پیامدها:**
+  - TASK-PLAN-* در TASKS.md (فاز ۲)
+  - Schema بسیار محدود (در TASK-PLAN-01)
+  - نقش AI `plan-suggestion` در Registry با prompt محتاطانه
+  - این تعارض هرگز «حل» نمی‌شود مگر صاحب پروژه مانیفست را تغییر دهد. تا آن زمان، طراحی محافظ ساختاری دارد.
+
+---
+
+### DECISION-025 | Social Network — همسویی، نه رقابت
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ⏳ در بررسی (تعارض صریح با §۱ «بدون استریک/امتیاز/رقابت»)
+- **زمینه:** صاحب پروژه شبکه اجتماعی با چالش و اشتراک نمودار خواسته. مانیفست §۱ به‌صورت قاطع رقابت/استریک/مدال را رد می‌کند.
+- **بند سازگاری با مانیفست:**
+  - فلسفه: «همسویی، نه مسابقه» — رشد جمعی، حضور مشترک، نه پشت سر گذاشتن هم
+  - چالش گروهی = «همه با هم به این موضوع نگاه می‌کنیم» نه «اول از همه که تموم کرد، برنده»
+  - اشتراک نمودار = فقط نمودار **خود کاربر**، با لینک یک‌بار مصرف
+  - هیچ leaderboard، هیچ badge، هیچ مقایسه نمایش داده نمی‌شود
+- **محافظ معماری:** TASK-SOCIAL-CH-04 (آنتی-رقابت) به‌صورت ساختاری چیدمان دیتا را تضمین می‌کند که چنین UI ای قابل ساخت نباشد بدون شکستن schema
+- **پیامدها:**
+  - سند کامل در `docs/features/social-network.md`
+  - TASK-SOCIAL-MVP در فاز ۲ (شروع با اشتراک گزارش، که کم‌خطرترین جزء است)
+  - TASK-SOCIAL-FRIENDS و TASK-SOCIAL-CHALLENGES در فاز ۳ — مرور مانیفست قبل از شروع آن‌ها لازم است
+  - هر دو طرف Friendship باید explicit accept کنند؛ بدون auto-suggest
+
+---
+
+### DECISION-026 | Admin Panel — Scope MVP در فاز ۲، Full در فاز ۳
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** پنل ادمین در عمل اندازه یک پروژه جدا دارد (۸ ساب‌سیستم). نمی‌توان همه را در یک TASK ریخت.
+- **گزینه‌ها:**
+  - الف) Admin کامل در فاز ۳
+  - ب) MVP حداقلی در فاز ۲ + کامل در فاز ۳
+  - ج) نسخه minimal همراه با launch
+- **تصمیم:** گزینه (ب) — MVP در فاز ۲ شامل: مدیریت کاربران، تعریف پلن‌ها، audit log، monitoring integrations. باقی (داشبورد KPI، تیکتینگ، CMS، analytics پیشرفته، data backup) فاز ۳.
+- **Auth Strategy:** Auth مشترک با کاربر عادی (OTP)؛ role روی User ذخیره می‌شود. MFA دوم (TOTP) برای OWNER/ADMIN در فاز ۳.
+- **پیامدها:**
+  - سند کامل در `docs/features/admin-panel.md`
+  - TASK-ADMIN-MVP در فاز ۲؛ TASK-ADMIN-{DASHBOARD,SUPPORT,CMS,ANALYTICS,DATA,INTEG} در فاز ۳
+  - TASK-011 (سیستم پلن‌ها) به TASK-ADMIN-MVP-06/07 + TASK-PAYMENT تجزیه می‌شود
+
+---
+
+### DECISION-028 | ProviderRouter — IP-Country Routing (locale و country مستقل)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۸ | **به‌روزرسانی:** ۲۰۲۶-۰۵-۲۸ (تفکیک locale از country)
+- **وضعیت:** ✅ تأیید شده (با پیاده‌سازی Stub در فاز ۱)
+- **زمینه:** صاحب پروژه دو نکته را شفاف کرد:
+  1. کاربران ایران به Providerهای خارجی (OpenAI/Gemini) دسترسی ندارند و کاربران خارج به Provider ایرانی دسترسی ندارند — این **محدودیت زیرساختی** است
+  2. کاربر در هر جای دنیا، **مستقل از مکان**، اختیار دارد بین فارسی/انگلیسی انتخاب کند — این **انتخاب کاربر** است
+  پس locale و country دو محور **کاملاً مستقل** هستند.
+- **گزینه‌ها:**
+  - الف) یک Provider در env، تعویض دستی
+  - ب) ProviderRouter بر اساس **locale**  ❌ (نسخه اولیه — اشتباه بود)
+  - ج) ProviderRouter بر اساس **country IP** + locale جدا برای پرامپت  ✅
+- **تصمیم:** گزینه (ج) — جداسازی کامل دو محور:
+
+  | محور | منبع | مصرف‌کننده |
+  |------|------|------------|
+  | **locale** (fa \| en) | انتخاب کاربر، روی User ذخیره می‌شود (TASK-I18N) | PromptLoader — تعیین فایل پرامپت (`v1.fa.md` vs `v1.en.md`) |
+  | **clientCountry** (IR \| US \| …) | استخراج از IP request (headers `x-vercel-ip-country` یا `cf-ipcountry`) | ProviderRouter — تعیین Adapter |
+
+  ماتریس نمونه:
+  ```
+  ┌──────────────┬────────────┬─────────────────────────────────────────┐
+  │ IP کشور      │ locale     │ نتیجه                                    │
+  ├──────────────┼────────────┼─────────────────────────────────────────┤
+  │ IR           │ fa         │ Provider ایرانی + پرامپت فارسی            │
+  │ IR           │ en         │ Provider ایرانی + پرامپت انگلیسی          │
+  │ US           │ fa         │ OpenAI/Gemini + پرامپت فارسی              │
+  │ US           │ en         │ OpenAI/Gemini + پرامپت انگلیسی            │
+  │ unknown      │ fa/en      │ Default Provider + locale انتخابی        │
+  └──────────────┴────────────┴─────────────────────────────────────────┘
+  ```
+
+- **دلیل:**
+  - زبان = انتخاب فرهنگی کاربر، نه دسترسی شبکه‌ای
+  - country = دسترسی شبکه‌ای واقعی، تابع IP
+  - این تفکیک از روز اول، migration به i18n را راحت می‌کند
+  - یک کاربر ایرانی مهاجر در آمریکا می‌تواند فارسی استفاده کند بدون آنکه به Provider ایرانی محدود شود
+- **پیامدها:**
+  - فایل: `src/lib/ai/provider-router.ts` — signature: `getProviderForRequest({ userId, roleId, clientCountry, locale })`
+  - فایل: `src/lib/utils/geo.ts` — `getCountryFromHeaders(headers)` با dev override `x-dev-country`
+  - `AIInvocationContext` دو فیلد مستقل دارد: `locale` و `clientCountry`
+  - **مسئولیت API Route:** هر API Route که `invokeAI()` صدا می‌زند، باید `clientCountry` را از `getCountryFromHeaders(request.headers)` بخواند و در ctx بفرستد
+  - متغیر env آینده: `AI_PROVIDER_IRAN`, `AI_PROVIDER_INTL`, `AI_PROVIDER_DEFAULT` — در TASK-AI-PROVIDERS
+  - User schema (TASK-I18N): فقط `locale?: "fa" | "en"` — هیچ‌گاه country روی User ذخیره نمی‌شود (متغیر است)
+  - **حریم خصوصی:** country از headers است (نه IP خام) — هیچ‌جا IP کاربر لاگ نمی‌شود
+
+---
+
+### DECISION-029 | Prompt Storage — پوشه `/prompts` در ریشه پروژه
+- **تاریخ:** ۲۰۲۶-۰۵-۲۸
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** AI «قلب تپنده» همسوست. پرامپت‌ها نه فقط متن‌اند — اثر هنری برندند. باید:
+  - بدون deploy کد قابل ویرایش باشند (در آینده، بعد از hot-reload یا CDN-cached load)
+  - نسخه‌پذیر باشند (v1, v2, …) — هرگز پرامپت قبلی پاک نمی‌شود تا A/B test ممکن باشد
+  - locale-aware باشند (`v1.fa.md`, `v1.en.md`)
+  - قابل مرور توسط non-engineer (designer, content strategist)
+  - از کد TypeScript مستقل باشند تا change pattern های متفاوت باشد
+- **گزینه‌ها:**
+  - الف) Template strings درون TypeScript
+  - ب) فایل `.md` کنار کد نقش (`src/lib/ai/roles/<name>/prompt.v1.md`)
+  - ج) پوشه جدا `prompts/` در ریشه پروژه با ساختار `prompts/<role>/v<n>.<locale>.md`
+- **تصمیم:** گزینه (ج) — پوشه `/prompts` در ریشه پروژه
+- **دلیل:**
+  - جداسازی کامل از کد فیچر — content team بدون درگیر شدن با src/ ویرایش می‌کند
+  - URL-friendly path برای آینده (CDN-cached, hot-reloaded)
+  - structure هر فایل `.md` با frontmatter (yaml) — قابل پارس
+  - فرمت‌بندی markdown قابل مرور
+- **ساختار:**
+  ```
+  prompts/
+  ├── README.md                       ← قرارداد placeholder و frontmatter
+  └── weekly-report/
+      ├── v1.fa.md                    ← فعال
+      └── (آینده) v1.en.md, v2.fa.md
+  ```
+- **قرارداد فایل پرامپت:**
+  ```markdown
+  ---
+  role: weekly-report
+  version: 1.0.0
+  locale: fa
+  jsonMode: true
+  ---
+
+  ## SYSTEM
+  متن نقش — لحن، شخصیت، خط قرمزها، خروجی JSON expected schema
+
+  ## USER
+  داده ورودی با placeholder ها مثل {{INPUT_JSON}}، {{WEEK_START}}، ...
+  ```
+- **پیامدها:**
+  - فایل جدید: `src/lib/ai/prompt-loader.ts` — می‌خواند، frontmatter parse می‌کند، sections را جدا می‌کند، placeholder ها را substitute می‌کند
+  - placeholder syntax: `{{VARIABLE_NAME}}` — هر متغیر unknown → خطا (fail-fast)
+  - در dev: prompt-loader هر بار از disk می‌خواند → ویرایش instant
+  - در prod: cache در memory بعد از اولین خواندن
+  - متغیر جدید env (اختیاری): `PROMPTS_DIR` — default `<root>/prompts`
+
+---
+
+### DECISION-030 | ادغام TASK-009 با TASK-AI-ARCH
+- **تاریخ:** ۲۰۲۶-۰۵-۲۸
+- **وضعیت:** ✅ تأیید شده (به‌روزرسانی DECISION-020 timing)
+- **زمینه:** DECISION-020 گفته بود: TASK-009 با AIAdapter ساده انجام شود، سپس TASK-AI-ARCH معماری Registry را بسازد و migration کند. اما صاحب پروژه با اطلاعات جدید (چندنقشی، چندپرووایدر locale-aware، پرامپت جدا) درخواست کرد معماری از همان ابتدا درست چیده شود.
+- **گزینه‌ها:**
+  - الف) ادامه با طرح اولیه DECISION-020 (ساده → migration)
+  - ب) ترکیب TASK-009 و TASK-AI-ARCH — معماری از روز اول
+- **تصمیم:** گزینه (ب) — یک TASK ترکیبی که هم زیرساخت می‌سازد و هم اولین مصرف‌کننده است
+- **دلیل:**
+  - حذف دوبارکاری — همان کد دو بار نوشته نمی‌شود
+  - واقعی بودن طراحی — وقتی همزمان زیرساخت و مصرف‌کننده ساخته می‌شود، طراحی روی dogfooding اصلاح می‌گیرد
+  - تأخیر کم — فاز ۱.۵ بدون TASK-AI-ARCH عملاً تمام نمی‌شود
+- **پیامدها:**
+  - DECISION-020 نسخه ۲: timing «هم‌زمان با TASK-009» به‌جای «بعد از TASK-009»
+  - ساب‌تسک‌های TASK-AI-ARCH-01..04 درون TASK-009 ادغام می‌شوند
+  - ساب‌تسک‌های TASK-AI-ARCH-05..08 (نسخه‌پذیری advanced، DevAIInspector، تست e2e، docs §۸) جداگانه باقی می‌مانند برای فاز ۱.۵
+  - TASKS.md آپدیت می‌شود
+
+---
+
+### DECISION-031 | Chat-Companion — همدل، محدود، Globally Accessible
+- **تاریخ:** ۲۰۲۶-۰۵-۲۸
+- **وضعیت:** ⏳ در بررسی (تعارض با §۱ «بدون وابستگی») / ✅ الزامات شفاف
+- **زمینه:** صاحب پروژه شفاف کرد که چت‌بات همسو **نباید یک چت عمومی** مثل ChatGPT باشد. باید نقشی خاص داشته باشد: همدل و همراه. همچنین:
+  1. در همه صفحات پروژه (با آیکون شناور پایین صفحه) در دسترس باشد
+  2. محدودیت روزانه (rate limit) داشته باشد تا به وابستگی منجر نشود
+  3. خروجی هر نقش AI متفاوت است — چت context-aware اما تکراری نیست
+- **تصمیم پیشنهادی برای نقش `chat-companion`:**
+
+  **شخصیت (در پرامپت):**
+  - همدل، آرام، صادق — مثل یک دوست خردمند که می‌نشیند و می‌شنود
+  - نه مربی، نه ناصح، نه روان‌شناس، نه task assistant
+  - مرز روشن با ChatGPT: همسو سؤال عمومی پاسخ نمی‌دهد، فقط در مورد مسیر شخصی کاربر صحبت می‌کند
+  - اگر کاربر سؤال خارج از حوزه پرسید (کد، اخبار، …) → با لحن مهربان به نقش خودش برمی‌گردد
+
+  **محدودیت‌ها:**
+  - حداکثر N پیام در روز (به ازای plan: FREE=10، PLUS=50، PRO=200 — مقدار نهایی در TASK-PAYMENT)
+  - حداکثر طول پیام: ~۲۰۰۰ کاراکتر (جلوگیری از abuse)
+  - حداکثر طول session: ~۲۰ تبادل (بعد از آن کاربر می‌تواند session جدید بسازد)
+  - cooldown نرم بعد از ۵ پیام پشت سر هم — یک پیام «این فکر می‌خواهی یا حال؟ گاهی فقط نوشتنش کافی است» — اختیاری
+
+  **Context Injection:**
+  - آخرین ۷ تعهد و بازخوردهایشان
+  - گزارش هفته اخیر (اگر باشد)
+  - پلن‌های فعال (اگر باشد، فاز ۲)
+  - **هیچ‌گاه** اطلاعات کاربران دیگر در context
+
+  **UI — Globally Accessible:**
+  - یک آیکون شناور (FAB — Floating Action Button) در گوشه پایین-چپ یا راست همه صفحه‌های authenticated
+  - تپ → drawer/modal چت باز می‌شود
+  - بسته شدن drawer → session نگه‌داشته می‌شود (در همین صفحه ادامه چت)
+  - در `/login` و `/` (landing) نمایش داده **نمی‌شود**
+  - در dev: کنار DevDataPanel — تداخل نکند
+
+  **خط قرمزها:**
+  - ❌ هیچ پیام «من اینجام برای کمک»، «هر سؤالی داری بپرس»، «همیشه در دسترسم»
+  - ❌ هیچ ایموجی، هیچ پیام تأیید
+  - ❌ هیچ ارجاع به ChatGPT یا «هوش مصنوعی»
+  - ❌ هیچ تشویق برای استفاده بیشتر («فردا هم بیا»، «امیدوارم بازم...»)
+  - ✅ پاسخ کوتاه به سؤال کوتاه. عمق به سؤال عمیق.
+  - ✅ سکوت جزء پاسخ است — همسو نباید همیشه «بیشتر بنویسد»
+
+  **بند سازگاری با مانیفست §۱ «بدون وابستگی»:**
+  - rate limit ساختاری در سرور (نه فقط UI)
+  - پیام rate-limit به‌جای ارور: «امروز به اندازه کافی نوشتیم. فردا دوباره اینجاست.»
+  - **هرگز** notification از طرف چت ارسال نشود («یک هفته نیومدی!»)
+  - دکمه «پاک کردن تاریخچه» و «خروج» همیشه در دسترس
+
+  **شکل ورودی/خروجی:**
+  - input: `{ messages: ChatMessage[], userId, contextSnapshot: { recentEntries, latestReport, ... } }`
+  - output: `{ reply: string, suggestedExit?: string | null }` — JSON valid
+  - چت streaming نیست در فاز اول (TASK-AI-CHAT-03 ساده شروع می‌شود؛ streaming بعداً)
+
+- **دلیل:**
+  - مرز روشن با چت عمومی → جلوگیری از scope creep
+  - rate limit ساختاری → جلوگیری از وابستگی
+  - context محدود به کاربر خودش → حریم خصوصی + رابطه شخصی
+- **پیامدها:**
+  - مدل DB جدید: `ChatSession`، `ChatMessage`، `ChatRateLimit` — schema در TASK-AI-CHAT-01
+  - نقش جدید `chat-companion` در Registry — پرامپت در `prompts/chat-companion/v1.fa.md`
+  - کامپوننت جدید: `<ChatFAB>` در `src/components/features/chat/` — در `src/app/(authenticated)/layout.tsx` یا root layout با گارد
+  - دو endpoint: `POST /api/chat/messages` و `GET /api/chat/messages?sessionId=...`
+  - TASK-AI-CHAT subtasks در فاز ۲.۵ به‌روزرسانی می‌شوند
+  - برای dev: `<DevChatBypass>` در DevDataPanel — bypass rate limit برای تست
+
+---
+
+### DECISION-032 | OpenAI-Compatible Adapter — یک کلاس، چند instance
+- **تاریخ:** ۲۰۲۶-۰۵-۲۸
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** GapGPT (Provider خریداری‌شده ایران) با OpenAI SDK سازگار است — همان `openai` package، فقط `baseURL` و `apiKey` متفاوت. OpenAI واقعی (فاز ۲) هم همین رابط را دارد. بسیاری از Provider های مدرن (Together، Mistral، Groq، …) نیز سازگار با OpenAI هستند.
+- **گزینه‌ها:**
+  - الف) هر Provider یک کلاس جدا (GapGPTAdapter، OpenAIAdapter، …)
+  - ب) یک کلاس generic سازگار با OpenAI + instance های پیکربندی‌شده
+- **تصمیم:** گزینه (ب) — `OpenAICompatibleAdapter` با config object
+  - فایل: `src/lib/adapters/openai-compatible.adapter.ts`
+  - config: `{ id, displayName, supportedLocales, baseURL, apiKey, defaultModel, timeoutMs }`
+  - factory `getAIAdapterByName()` در `src/lib/adapters/index.ts` به‌ازای هر نام، instance مناسب می‌سازد و cache می‌کند
+- **دلیل:**
+  - حذف duplication: یک کلاس به‌جای ۵ کلاس مشابه برای هر Provider سازگار
+  - افزودن Provider جدید سازگار = یک case در switch + متغیر env — صفر کد adapter جدید
+  - تنوع: اگر در آینده Provider غیرسازگار (مثل Gemini با schema متفاوت) اضافه شد، کلاس جدا برای آن (مثل GeminiAdapter) ساخته می‌شود — هر دو از interface AIAdapter ارث می‌برند
+- **امنیت:**
+  - apiKey فقط از env خوانده می‌شود — `requireEnv()` در factory
+  - constructor خطای صریح می‌دهد اگر apiKey خالی باشد
+  - `sanitizeError()` در adapter: هیچ `sk-...` token در پیام خطا لو نمی‌رود
+- **پیامدها:**
+  - متغیرهای جدید env (در `.env.example`):
+    - `AI_PROVIDER_IRAN`, `AI_PROVIDER_INTL`, `AI_PROVIDER_DEFAULT`
+    - `GAPGPT_BASE_URL`, `GAPGPT_API_KEY`, `GAPGPT_MODEL`
+    - `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `OPENAI_MODEL` (آینده)
+  - factory قدیمی `getAIAdapter()` به‌عنوان deprecated alias حفظ شد (backward compat — هیچ کد فعلی نمی‌شکند)
+  - `ProviderRouter` اکنون از Stub خارج شد: IR → `AI_PROVIDER_IRAN`، non-IR → `AI_PROVIDER_INTL`
+  - نصب dependency: `openai` (~3.5MB) — قبلاً نبود
+
+---
+
+### DECISION-027 | Mobile Strategy — PWA-first
+- **تاریخ:** ۲۰۲۶-۰۵-۲۷
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** مانیفست §۱۰ فاز ۳ گفته بود «PWA یا React Native». تصمیم به این مرحله موکول بود.
+- **گزینه‌ها:** PWA | Capacitor (Hybrid) | React Native | Flutter
+- **تصمیم:**
+  - فاز ۳-A: PWA کامل (manifest + Service Worker + Web Push + offline)
+  - فاز ۳-B (اختیاری): Capacitor wrapper برای App Store / Bazaar
+  - فاز ۴+ (در صورت نیاز): RN ارزیابی شود
+- **دلیل:**
+  - ایران ⇒ store ها محدود؛ PWA با URL در دسترس‌تر
+  - یک codebase، صرفه‌جویی منابع
+  - Adapter pattern موجود انتقال به RN را اگر لازم شد ساده می‌کند
+- **پیامدها:**
+  - سند کامل در `docs/features/mobile.md`
+  - TASK-MOBILE-PWA در فاز ۳
+  - از همین حالا UI همه فیچرها mobile-first طراحی شوند (که الان هم رعایت می‌شود)
+
+---
+
+### DECISION-033 | Avatar Strategy — Preset Colors (نه File Upload)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۹
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** پروفایل کاربر نیاز به آواتار داشت. گزینه‌های file upload vs preset بررسی شدند.
+- **گزینه‌ها:**
+  - الف) file upload: عکس شخصی کاربر — نیاز به storage (S3/local)، resize، CDN
+  - ب) preset colors: ۱۲ دایره رنگی از پالت brand — بدون storage، بدون امنیت فایل
+- **تصمیم:** ۱۲ preset رنگی از palette brand — ذخیره به عنوان `avatarPreset Int @default(0)` در User
+- **دلیل:** MVP نیاز به پیچیدگی storage ندارد. Preset ها کافی و زیبا هستند. Upload در فاز ۲.۵ اضافه می‌شود.
+- **پیامدها:**
+  - `src/lib/profile/avatarPresets.ts` — تعریف ۱۲ preset
+  - `avatarPreset` و `bio` به schema اضافه شدند (migration: `20260529104525_add_profile_fields`)
+  - Upload در TASK-PROFILE-FULL (فاز ۲.۵) انجام خواهد شد
+
+### DECISION-034 | Profile Page Architecture — Independent Sections
+- **تاریخ:** ۲۰۲۶-۰۵-۲۹
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** پروفایل به بخش‌های مستقل (آواتار، اطلاعات، همدم، حساب) نیاز داشت.
+- **تصمیم:** هر بخش یک Client Component مستقل با state و API call مخصوص خودش. Server Component صفحه فقط داده اولیه را توزیع می‌کند.
+- **دلیل:** هر بخش می‌تواند بدون تأثیر روی بقیه توسعه یا تغییر یابد. بخش‌های آینده (notifications) با اضافه کردن یک component جدید اضافه می‌شوند.
+- **پیامدها:**
+  - `AvatarSection` — auto-save با کلیک
+  - `PersonalInfoSection` — displayName + bio
+  - `CompanionSection` — companionName همدم
+  - Layout: web-first با grid دو ستونی روی صفحات بزرگ (max-w-5xl)
+
+### DECISION-035 | Chat Companion Name — همدم (نه همدل)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۹
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** نام پیش‌فرض دستیار از «همدل» به «همدم» تغییر داده شد.
+- **تصمیم:** نام پیش‌فرض `companionName` = «همدم» — در API route و ChatWindow hardcode شده
+- **دلیل:** انتخاب صاحب پروژه
+
+---
+
+### DECISION-036 | Admin RBAC — Granular Permissions + AdminUser جدا
+- **تاریخ:** ۲۰۲۶-۰۵-۲۹
+- **وضعیت:** ✅ تأیید شده (صاحب پروژه)
+- **زمینه:** DECISION-026 برای پنل ادمین یک RBAC ساده (۳ نقش روی همان `User`، auth مشترک) پیشنهاد داده بود. اما صاحب پروژه مشخص کرد: کاربران زیادی از پنل استفاده می‌کنند (پشتیبان، تولیدکننده محتوا، پاسخ‌دهنده تیکت، …)، نقش‌های آینده اضافه می‌شوند، و کنترل کامل و حرفه‌ای در کلاس جهانی لازم است.
+- **گزینه‌ها:**
+  - الف) enum ساده روی `User` (DECISION-026 اصلی) — افزودن نقش = migration، بدون granularity
+  - ب) نقش ثابت + permission به‌صورت JSON — میانه‌رو
+  - ج) **RBAC کامل granular** — جداول `AdminUser` + `AdminRole` + `AdminPermission` + join
+- **تصمیم:** گزینه (ج). این بخش از DECISION-026 (RBAC ساده + role روی User + auth مشترک) را **جایگزین (supersede)** می‌کند. باقی DECISION-026 (scope ماژول‌ها، فازبندی، audit log، حریم خصوصی) معتبر می‌ماند.
+- **جزئیات:**
+  - **هویت ادمین جدا از کاربر نهایی:** جدول `AdminUser` مستقل. کارمندان کاربر اپ نیستند → سطح حمله جدا، نشت داده غیرممکن، login مستقل.
+  - **نقش‌های پایه (isSystem=true، غیرقابل حذف):** `owner`، `admin`، `content`، `support`. permissionهای هر نقش قابل ویرایش است؛ نقش جدید بدون migration فقط با داده اضافه می‌شود.
+  - **permission به‌صورت کلید گروه‌بندی‌شده:** `users.read`، `users.plan.write`، `ai.manage`، … . کاتالوگ منبع‌حقیقت در `src/lib/admin/permissions.ts`.
+  - **auth ادمین:** OTP با همان `SMSAdapter` ولی روی route جدا (`/admin/login`)؛ کوکی session جدا `hamsoo-admin-session` با payload `{ adminId, roleKey }`. permissionها در هر request از DB resolve می‌شوند (همیشه تازه).
+  - **اولین OWNER:** با seed idempotent از env `ADMIN_OWNER_PHONE` ساخته می‌شود.
+- **بند سازگاری با DECISION-026:** فیلد `role` روی `User` که در ۰۲۶ پیش‌بینی شده بود **اضافه نمی‌شود**؛ به‌جای آن `AdminUser` جدا. `isBanned` روی `User` (برای ban از پنل) طبق ۰۲۶ باقی می‌ماند.
+- **پیامدها:**
+  - schema: ۵ مدل جدید (`AdminUser`, `AdminRole`, `AdminPermission`, `AdminRolePermission`, `AdminAuditLog`) + `User.isBanned`
+  - زیرساخت: `src/lib/admin/` (permissions catalog، session، auth-server guard، audit)
+  - سند کامل: `docs/features/admin-panel.md` §۴ و §۵ بازنویسی شد
+
+### DECISION-037 ✅ | AI Config — لایه Override در DB روی منبع فایل/env
+- **تاریخ:** ۲۰۲۶-۰۵-۲۹ | **پیاده‌سازی:** ۲۰۲۶-۰۵-۳۰
+- **وضعیت:** ✅ پیاده‌سازی شد (TASK-ADMIN-AI)
+- **پیاده‌سازی نهایی:**
+  - schema: `AiPromptOverride` (نسخه‌دار per roleKey/locale، یکی isActive) + `AiConfig` (کلید-مقدار) — migration `20260530082643_ai_config_override`
+  - resolver: `src/lib/ai/config.ts` (`getAiConfig*` با fallback الزامی + cache ۱۰ث؛ هیچ‌گاه throw نمی‌کند) و `src/lib/ai/admin-catalog.ts` (کاتالوگ نقش‌ها/placeholderها/کلیدها + اعتبارسنجی)
+  - نقاط override: `prompt-loader` (override فعال → فایل)، `provider-router` (روتینگ، async)، `orchestrator` (مدل + temperature + maxTokens)، `chat route` (نام پیش‌فرض همدم + سقف per-plan + متن welcome)
+  - **محافظ ساختاری محقق‌شده:** نبود override → رفتار دقیقاً مثل امروز؛ خطای DB یا override نامعتبر → fallback خودکار به فایل/env. اعتبارسنجی placeholder هنگام ذخیره (placeholder ناشناخته رد می‌شود) تا runtime نشکند.
+  - پرامپت نسخه‌دار: هر ذخیره = نسخهٔ جدید، نسخه‌های قبلی می‌مانند، «بازگشت به فایل» همیشه ممکن است.
+  - هم‌ترازی: سقف چت per-plan (FREE/PLUS/PRO) اصلاح شد (قبلاً برای همه ۱۰ بود — باگ نسبت به مانیفست/صفحهٔ پلن‌ها).
+- **(طراحی اولیه — ⏳ ۲۰۲۶-۰۵-۲۹):**
+- **زمینه:** صاحب پروژه خواست هر چیزی که الان در سورس است (مدل‌های AI، system prompt، انتخاب provider) از طریق ادمین پنل قابل مدیریت باشد — بدون دست‌زدن به سورس. این مستقیماً با معماری فایل‌محور §۸ CLAUDE.md و DECISION-029 (`/prompts` فایل‌محور) و env-based بودن مدل‌ها تعارض دارد.
+- **گزینه‌ها:**
+  - الف) مهاجرت کامل به DB — شکستن کامل معماری فعلی + از دست رفتن fallback امن
+  - ب) **لایه override در DB روی منبع فعلی** — فایل/env = پیش‌فرض و fallback؛ DB = override زنده
+  - ج) فعلاً فقط سورس — رد درخواست
+- **تصمیم:** گزینه (ب).
+- **بند سازگاری (الزامی — feedback-manifest-conflict-pattern):**
+  - فایل‌های `/prompts/<role>/vN.<locale>.md` و env (`GAPGPT_MODEL`، `AI_PROVIDER_*`) **منبع پیش‌فرض و fallback باقی می‌مانند**. §۸ و DECISION-029 نقض نمی‌شوند — فقط یک لایه override بالای آن‌ها اضافه می‌شود.
+  - **محافظ ساختاری:** اگر هیچ override فعالی در DB نباشد، رفتار سیستم **دقیقاً** مثل امروز است (مسیر فایل/env). اگر DB در دسترس نباشد یا override نامعتبر باشد → fallback خودکار به فایل/env. هیچ‌گاه یک override نامعتبر نباید AI را از کار بیندازد.
+  - تغییرات از طریق `prompt-loader` و `provider-router` خوانده می‌شوند (نقطه واحد override)، نه پراکنده در کد فیچر.
+- **طراحی schema (در این migration نمی‌آید — هنگام ساخت ماژول AI):**
+  ```
+  AiConfig         { key @unique, value, updatedAt, updatedById }   // "provider.gapgpt.model", "role.weekly-report.activeVersion"
+  AiPromptOverride { roleKey, version, locale, content, isActive, updatedAt, @@unique([roleKey,version,locale]) }
+  ```
+- **پیامدها:** TASK-ADMIN-AI (جدید) در `admin-panel.md`. تا زمان ساخت، رفتار AI بدون تغییر است.
+
+---
+
+### DECISION-038 | Admin Auth — نام کاربری/رمز عبور (نه OTP)
+- **تاریخ:** ۲۰۲۶-۰۵-۲۹
+- **وضعیت:** ✅ تأیید شده (صاحب پروژه)
+- **زمینه:** DECISION-036 ورود ادمین را با OTP (همان SMSAdapter) طراحی کرده بود. صاحب پروژه تصمیم گرفت ورود پنل ادمین **فقط** با نام کاربری و رمز عبور باشد — حرفه‌ای‌تر برای پنل مدیریتی و مستقل از SMS (که هنوز فعال نیست). این بخشِ «Auth ادمین» در DECISION-036 را **جایگزین** می‌کند؛ بقیه ۰۳۶ (RBAC granular، AdminUser جدا، permissionها) معتبر می‌ماند.
+- **تصمیم و جزئیات:**
+  - **هویت ورود:** `username` (نه phone). فیلد `phone` روی AdminUser اختیاری شد (فقط تماس). route‌های OTP ادمین حذف شدند.
+  - **hashing:** scrypt داخلی `node:crypto` (بدون وابستگی بیرونی، salt مجزا). قالب: `"salt:hash"` hex. رمز هرگز plain ذخیره نمی‌شود.
+  - **سیاست پیچیدگی:** حداقل ۱۰ کاراکتر + حداقل ۳ از ۴ دسته (بزرگ/کوچک/رقم/نماد). منبع‌حقیقت: `src/lib/admin/password.ts`.
+  - **مالک اول:** با seed از env `ADMIN_OWNER_USERNAME`/`ADMIN_OWNER_PASSWORD` (در `.env` که gitignore است). `mustChangePassword=false` (رمز را خودش انتخاب کرده).
+  - **سایر ادمین‌ها (آینده — UI مدیریت ادمین‌ها):** owner نام کاربری می‌سازد، سیستم رمز پیچیده auto-generate می‌کند (`generatePassword()`)، `mustChangePassword=true`؛ کاربر در ورود اول مجبور به تعیین رمز جدید است.
+  - **اجبار تغییر رمز:** `(panel)/layout` اگر `mustChangePassword` باشد به `/admin/change-password` redirect می‌کند (این صفحه بیرون از گروه panel است → بدون حلقه).
+  - **محافظت brute-force:** ۵ تلاش ناموفق → قفل ۱۵ دقیقه‌ای (`failedLoginAttempts`/`lockedUntil` روی AdminUser)؛ قفل در AuditLog ثبت می‌شود.
+  - **session:** بدون تغییر — همان کوکی `hamsoo-admin-session` (۱۲ ساعت) که پس از تأیید رمز صادر می‌شود.
+- **پیامدها:**
+  - schema: `username`/`passwordHash`/`mustChangePassword`/`failedLoginAttempts`/`lockedUntil` + `phone` optional (migration `20260529190507_admin_username_password`)
+  - فایل جدید `src/lib/admin/password.ts`؛ route‌های `/api/admin/auth/{login,change-password,logout}`
+  - صفحات `/admin/login` (username/password) و `/admin/change-password`
+
+---
+
+### DECISION-039 ✅ | AI — مدل سرویس‌محور با Bind بخش‌ها (جایگزین تک-Provider per-region)
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۵-۳۰
+- **وضعیت:** ✅ پیاده‌سازی شد — migration `20260530132345_add_ai_services`
+- **زمینه:** DECISION-028/037 فرض می‌کرد هر منطقه (IR/INTL) فقط **یک** Provider دارد (`routing.IR`/`routing.INTL` یک نام provider را برمی‌گرداند و همهٔ نقش‌ها مجبور به استفاده از همان بودند). صاحب پروژه خواست بتواند برای هر منطقه **چند سرویس** بسازد (متنی + تصویری، حتی از چند provider) و **هر بخش سیستم را به سرویس دلخواه Bind کند**. این مدل تک-Provider را منسوخ می‌کند.
+- **تصمیم (سه سؤال ویژوال از مالک — همه طبق پیشنهاد):**
+  1. **ذخیره‌سازی:** جدول `AiService` (نه JSON در config) — اصولی، مقیاس‌پذیر، قابل ممیزی. مالک مجوز مهاجرت داد.
+  2. **تصویر:** فقط زیرساخت آماده شد (kind=`image` در داده‌مدل و UI قابل‌ساخت است) اما **اجرای** تولید تصویر هنوز پیاده نشده — `getAIAdapterForService` برای kind=image گارد می‌دهد (هیچ نقش تصویری فعلاً وجود ندارد).
+  3. **دسترسی:** مدیریت سرویس‌ها با `ai.manage`؛ مشاهده/ویرایش **کلید API فقط Owner** (`isOwner` بر اساس key نقش، نه permission).
+- **معماری نهایی:**
+  - **داده‌مدل:** `AiService { label, region(IR|INTL), kind(text|image), providerType(openai-compatible|mock), baseURL?, apiKey?, model, isActive, isDefault, sortOrder, note }`. حداکثر یک سرویس `isDefault` per (region, kind).
+  - **اتصال (Bind):** کلید config `bind.<roleKey>.<region>` = `AiService.id`. نبود اتصال → سرویس پیش‌فرض همان (region, kind).
+  - **resolution (`src/lib/ai/services.ts`):** `resolveServiceForRole(role, region, kind)` → اتصال صریح → پیش‌فرض منطقه/نوع → null. منطقه از country IP: `IR` برای ایران، در غیر این صورت `INTL` (ناشناخته هم INTL). cache ۱۰ث + fallback؛ هرگز throw نمی‌کند.
+  - **router/orchestrator:** `provider-router` حالا سرویس را resolve و آداپتر را با `getAIAdapterForService` می‌سازد؛ مدل از `service.model` می‌آید. **محافظ ساختاری:** سرویس نبود/کلید خالی/خطا → fallback به `mock`. پارامترهای نقش (temperature/maxTokens) مستقل از سرویس از config می‌آیند (DECISION-037 معتبر).
+  - **prompt/role مستقل از مدل:** پرامپت‌ها فقط Role/Prompt را تعیین می‌کنند (DECISION-029/037)؛ مدل را Bind سرویس تعیین می‌کند.
+- **بند سازگاری:**
+  - بخش UI «روتینگ Provider (بر اساس کشور)» و کلیدهای `routing.*`/`provider.*.model|baseURL|apiKey` **حذف شدند** (به‌جایشان `AiService` + `bind.*`). صاحب پروژه صراحتاً گفت بخش روتینگ دیگر لازم نیست.
+  - **حفظ رفتار:** seed idempotent دو سرویس پیش‌فرض متنی از env می‌سازد (IR=`AI_PROVIDER_IRAN`, INTL=`AI_PROVIDER_INTL`) تا رفتار فعلی routing عیناً منتقل شود. env (`GAPGPT_*`/`AI_PROVIDER_*`) همچنان مبنای seed اولیه است.
+  - **امنیت کلید (تغییر نسبت به DECISION-037):** قبلاً کلید هرگز به UI برنمی‌گشت. حالا طبق خواست مالک: فقط Owner از مسیر `POST /api/admin/ai/services/[id]/key` مقدار خام را می‌بیند (UI: ماسک bullet + نمایش با نگه‌داشتن دکمه). سایر ادمین‌ها فقط وضعیت تنظیم‌شده/نشده. کلید جدید فقط جایگزین می‌شود؛ خالی = بدون تغییر. هر reveal در AuditLog ثبت می‌شود.
+- **هم‌ترازی ادمین↔پروژه (پَریتی):** باگ رفع شد — `ChatWindow` فقط یک‌بار داده می‌گرفت؛ حالا در **هر باز شدن** متن خوش‌آمد و سقف پیام را از سرور تازه می‌کند تا تغییر پنل بلافاصله دیده شود.
+- **پیامدها:**
+  - schema: مدل `AiService` + بازنویسی کامنت `AiConfig`
+  - lib: `src/lib/ai/services.ts` (جدید)، بازنویسی `provider-router.ts`، `getAIAdapterForService` در `adapters/index.ts`، `serviceKind` در `AIRoleMeta`، `isOwner` در `auth-server.ts`
+  - API: `/api/admin/ai/services` (GET/POST)، `/services/[id]` (PATCH/DELETE)، `/services/[id]/key` (POST، Owner)، `/bindings` (POST). پاک‌سازی `/config` از کلیدهای provider/routing.
+  - UI: `AiServicesManager` + `AiBindingsForm` (جدید)؛ `AiSettingsForm` و `/admin/ai/page` بازنویسی (حذف routing/providers)
+  - seed: دو سرویس پیش‌فرض از env
+
+---
+
+### DECISION-040 ✅ | مدیریت پلن‌ها — قیمت/امکانات/کد تخفیف کاملاً پویا
+- **تاریخ:** ۲۰۲۶-۰۵-۳۰ | **وضعیت:** ✅ پیاده‌سازی شد — migration `20260530144654_add_plans`
+- **پیاده‌سازی نهایی:**
+  - schema: `Plan` + `PlanFeatureValue` + `PlanBullet` + `DiscountCode`
+  - کاتالوگ امکانات `src/lib/plans/features.ts` (chat.dailyLimit=quota، weekly.reflection=boolean، support.ticketing/social.network=comingSoon) + `PLAN_DEFAULTS` (پلاس از مالک: ۶۹٬۰۰۰/۶۰۰٬۰۰۰)
+  - resolver `src/lib/plans/access.ts` (`planAllows`/`planQuota`، cache ۱۰ث + fallback به کاتالوگ، `invalidatePlanCache`)
+  - **فاز B parity:** chat route سقف را از `planQuota("chat.dailyLimit")` و weekly route تأمل را از `planAllows("weekly.reflection")` می‌خواند؛ کلید `chat.limit.*` و کارت سقف چت از بخش AI حذف شد
+  - API: `/api/admin/plans/[key]` (PATCH: فیلد+ماتریس+bullet)، `/discounts` (CRUD)، عمومی `/api/plans/validate-discount`
+  - UI پنل: `/admin/plans` + `PlansManager` + `DiscountManager`؛ nav «پلن‌ها» فعال شد
+  - UI عمومی: `/plans` بازسازی پویا + `PlansPricing` (سوییچ ماهانه/سالانه + «معادل ماهانه» + کد تخفیف)
+  - seed idempotent ۳ پلن + ماتریس ۴ امکان
+  - `tsc` ✅ + `next build` ✅
+- **(طراحی اولیه — ⏳):**
+- **زمینه:** صاحب پروژه خواست همهٔ امکانات هر پلن، قیمت‌ها و کد تخفیف **کاملاً پویا از پنل** مدیریت شوند — هیچ هاردکدی. درگاه پرداخت هنوز نیست (ارتقای پلن دستی می‌ماند). صفحهٔ مقایسهٔ `/plans` باید از همین داده‌ها ساخته شود.
+- **تصمیم‌ها (پاسخ ویژوال مالک — همه طبق پیشنهاد):**
+  1. **مجموعهٔ پلن‌ها ثابت (FREE/PLUS/PRO)، محتوا پویا:** کلیدهای پلن ثابت می‌مانند (User.plan و گیت‌ها به آن‌ها وصل‌اند)؛ نام/توضیح/قیمت/امکانات/ترتیب پویا.
+  2. **منبع حقیقت واحد:** همهٔ امکانات و محدودیت‌های پلن در «مدیریت پلن‌ها» متمرکز. سقف چت (`chat.limit.*` از DECISION-037) و گیت تب «تأمل» (Plus/Pro) از بخش AI/کد به این سیستم منتقل می‌شوند.
+  3. **کد تخفیف:** مدیریت کامل در پنل (درصدی/مبلغی، سقف استفاده، انقضا، پلن‌ها/دوره‌های مشمول) + اعتبارسنجی و نمایش قیمت با تخفیف در `/plans`. هستهٔ «مصرف کد» آماده می‌ماند تا با درگاه پرداخت وصل شود (الان خرید واقعی نیست).
+- **معماری پیشنهادی (جزئیات هنگام پیاده‌سازی نهایی می‌شوند — feedback-feature-questions-timing):**
+  - **کاتالوگ امکانات در کد** (`src/lib/plans/features.ts`، مثل کاتالوگ permissions): هر امکان یک `key` + نوع (`boolean` روشن/خاموش یا `quota` عددی مثل سقف چت) + گروه + برچسب. هر امکان enforceable کد enforce خودش را دارد.
+  - **DB (نیازمند migration):** `Plan { key(unique), label, description, order, monthlyPrice, annualPrice, currency="IRT", highlight?, isActive }` + ماتریس `PlanFeatureValue { planKey, featureKey, enabled?, value? }` + `PlanBullet { planKey, text, order }` (bullet متنی آزاد برای موارد «به‌زودی») + `DiscountCode { code(unique), kind(percent|fixed), value, plans[], cycles[], maxUses, usedCount, startsAt?, expiresAt?, isActive, note }`.
+  - **enforcement تک‌نقطه:** `planAllows(plan, featureKey)` / `planQuota(plan, featureKey)` با cache+fallback (مثل ai/config) — جایگزین چک‌های پراکنده. سقف چت و گیت تأمل از این می‌خوانند.
+  - **قیمت:** ماهانه + سالانهٔ یکجا؛ UI «معادل ماهانه» (annual/12) را نشان می‌دهد. واحد تومان.
+  - **`/plans` بازسازی پویا:** جدول مقایسه از Plan+features+bullets، سوییچ ماهانه/سالانه، فیلد کد تخفیف (اعتبارسنجی سروری → نمایش قیمت با تخفیف)، دکمهٔ خرید در حالت «به‌زودی» (بدون درگاه).
+  - **پنل `/admin/plans`:** ویرایش قیمت/برچسب/توضیح/ترتیب/highlight هر پلن، ماتریس روشن/خاموش امکانات + مقدار quotaها، مدیریت bulletها، مدیریت کدهای تخفیف. enforce: `plans.read`/`plans.write`.
+- **هم‌ترازی ادمین↔پروژه:** هر امکان/محدودیت تعریف‌شده در پنل باید در اپ enforce شود (نه فقط نمایش). تغییر دستی پلن کاربر (که ساخته‌ایم) → امکانات همان پلن فعال.
+- **بند سازگاری:** `chat.limit.*` (DECISION-037) به feature پلن (`quota`) منتقل می‌شود؛ کلید قدیمی منسوخ. صفحهٔ `/plans` فعلی (hardcode) با نسخهٔ پویا جایگزین می‌شود. سه پلن FREE/PLUS/PRO مطابق §۷ CLAUDE.md حفظ می‌شوند.
+- **پیامدها:** TASK-ADMIN-PLANS (شکست‌خورده در TASKS.md). نیازمند migration (تأیید مالک هنگام شروع).
+
+---
+
+### DECISION-041 ✅ | مالک یکتا و غیرقابل‌انتساب + پروفایل شخصی ادمین
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۵-۳۰ | **وضعیت:** ✅ پیاده‌سازی شد — migration `20260530205213_admin_avatar`
+- **زمینه:** دو خواست مالک، مکمل DECISION-036/038.
+- **بخش ۱ — نقش «مالک سایت» یکتا و تغییرناپذیر:**
+  - فقط حساب seedشده نقش `owner` را دارد؛ **هیچ‌کس دیگر** نباید owner شود.
+  - گاردها: `POST /api/admin/admins` (ساخت) و `/admins/[id]/role` (تغییر نقش) → اگر `roleKey === "owner"` رد می‌شود؛ و حساب owner موجود را نمی‌توان از owner خارج کرد.
+  - UI: نقش `owner` از فهرست نقش‌های قابل‌انتساب (`/admin/admins`) حذف شد؛ ردیف مالک به‌جای select/toggle، برچسب ثابت «مالک سایت — قفل» نشان می‌دهد. (گارد قبلیِ «آخرین owner فعال» معتبر می‌ماند.)
+- **بخش ۲ — پروفایل شخصی هر ادمین (هر نقشی):**
+  - فیلد `avatarPreset Int @default(0)` به `AdminUser` افزوده شد (۱۲ preset مشترک با کاربر — `lib/profile/avatarPresets`).
+  - صفحهٔ `/admin/profile` (بدون نیاز به permission خاص؛ فقط ادمینِ لاگین‌شده): ویرایش نام نمایشی، **نام کاربری** (با چک یکتایی)، تلفن، آواتار + بخش تغییر رمز (همان endpoint `change-password`).
+  - API: `PATCH /api/admin/profile` (به‌روزرسانی خودِ ادمین، audit `admin.profile.update`).
+  - دسترسی: کارت کاربر در sidebar (`AdminShell`) حالا آواتار را نشان می‌دهد و لینک به `/admin/profile` است.
+- **پیامدها:** `AdminContext.admin.avatarPreset` اضافه شد؛ layout پنل آن را پاس می‌دهد. هیچ تغییری در منطق session/permission.
+
+---
+
+### DECISION-042 ✅ | ارقام فارسی سراسری + نمایش امکانات پلن (فلگ‌محور)
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۵-۳۱ | **وضعیت:** ✅ پیاده‌سازی شد — migration `20260531050400_plan_feature_flags`
+- **بخش ۱ — قانون قطعی ارقام فارسی:**
+  - همهٔ اعداد در کل سیستم (پنل ادمین + سایت) باید با ارقام فارسی نمایش داده شوند.
+  - **پیاده‌سازی سراسری و کم‌ریسک:** فیچر فونت `font-feature-settings: "ss01"` روی `body` فعال شد (همان مکانیزم کلاس `fa-num`؛ فونت PelakFA). ارقام لاتین خودکار فارسی رندر می‌شوند بدون تغییر مقدار واقعی (مهم برای `<input>`).
+  - **استثنا:** کلاس `.num-latin` برای شناسه‌های فنی LTR که باید لاتین بمانند: نام مدل، baseURL، کلید API، نام کاربری، کد تخفیف. (تلفن طبق قرارداد قبلی فارسی می‌ماند.)
+- **بخش ۲ — مدل فلگ‌محور امکانات پلن (جایگزین boolean ساده):**
+  - هر امکانِ هر پلن سه وضعیت مستقل دارد: `visible` (نمایش/عدم‌نمایش — Radio)، `comingSoon` (خاکستری «به‌زودی»)، `disabled` (خط روی متن). به‌علاوه `value` (برای quota) و `label` (override متن امکان).
+  - schema: ستون‌های `visible`/`comingSoon`/`disabled`/`label` به `PlanFeatureValue` اضافه شد؛ `enabled` به‌عنوان legacy باقی ماند. **normalization** در همان migration: `enabled=0` (boolean) → `disabled=1`؛ امکانات کاتالوگیِ comingSoon → `comingSoon=1`.
+  - رندر عمومی (`/plans`): مخفی → حذف؛ `disabled` → خط‌خورده؛ `comingSoon` → خاکستری + نشان؛ وگرنه عادی (check). متن از `label` (در نبودش از کاتالوگ).
+  - پنل (`PlansManager`): هر امکان → input متن (override) + (quota) عدد + سه کنترل نمایش/بزودی/غیرفعال؛ همه قابل ویرایش. API `PATCH /api/admin/plans/[key]` و seed به مدل جدید به‌روز شدند.
+- **بند سازگاری:** کاتالوگ امکانات در کد (`features.ts`) و enforcement (`planAllows`/`planQuota`) دست‌نخورده‌اند — این تغییر فقط لایهٔ **نمایش/متادیتای** هر امکان per پلن است. `chat.dailyLimit` (quota) و enforcementش بدون تغییر.
+
+#### تکمیل ۲۰۲۶-۰۵-۳۱ (بازخورد مالک) — دو اصلاح
+- **اصلاح ۱ — ارقام فارسی در فرم‌کنترل‌ها:** کشف شد که `font-feature-settings` از `body` به `input/textarea/select` ارث نمی‌رسد (UA stylesheet ریست می‌کند) → ارقام داخل فیلدهای ورودی (تلفن، قیمت) لاتین می‌ماندند. **رفع:** قانون صریح `input, textarea, select { font-feature-settings: "ss01" on }` در globals.css. ضمناً `type="number"` حتی با ss01 هم فارسی نمی‌شود؛ این فیلدها (قیمت ماهانه/سالانه، quota، مقدار/سقف کد تخفیف، اعداد AI) به `inputMode="numeric|decimal"` روی input متنی تبدیل شدند و ورودی با `onlyDigits`/`toEnDigits` (helper جدید `src/lib/utils/digits.ts`) نرمال می‌شود. جهت همیشه LTR (رقم ربطی به زبان ندارد).
+- **اصلاح ۲ — «افزودن قابلیت» با فلگ:** بخش «خط‌های متنی» به **«قابلیت‌های سفارشی»** ارتقا یافت؛ هر قابلیتِ افزوده‌شده دقیقاً مثل کاتالوگ سه کنترل دارد: نمایش (Radio)، به‌زودی، غیرفعال. **migration افزایشی `20260531082457_plan_bullet_flags`** سه ستون بولی `visible`/`comingSoon`/`disabled` را به `PlanBullet` افزود (افزایشی، بدون حذف داده — تأیید صریح مالک گرفته شد). رندر عمومی این قابلیت‌ها از همان مسیر `FeatureRow` می‌گذرد (مخفی → حذف، غیرفعال → خط‌خورده، به‌زودی → خاکستری). API `PATCH /api/admin/plans/[key]` فلگ‌های هر قابلیت را ذخیره می‌کند.
+
+---
+
+### DECISION-043 ✅ | لاگ ممیزی — لایهٔ خوانش (Audit Log Viewer)
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۵-۳۱ | **وضعیت:** ✅ پیاده‌سازی شد — بدون migration (مدل و نوشتن از قبل بودند)
+- **زمینه:** لایهٔ **نوشتن** ممیزی از قبل کامل بود (`AdminAuditLog` + `logAdminAction`، ۲۷ کنش در ۲۳ route)، و permission `audit.read` و آیتم nav هم تعریف شده بودند (`ready:false`). تنها چیز غایب، **viewer** بود. این تصمیم فقط لایهٔ خوانش/نمایش را اضافه می‌کند — هیچ تغییری در schema یا منطق نوشتن نیست.
+- **کاتالوگ کنش‌ها (`src/lib/admin/audit-actions.ts`):** منبع‌حقیقتِ کد-محور (هم‌الگوی `permissions.ts`/`features.ts`). هر کلید کنش → `{ label فارسی، category، tone }`. شش دسته: auth/admins/roles/users/plans/ai. پنج تون رنگی: create(سبز)/update(آبی)/security(طلایی)/danger(قرمز)/auth(خنثی). `describeAction()` برای کنش ناشناخته به‌صورت امن fallback می‌کند (خود کلید را نشان می‌دهد، crash نمی‌کند) — مقاوم در برابر کنش‌های آینده/قدیمی.
+- **صفحهٔ `/admin/audit`** (Server Component، `force-dynamic`، enforce `audit.read`):
+  - فیلترها (GET، بدون JS کلاینت): کنشگر (dropdown ادمین‌ها)، کنش (`<optgroup>` به‌تفکیک دسته)، بازهٔ تاریخ از/تا (مرز بازه به وقت تهران +۰۳:۳۰)، جستجوی شناسهٔ هدف. اعتبارسنجی سرور: کنش/کنشگر نامعتبر نادیده گرفته می‌شود.
+  - جدول: زمان (fa-IR/Asia/Tehran)، کنشگر (نام + `@username` لاتین)، نشانِ تون‌دار کنش + کلید خام، هدف (کاربر → لینک به جزئیات؛ بقیه متن فنی)، متادیتای JSON در `<details>` بومی (بدون کامپوننت کلاینت).
+  - صفحه‌بندی ۳۰‌تایی هم‌الگوی صفحهٔ کاربران.
+- **اصول رعایت‌شده:** فقط-خواندنی (هیچ مسیر ویرایش/حذف)، تأکید بصری بر append-only بودن، ارقام فارسی (DECISION-042) + شناسه‌های فنی `num-latin`، RBAC از طریق `requirePermission`.
+- **بند سازگاری/توسعه:** نوشتن لاگ دست‌نخورده ماند. کنش/هدف جدید فقط با افزودن یک ردیف به `AUDIT_ACTIONS` خوانا می‌شود. **پیشنهاد آینده (نیازمند migration + تأیید مالک):** افزودن `ip`/`userAgent` به `AdminAuditLog` و ثبتشان در همهٔ نقاط نوشتن، و خروجی CSV/JSON با فیلتر فعلی.
+
+---
+
+### DECISION-044 ✅ | دو قانون سراسری (بدون autofill + تاریخ جلالی) + سیستم تیکتینگ
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۵-۳۱ | **وضعیت:** ✅ — migration افزایشی `support_tickets` (تأیید مالک)
+
+**۱) قانون سراسری بدون Autofill/Suggestion:**
+- هیچ حبابِ پیشنهاد/autofill مرورگر در هیچ input/textarea (سایت + پنل) نباید ظاهر شود.
+- مکانیزم واحد: کامپوننت `<DisableAutofill>` در `layout.tsx` ریشه — روی همهٔ فیلدها `autocomplete` را خنثی می‌کند (رمز→`new-password`، بقیه→`off`) + `MutationObserver` برای فیلدهای پویا (مودال‌ها). یک نقطه، پوششِ خودکارِ آینده. مدیر رمزِ افزونه‌ای مستقل از این کار می‌کند.
+
+**۲) قانون سراسری تاریخ/زمان جلالی:**
+- نمایش تاریخ‌ها از قبل جلالی بود (`fa-IR` خودش تقویم Persian می‌دهد + `formatJalali`). شکافِ باقی‌مانده، **تاریخ‌گزین‌های ورودی** (`type="date"` بومی، میلادی mm/dd/yyyy) بود.
+- ساخته شد: `<JalaliDatePicker>` (در `@/components/ui`) با `jalaali-js` (بدون کتابخانهٔ جدید) — تقویم شمسی نشان می‌دهد ولی مقدار را «yyyy-mm-dd میلادی» نگه می‌دارد (سازگار با همهٔ downstreamها). دو حالت: فرم سروری (`name` + input مخفی) و کنترل‌شده (`value`/`onChange`). جایگزین در فیلتر لاگ ممیزی و انقضای کد تخفیف. helperهای تبدیل در `@/lib/utils/date`.
+
+**۳) اصلاح زیرساختی — پیوند enforcement با پنل (مهم):**
+- باگ نهفته از DECISION-042: `planAllows` هنوز ستون **لگاسی `enabled`** را می‌خواند، در حالی که پنل فلگ‌های `disabled`/`comingSoon` را ویرایش می‌کند → تغییر پنل روی دسترسی اثر نداشت.
+- رفع: `loadPlanFeatures` اکنون `allowed = !disabled && !comingSoon` را از فلگ‌های زنده می‌سازد؛ fallback کاتالوگ هم `defaultBool && !defaultComingSoon`. **حالا روشن‌کردن هر امکان در پنل، بلافاصله دسترسی همهٔ کاربرانِ آن پلن را فعال می‌کند** (قاعدهٔ کلی مالک برای همهٔ امکانات پلن).
+
+**۴) سیستم پشتیبانی و تیکتینگ:**
+- **گیت دسترسی** کاملاً از امکانِ پلن `support.ticketing` می‌آید (هم‌ترازی پنل↔پروژه): الان فقط پرو، اما روشن‌کردنش برای هر پلن از پنل → دسترسی فوری همان پلن. `comingSoon` این امکان در migration خاموش شد (ساخته شده).
+- **مدل داده:** `SupportTicket` (subject/category/priority/status/**channel**/lastMessageAt/closedAt) + `TicketMessage` (authorType user|admin + authorUserId/authorAdminId). فیلد `channel` (پیش‌فرض `ticket`) برای **توسعهٔ آیندهٔ چت آنلاین** روی همین مدل آماده است.
+- **کاتالوگ کد-محور** `src/lib/support/tickets.ts`: دسته/اولویت/وضعیت/کانال + محدودیت‌ها + helperها (الگوی permissions/features). افزودن دسته/کانال = یک ردیف.
+- **سمت کاربر:** `/support` (لیست + فرم تیکت جدید؛ پلن بدون دسترسی → CTA ارتقا) و `/support/[id]` (گفتگو + پاسخ). API: `POST /api/support/tickets`، `POST /api/support/tickets/[id]/messages` — همه گیت‌شده با `planAllows` + مالکیت. پاسخ کاربر → وضعیت «باز» (بازگشایی اگر بسته).
+- **سمت ادمین:** `/admin/support` (فیلتر وضعیت/اولویت/دسته + جستجو + صفحه‌بندی) و `/admin/support/[id]` (گفتگو + پاسخ + کنترل وضعیت/اولویت + اطلاعات کاربر). API enforce `support.read`/`support.respond`. پاسخ پشتیبان → وضعیت «پاسخ داده شد». همهٔ اقدامات ادمین در **لاگ ممیزی** ثبت می‌شوند (`support.reply`/`support.status.change`/`support.priority.change` به کاتالوگ audit + دستهٔ «پشتیبانی» اضافه شد). nav «تیکت‌ها» فعال شد.
+- **توسعه‌پذیری (خواست صریح مالک):** افزودن فیلد/دسته/کانال جدید بدون بازنویسی؛ چت آنلاینِ آینده روی همین مدل (channel="chat") و همین گیت پلن سوار می‌شود.
+
+---
+
+### DECISION-045 ✅ | جمع‌وجورسازی پروفایل + ورودی پشتیبانی + ارقام فارسیِ قابل‌اتکا
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۵-۳۱ | **وضعیت:** ✅ — بدون migration (UI + helper)
+- **۱) ادغام «تنظیمات همدم» در «اطلاعات شخصی»:** بخش جداگانهٔ همدم حذف شد؛ فیلد «نام همدم» زیر بیوگرافی در `PersonalInfoSection` آمد و **یک دکمهٔ ذخیرهٔ واحد** هر سه (نام نمایشی + بیو + نام همدم) را با یک PATCH `/api/profile` ذخیره می‌کند (API از قبل هر سه را می‌پذیرفت). کامپوننت یتیم `CompanionSection` حذف شد.
+- **۲) ورودی پشتیبانی از navbar به پروفایل (UX):** آیتم «پشتیبانی» از `AppNav` حذف و به‌جای بخش همدمِ قبلی، کارت «پشتیبانی» (لینک به `/support`) در صفحهٔ پروفایل نشست. صفحات/گیتینگ تیکتینگ بدون تغییر.
+- **۳) ارقام فارسیِ قابل‌اتکا (تصحیح DECISION-042):** مشخص شد فیچر فونت `ss01` در PelakFA ارقامِ رشته‌های خام (مثل شماره موبایل) را جایگزین **نمی‌کند**؛ اعدادی که فارسی دیده می‌شدند همه از `toLocaleString("fa-IR")`/`formatJalali` (Unicode واقعی) بودند. رفع قطعی: رشته‌های خامِ شامل رقم با `toFaDigits()` (از `@/lib/utils/digits`) تبدیل می‌شوند. اعمال‌شده روی **همهٔ نمایش‌های شماره موبایل** (پروفایل، حساب/حذف حساب، ورود، کاربران ادمین، تیکت‌های ادمین). قاعدهٔ دائمی در CLAUDE.md §۵ اصلاح شد: مکانیزم قابل‌اتکا = تبدیل JS، نه صرفاً ss01.
+
+---
+
+### DECISION-046 ✅ | سیستم نوتیفیکیشن — دو لایه (toast گذرا + اعلان ماندگار)
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۱ | **وضعیت:** ✅ — migration افزایشی `notifications` (تأیید مالک) | موج ۱ نقشهٔ راه
+- **دامنه (تصمیم مالک):** فقط **زیرساخت + اعلان‌های رویدادی**. یادآوری‌های زمان‌محور («امروز تعهدت را ثبت نکردی») حساس به مانیفست («بدون فشار») و نیازمند تنظیمات کاربر + ارسال بیرونی‌اند → **موج ۲** (بعد از سرور). placeholder تنظیماتش در پروفایل به‌صراحت «به‌زودی».
+- **State (تصمیم مالک):** `zustand` انتخاب شد (CLAUDE.md §۳ آن را به‌عنوان گزینه فهرست کرده بود) — اولین وابستگی state؛ برای state کلاینتیِ آینده هم می‌ماند.
+
+**لایه ۱ — Toast (گذرا، client):**
+- store: `src/lib/notifications/toast.ts` (Zustand) + API راحت `toast.success/error/info/neutral(...)` — از هر client component بدون hook قابل صدا زدن.
+- رندر: `<ToastHost>` در `layout.tsx` ریشه → روی **سایت و پنل ادمین** کار می‌کند. حداکثر ۴ هم‌زمان (سکوت بصری)، حذف خودکار، تنِ مانیفستی (کارتِ آرام، بدون ایموجی/جشن).
+- سیم‌کشی شد: ذخیرهٔ پروفایل، پاسخ تیکت کاربر، پاسخ پشتیبان (الگوی «یک اتفاق افتاد» با فلگ).
+
+**لایه ۲ — Notification (ماندگار، DB):**
+- **مدل:** `Notification` (userId/**type**/data JSON/linkUrl/**channel**/readAt/createdAt). `type` کلید کاتالوگ است → افزودن نوع جدید **بدون migration**. `channel` (پیش‌فرض `inapp`) برای ارسال بیرونیِ آینده (push/sms) بدون بازنویسی — همان الگوی channelِ تیکت. اعلان‌ها هرگز حذف نمی‌شوند (data-philosophy).
+- **کاتالوگ کد-محور** `src/lib/notifications/catalog.ts`: هر `type` → `{tone, icon, describe(data)→{title,body,link}}`. ردیف ناشناخته → fallback امن (هرگز crash، مثل `describeAction`).
+- **server helper** `src/lib/notifications/server.ts`: تنها درگاهِ ساخت `createNotification(...)` (قاعدهٔ طلایی مثل invokeAI) + list/unread/markRead/markAllRead. زمان از `getNow()` (§۱۳). خطای ساخت، جریان اصلی را نمی‌شکند.
+- **API:** `GET /api/notifications` (لیست + unread)، `PATCH /api/notifications/[id]/read`، `POST /api/notifications/read-all` — همه با مالکیتِ userId.
+- **UI:** `<NotificationBell>` در `AppNav` (badge خوانده‌نشده + dropdown + polling ۶۰ث) + صفحهٔ `/notifications` (لیست کامل) + کارت «یادآوری‌ها» در پروفایل. ردیف مشترک `<NotificationItem>` (کاتالوگ‌محور).
+
+**producerهای موج ۱ (parity ادمین↔پروژه):**
+- `support.replied` — پاسخ پشتیبان به تیکت → اعلان به صاحب تیکت.
+- `plan.changed` — تغییر پلن کاربر توسط ادمین → اعلان به کاربر (نمونهٔ روشن parity: اقدام ادمین، بازتاب سمت کاربر).
+- `report.ready` — در کاتالوگ تعریف شده اما producerش به موج بعد (نیازمند زمان‌بندی) موکول است.
+
+- **توسعه‌پذیری (خواست صریح مالک):** افزودن نوع جدید = یک ردیف کاتالوگ. چت آنلاین/ارسال بیرونی روی همین مدل و همین درگاه سوار می‌شوند. ربط: [[project-data-philosophy]]، [[feedback-admin-project-parity]].
+
+---
+
+### DECISION-047 ✅ | بازطراحی گزارش هفتگی — تحلیلگر رفتار + متریک قطعی + هیستوگرام پویا
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۱ | **وضعیت:** ✅ — **بدون migration** (خروجی JSON در `aiContent`؛ سازگاری عقب با v1/v2)
+- **مسئله (سه ریشه در کد):**
+  1. باگ «۱۰۰٪»: فرمول `completionRate = done/(done+notDone)` در **خودِ پرامپت** بود → روزهای خالی/گپ نادیده؛ کاربرِ ۲از۷ روز با ۲ DONE «۱۰۰٪» می‌گرفت.
+  2. ورودی AI فقیر: مدل فقط روزهای تعهد را می‌دید — نه اسکلت ۷ روز، نه GapRecordها، نه تاریخچه → تحلیلِ «کل هفته» و استنتاج رفتاری ناممکن بود.
+  3. mock خروجی v1 و همان باگ را تولید می‌کرد.
+- **تصمیم‌های مالک (option-driven):** متریکِ سرآیند = **تصویر چندبعدی صادقانه** (روزهای فعال از ۷ · انجام از ثبت · گپ + نوار ۷‌خانه) · عمق تحلیل = **سیگنال ۴ هفتهٔ اخیر** · نمودار = **SVG/CSS دست‌ساز** (بومی دیزاین‌سیستم).
+- **اصل معماری کلیدی:** **اعداد در کد محاسبه می‌شوند، نه AI.** AI فقط بخش کیفی (روایت + خوشه‌بندی + بینش) را می‌دهد → کلِ کلاسِ باگِ عددی حذف شد.
+- **ورودی غنی (`build-input.ts`، مشترک گزارش/تأمل):** `days` (اسکلت کامل ۷ روز با state: done/not_done/pending/gap/empty) + `gaps` (GapRecordهای صریح با توضیح) + `history` (میانگین روزهای فعال/نرخ انجام/بسامد گپ/روند ۴ هفته) + `entries` شماره‌دار (ref).
+- **پرامپت‌ها:** `weekly-report/v3.fa.md` نقش **«تحلیلگر رفتار»** — کلِ هفته را می‌خواند، گپ‌ها را بدون قضاوت تحلیل می‌کند (توضیح‌دار → بر مبنای توضیح؛ بی‌توضیح → استنتاج کم‌انرژی/پرمشغله/کم‌تعهد از history)، هفتهٔ کم‌تعامل را جشن نمی‌گیرد، categories را با `entryRefs` برمی‌گرداند. `weekly-reflection/v2.fa.md` عمیق‌تر + گره به روند تاریخی (تب پولی — Critical).
+- **محاسبهٔ قطعی (`lib/reports/weekly-analysis.ts`):** `buildWeekSkeleton` (نوار ۷روز)، `computeMetrics`، `buildGapInputs`، `computeHistory` (گروه‌بندی ۴ هفته)، `expandCategories` (entryRefs → شمارش done/notDone قطعی از feedback واقعی).
+- **UI (`WeeklyReportCard` v3):** تب خلاصه = سرآیند صادقانه + **نوار ۷روزِ** انیمیشنی (با راهنما) + **هیستوگرام دستهٔ پویا** (میله‌های SVG/CSS با سهم نسبی + بخش «انجام شد») + روایت. تب نکات و تب تأمل premium. گلس + `animate-fade-up` + `--ease-expo`. `normalize()` گزارش‌های قدیمی را بدون crash رندر می‌کند.
+- **mock بازنویسی شد:** خروجی v3 (summary/categories-refs/insights)، کلِ‌هفته‌آگاه، گپ‌آگاه، تاریخ‌آگاه، بدون باگ ۱۰۰٪ + شاخهٔ `weekly-reflection`.
+- **تأیید:** `tsc --noEmit` ✅ · `next build` ✅. ربط: [[project-ai-as-heart]]، [[project-data-philosophy]].
+
+---
+
+### DECISION-048 ✅ | حذف کامل Mock از لایهٔ AI + رفع باگ روتینگ سرویس
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۱ | **وضعیت:** ✅ — بدون migration (حذف داده + کد)
+- **باگ (ریشه):** در dev/هر request بدونِ header کشور، `getCountryFromHeaders=null` → `regionFromCountry(null)=INTL` → سرویس پیش‌فرضِ INTL = **Mock** → همهٔ سرویس‌ها (همدم، گزارش، تأمل) به Mock می‌رفتند، صرف‌نظر از اینکه پیش‌فرضِ IR را GapGPT کرده بودیم. چت همدم در Mock نقشی نداشت → JSON خامِ `{"ok":true,"mock":true,...}` به‌عنوان پاسخ نشت کرد. در prod هم کاربر غیرایرانی همین‌طور می‌شکست.
+- **تصمیم مالک:** Mock کاملاً حذف شود (چون API واقعی خریداری شده و قابل‌استفاده است) + رفع کامل باگ، بدون side-effect.
+- **راهبرد منطقه (تصمیم مالک — گزینهٔ پیشنهادی):** **Fallback سراسری** — یک سرویس GapGPT کافی است؛ اگر منطقه‌ای سرویس مخصوص نداشت، به پیش‌فرضِ سراسریِ همان نوع (تنها سرویس فعال) می‌افتد. معماری IR/INTL حفظ شد.
+- **حذف Mock (۷ نقطه + DB):**
+  - `lib/adapters/mock-ai.adapter.ts` حذف شد.
+  - `adapters/index.ts`: case `mock` در `buildAdapter`، شاخهٔ mock در `getAIAdapterForService`، `mock` از `AIProviderName`، و `getAIAdapter()` لگاسی (env `AI_PROVIDER`) حذف شدند.
+  - `provider-router.ts`: هر دو `fallback به mock` حذف؛ نبودِ سرویس یا نقص کلید → **خطای واضح throw** (نه پاسخ جعلی پنهان).
+  - `services.ts`: `getGlobalDefaultService` + مرحلهٔ ۳ fallback سراسری در `resolveServiceForRole`.
+  - admin API (`services` + `[id]`): `mock` از `PROVIDER_TYPES` و شرط‌های خاص حذف.
+  - `AiServicesManager.tsx`: گزینه/منطق/برچسبِ Mock از UI حذف.
+  - `chat route`: `try/catch` دور `invokeAI` → پیام محترمانهٔ ۵۰۳ (چون دیگر mockِ نجات‌دهنده نیست).
+  - DB: دو ردیف `AiService` با `providerType="mock"` حذف شدند (اسکریپت یک‌بارمصرف). تنها سرویس باقی‌مانده: GapGPT (IR، پیش‌فرض، کلید ✓).
+  - env/docs: `AI_PROVIDER_*`/`AI_PROVIDER` و mock از `.env.example`/`.env.local`/CLAUDE.md (§۸ و §۱۱) پاک شد. (SMS mock دست‌نخورده — Provider واقعی پیامک بعد از سرور.)
+- **تأیید واقعی:** تست end-to-end با لاگین dev → `POST /api/chat/messages` → پاسخِ واقعیِ GapGPT (۳.۶s، نه JSON موک). `tsc` ✅ · `next build` ✅. ربط: [[project-ai-provider-locale-split]]، [[project-ai-as-heart]].
+
+---
+
+### DECISION-049 ✅ | چت آنلاین پشتیبانی (کانال زندهٔ انسانی، PRO-only)
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۱ | **وضعیت:** ✅ — **با migration** `support_live_chat` (تأیید صریح مالک گرفته شد)
+- **چه چیزی:** یک کانال ارتباطی **سوم** و مستقل (جدا از همدم/AI و تیکت): گفتگوی زندهٔ متنی کاربر با پشتیبان انسانی، فقط در ساعات کاری، فقط برای پلن حرفه‌ای.
+- **چهار تصمیم معماری (همه با پیشنهاد من، تأیید مالک):**
+  1. **مدل داده:** مدل‌های **مستقل** `SupportChatSession` (یک سشن = یک روزِ ایران، `dayKey`) + `SupportChatMessage` — نه بازاستفاده از `SupportTicket` (workflow موضوع/دسته/اولویت/وضعیت با چت زنده ناهمخوان بود).
+  2. **ورود کاربر:** کارت «پشتیبانی آنلاین» در پروفایل + پنجرهٔ کشویی هم‌خانوادهٔ همدم (نه FAB دوم — سکوت بصری).
+  3. **Real-time:** **polling تطبیقی** پشت لایهٔ نازک `chat-transport` (سرور realtime نداریم؛ قابل‌ارتقا به WebSocket بدون لمس UI — فلسفهٔ Adapter). پنجره ~۳ث، کارت ~۲۰ث، با توقف هنگام مخفی‌شدن tab.
+  4. **presence:** برند «پشتیبانی همسو» + نقطهٔ سبز (نه هویت تک‌تک پشتیبان‌ها). آنلاین = ادمینِ دارای `support.respond` با `lastSeenAt<۶۰ث` **و** داخل ساعت کاری.
+- **چرخهٔ حیات:** سشن امروز = زنده؛ روزهای قبل = هیستوری read-only و زیبا در همان باکس (archived **محاسبه‌ای** با مقایسهٔ `dayKey` — بدون cron).
+- **soft-delete کاربر:** watermark `User.supportChatHiddenUntil`. کاربر «پاک کردن» → watermark=الان؛ فقط پیام‌های بعد از آن را می‌بیند. **پنل همه‌چیز را نگه می‌دارد** و خط «کاربر تا این‌جا را نزد خود مخفی کرد» را در تایم‌لاین نشان می‌دهد (فلسفهٔ داده — هیچ حذف واقعی).
+- **اعلانِ پاسخ:** طبق خواستهٔ مالک **بدون نوتیفیکیشن** — فقط **badge** شمارش پیام‌های خوانده‌نشدهٔ پشتیبان روی آیکون کارت (`/api/support/chat/unread`، بدون side-effect).
+- **تنظیمات (AppSetting، نه AiConfig):** مدل کلید-مقدارِ **عمومی جدید** `AppSetting` + resolver `settings/app-settings.ts` (cache+fallback مثل ai/config). کلیدها: `support.chat.enabled`/`welcome`/`hours`. متن خوش‌آمد با `{{NAME}}`، ساعات کاری (پیش‌فرض شنبه–پنجشنبه ۹–۱۷) — همه از پنل قابل‌تغییر، اعمال فوری (invalidate cache).
+- **گیت پلن:** کلید کاتالوگ `support.liveChat` در `plans/features.ts` (FREE/PLUS:false، PRO:true) — هم‌ترازی پنل↔پروژه، بدون migration، خودکار در `/plans`.
+- **پنل:** کنسول `/admin/livechat` (namespace مستقل از `/admin/support` تا با مسیر `[id]` تیکت تداخل نکند) — صفِ گفتگوها + نمای زنده + پاسخ + heartbeat؛ تنظیمات در `/admin/livechat/settings`. گیت: `support.read` (دیدن) / `support.respond` (پاسخ + تنظیمات). audit: `livechat.settings.set`.
+- **استقلال ساختاری:** نقاط تماس کنترل‌شده فقط: یک کلید پلن، یک آیتم در کارت پروفایل، یک آیتم nav پنل، یک آیکون، `AdminUser.lastSeenAt`. همدم و تیکت دست‌نخورده.
+- **سازگاری مانیفست:** هم‌سو — ساعات کاری محدود **خلاف «همیشه در دسترسم»** است و مرز سالم می‌گذارد. بدون استریک/امتیاز/جشن/ایموجی.
+- **تأیید:** `tsc --noEmit` ✅. ربط: [[project-data-philosophy]]، [[feedback-admin-project-parity]]، [[project-roadmap-waves]].
+
+---
+
+### DECISION-050 ✅ | رادارِ «نقشهٔ زندگی» روی ۶ بُعدِ ثابت + دو بهبود پشتیبانی
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۲ | **وضعیت:** ✅ — بدون migration
+- **۱) رادار همیشه ۶‌محور (تصمیم اصلی، انتخاب مالک):** منطق سه‌حالتهٔ قبلی (`≥۳ دسته → رادار`، `۱–۲ → میله`، `۰ → متن`) **کاملاً حذف شد**. مالک خواست رادار «در هر شرایطی، چه هفته پر باشد چه خلوت» همان فرم را داشته باشد.
+  - **ریشهٔ مشکل:** رادار با کمتر از ۳ محور هندسهٔ منحط می‌سازد → به‌همین‌خاطر قبلاً به میله سوییچ می‌شد (سه حالتِ ناهمگون).
+  - **حل ریشه‌ای (پیشنهاد من، تأیید مالک):** ۶ **بُعدِ ثابتِ زندگی** (`work/health/relationships/learning/calm/growth`) در `src/lib/reports/life-dimensions.ts`. رادار همیشه روی همین ۶ محور رسم می‌شود — متقارن و قابل‌مقایسه بین هفته‌ها.
+  - **نگاشت:** AI برای هر دستهٔ پویا یک `dimension` می‌دهد (فیلد جدید در `aiCategorySchema` + پرامپت v3). `mapToDimensions()` دسته‌ها را به ۶ بُعد تجمیع می‌کند؛ اگر `dimension` نبود (گزارش قدیمی) → کلیدواژهٔ برچسب → fallback پایدار. **سازگار با همهٔ گزارش‌های قدیمی، بدون migration.**
+  - **تفکیک نقش‌ها:** هیستوگرامِ تب خلاصه **همان دسته‌های پویا** را نگه می‌دارد (توصیف دقیق)، رادارِ تب تأمل **۶ بُعد ثابت** (نقشهٔ تعادل). بهترینِ هر دو.
+  - رادارِ هفتهٔ خالی = شبکهٔ ۶‌ضلعیِ خالی + متن ظریف «این هفته فعالیتی برای نقشه ثبت نشد» (فرم رادار همیشه حفظ). برچسب تب «نقشهٔ دسته‌ها» → «نقشهٔ زندگی».
+- **۲) تیکتِ بسته‌شده توسط پشتیبان دیگر قابل پاسخ نیست:** route `POST /api/support/tickets/[id]/messages` حالا `status==="closed"` → ۴۰۹ (پیش‌تر کاربر با پاسخ، تیکت را بازگشایی می‌کرد). UI `/support/[id]` فرم پاسخ را پنهان و به «باز کردن تیکت تازه» هدایت می‌کند.
+- **۳) badge سایدبار پنل:** آیتم‌های «تیکت‌ها» و «چت آنلاین» در `AdminShell` شمارِ زنده نشان می‌دهند: تیکت‌های باز (غیر-closed) + سشن‌های چتِ دارای پیام خوانده‌نشدهٔ کاربر. منبع واحد `getSupportNavCounts()` (مقدار اولیه از layout، poll هر ۲۰ث از `/api/admin/nav-counts`، گیت `support.read`).
+- **تأیید:** `tsc --noEmit` ✅ · `next build` ✅. صفحهٔ dev `/dev/charts` با ۳ سناریو (پر/خلوت/خالی) به‌روز شد. ربط: [[project-data-philosophy]]، DECISION-047.
+
+---
+
+### DECISION-051 ✅ | ریفکتور UI/UX سراسریِ اپِ کاربر — اتمسفر و متریالِ کلاس‌جهانی (web-first)
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۲ | **وضعیت:** ✅ — بدون migration (فقط presentational)
+- **منبع:** خواست مالک: «کلاس برتر جهانی، حساسیتِ مدیر خلاقِ Pentagram؛ ملاک = حرفِ مالک، بعد مانیفست؛ زیبایی بصری بسیار مهم (شیشه، گرادیانِ نرم، موشن)».
+- **سه تصمیم جهت‌دهنده (همه با پیشنهاد من، تأیید مالک):**
+  1. **جهت:** «ارتقای اتمسفر و متریال با حفظ مینیمالیسم» — نه افزایش چگالی. زیبایی از عمق/نور/متریال/موشن می‌آید، نه از شلوغی (سازگار با «سکوت بصری» مانیفست).
+  2. **روش:** پایلوتِ داشبورد → تأیید مالک → تعمیم سیستماتیک.
+  3. **دامنه:** فقط اپِ کاربر (پنل ادمین ابزاری/جدا).
+- **لایهٔ اتمسفر (مشترک):** `AmbientField` (سه blobِ گرادیانِ بسیار نرمِ sage/mist/gold با drift کند + وینیِت ملایم) — نرم‌تر/کندتر از لندینگ، زیر `prefers-reduced-motion` ساکن. کلاس‌های `.app-stage`/`.app-blob-*`/`.app-vignette`/`.stagger` در globals.
+- **قالبِ مشترک `AppShell`:** میدانِ اتمسفر + AppNav + لایه‌بندیِ z. صفحات `bg-paper`ِ تختشان را کنار گذاشتند و روی canvasِ زنده نشستند (کارت‌های `glass`/frosted روی گرادیان = لوکِ کلاس‌جهانی). بدون "use client" → در صفحاتِ سرور و کلاینت قابل‌استفاده.
+- **ارتقای AppNav (shell سراسری):** اندیکاتورِ active به خطِ زیرینِ انیمیشنی (رشد از مرکز، `ease-expo`) + hover تمیزتر.
+- **پاسِ کرافت:** حذف ایموجی‌ها از کارت تعهد (🔒/🌿 → گلیفِ خطیِ SVG، مطابق مانیفست) + فاصله‌گذاریِ عمودیِ دسکتاپ (`sm:py-*`) + `animate-fade-up` ورودِ صفحات + شیشه‌ای‌کردنِ کارت‌های مردهٔ گزارش (هفتهٔ جاری/ghost).
+- **صفحاتِ پوشش‌داده‌شده:** dashboard، history، reports/weekly، plans، settings/profile، settings/account، notifications، support، support/[id]، login (login بدون nav → فقط AmbientField).
+- **تأیید:** `tsc --noEmit` ✅ · `next build` ✅ (۴۴/۴۴ صفحه). ربط: [[feedback-webapp-not-mobile]]، DECISION (brand book §12 Warm Paper).
+
+---
+
+---
+
+### DECISION-052 ✅ | اشتراک‌گذاری گزارش هفتگی — صفحهٔ عمومیِ `/share/[id]`
+- **تاریخ/پیاده‌سازی:** ۲۰۲۶-۰۶-۰۲ | **وضعیت:** ✅ — بدون migration (`isShared` از قبل در schema بود)
+- **خواستِ مالک:** کاربر بتواند گزارش هفتگی را در یک چینشِ زیبا به اشتراک بگذارد؛ همه محتوا در یک scroll (بدون tab).
+- **تصمیم‌های کلیدی:**
+  1. **URL = `/share/[reportId]`** — از CUID موجود استفاده می‌کند (opaque، بدون جدول جداگانه).
+  2. **محتوا = همه چیز** — متریک‌ها، نوارِ هفته، خلاصه، هیستوگرام، نکات، تأملِ شخصی + نمودارها (اگر PLUS/PRO باشد). اطلاعات خصوصی (شماره، plan، توکن) صفر.
+  3. **حریم خصوصی:** صفحه فقط اگر `isShared=true` نمایش داده می‌شود — در غیر این صورت ۴۰۴. هیچ فهرست/index عمومی نیست.
+  4. **Toggle API:** `POST /api/reports/weekly/[id]/share` با ownership check (فقط صاحبِ گزارش می‌تواند تغییر دهد).
+  5. **UX:** دکمهٔ share در headerِ `WeeklyReportCard`؛ کلیک اول = فعال‌سازی + کپیِ لینک به clipboard؛ «کپی لینک» جداگانه هنگام shared؛ کلیک دوباره = لغو.
+- **فایل‌های جدید:** `src/app/api/reports/weekly/[id]/share/route.ts`، `src/app/share/[id]/page.tsx`، `src/components/features/reports/SharedReportView.tsx`.
+- **فایل‌های تغییریافته:** `WeeklyReportCard.tsx` (ShareToggle در header)، `reports/weekly/page.tsx` (بهبود UI کارت هفتهٔ جاری + GhostCard).
+- **تأیید:** `tsc --noEmit` ✅. ربط: DECISION-047، [[project-data-philosophy]].
+
+#### تکمیل (۲۰۲۶-۰۶-۰۲) — مودال + OG + لینکِ مهاجرت‌پذیر (خواست مالک)
+- **مودالِ شیشه‌ای (`ShareModal.tsx`):** کلیکِ دکمهٔ اشتراک یک مودالِ glass با پس‌زمینهٔ محو باز می‌کند (هم‌خانوادهٔ پنجرهٔ چت)، «همان لحظه» لینک را فعال می‌کند و امکانِ انتشار مستقیم در **توییتر/لینکدین/تلگرام** + **کپی برای اینستاگرام** (اینستاگرام از وب لینک‌گذاری ندارد → کپی + toast راهنما) را می‌دهد. targetها به‌صورت **آرایهٔ توسعه‌پذیر** تعریف شده‌اند تا «شبکهٔ همسو» در آینده یک عضوِ جدید باشد.
+- **لینکِ مهاجرت‌پذیر (`lib/utils/app-url.ts`):** لینکِ کلاینت از `window.location.origin` ساخته می‌شود (صفر-پیکربندی)؛ متادیتای سرور (`metadataBase`) از env `NEXT_PUBLIC_APP_URL`. مهاجرت local→server **بدون دستکاری سورس** — فقط env.
+- **OG image پویا (`share/[id]/opengraph-image.tsx`):** کارتِ ۱۲۰۰×۶۳۰ با فونتِ فارسیِ PelakFA (از دیسک، runtime=nodejs) + بازهٔ هفته + ۳ متریک. لینک در شبکه‌ها کارتِ زیبا نشان می‌دهد. گزارشِ خصوصی → کارتِ برندِ عمومی (بدون نشت).
+- **تأییدِ تصویری:** رِندِرِ standalone (next/og → satori) به PNG و بازبینیِ چشمی ✅. `next build` کامل (روت‌های `/share/[id]` و OG ساخته شدند) ✅.
+
+---
+
+### DECISION-053 ✅ | قاعدهٔ سراسری: متنِ دکمه ثابت، بازخوردِ اکشن با toast + رفعِ ریشه‌ایِ رادار
+- **تاریخ:** ۲۰۲۶-۰۶-۰۲ | **وضعیت:** ✅ — بدون migration | **منبع:** خواست مالک («بسیار حساس، مخصوصاً پنل ادمین»).
+- **قاعده (مکملِ DECISION-046):** هنگام هر اکشن، **متنِ دکمه هرگز عوض نمی‌شود** (نه «در حال ذخیره…»، نه «ذخیره شد ✓»، نه «کپی شد ✓»). حینِ کار فقط `<Spinner>` (در `components/ui/Spinner.tsx`) کنارِ متنِ ثابت نشان داده می‌شود؛ نتیجه (موفق/خطا) فقط با `toast` اعلام می‌شود. استثناها: toggleهای **حالت** (بستن/باز، فعال/غیرفعال، create/edit) که متنشان وضعیت را بازتاب می‌دهد، نه پیشرفتِ اکشن.
+- **دامنه:** کلِ پنل ادمین (۱۲ کامپوننت: ChangePasswordForm، AdminProfileForm، AdminsManager، RolesManager، LiveChatSettings، PlansManager، DiscountManager، AiServicesManager، AiSettingsForm، PromptEditor، AdminReplyForm، TicketControls) + دکمهٔ تولید گزارش کاربر. حالت‌های inlineِ `error`/`saved` به toast منتقل شدند.
+- **gating تولید گزارش (تأیید مالک):** بررسی شد که گزارش **فقط** با کلیکِ `GenerateReportButton` ساخته می‌شود؛ هیچ auto-generationی در لیست/داشبورد نیست. هیچ پرامپتی پیش از کلیک به AI نمی‌رود. ✅
+- **رفعِ ریشه‌ایِ رادار (تکمیلِ DECISION-050):** دو ایرادِ تأییدشده با تستِ تصویری (رِندِرِ SVG→PNG با رنگ‌های واقعی):
+  1. **کلیپِ برچسب‌های کناری:** viewBox ۳۲۰×۳۲۰ بود و برچسب‌های فارسیِ چپ/راست بریده می‌شدند → viewBox به **۳۶۰×۳۰۰** عریض شد + **برچسب‌های کوتاهِ تک‌مفهومی** (`short` در `life-dimensions.ts`: کار/سلامت/روابط/یادگیری/آرامش/خلاقیت).
+  2. **فروپاشی به «سوزن»:** در هفتهٔ تک‌بُعدی چندضلعی به یک خط از مرکز تبدیل می‌شد → **کفِ حداقلیِ شعاع (`FLOOR=0.12`)** تضمین می‌کند چندضلعی همیشه «شکل» باشد. نقاطِ داده فقط روی محورهای فعال‌اند (صداقتِ خواندن حفظ).
+- **تأیید:** تستِ تصویریِ ۳ سناریو (پر/خلوت/متوازن) ✅ · `tsc --noEmit` ✅ · `next build` ✅. ربط: DECISION-046، DECISION-050.
+
+---
+
+### DECISION-054 ✅ | بازطراحیِ اشتراک‌گذاری گزارش هفتگی — مودالِ کلاس‌جهانی + تصویرِ قابل‌دانلود (کارت/پوستر)
+- **تاریخ:** ۲۰۲۶-۰۶-۰۲ | **وضعیت:** ✅ — بدون migration | **منبع:** خواست مالک (مودالِ قبلی «مبتدی، نازیبا و با نمایشِ غلط» بود؛ یک سمپلِ HTMLِ تأییدشده به‌عنوان مرجعِ افکت/استایل ارائه شد — [[reference-share-card-sample]]).
+- **خواستِ مالک:** مودالِ اشتراک‌گذاری حداقل هم‌سطحِ سمپل (همهٔ افکت/انیمیشن‌ها) باشد؛ تصویرِ قابل‌دانلود مثلِ سمپل اما شاملِ محتوای گزارش (خلاصه/نکات/نمودارهای تأمل) در یک چینشِ زیبا.
+- **تصمیم‌های کلیدی:**
+  1. **مودال = پورتِ وفادارِ سمپل** به توکن‌های همسو (`globals.css` بخش «Share modal»): overlayِ محو با گرادیانِ شعاعی، پنلِ شیشه‌ای با ورودِ `scale/translate`، ورودِ پلکانیِ بلوک‌ها (`.sm-rise`)، دکمهٔ بستنِ گرد با چرخشِ ۹۰°، sweepِ shimmer روی پیش‌نمایش، لیفتِ کاشی‌ها. فقط تمِ روشن (اپ dark mode ندارد).
+  2. **دو تصویر از یک خط لولهٔ `next/og`/Satori** (`lib/reports/share-image.tsx`): `CompactCard` ۱۲۰۰×۶۳۰ + `Poster` ۱۰۸۰×۲۰۴۰ (متریک‌ها، نوارِ هفته، خلاصه، نکات، **دونات + رادارِ نقشهٔ زندگی کنار هم**، نقل‌قولِ تأمل، فوتر). قاعدهٔ فنی: «شکلِ» نمودارها = SVGِ **بدون متن** به‌صورت `<img>` (resvg رَستر می‌کند، بدونِ فونت)؛ متن/اعداد/برچسب‌ها با **Satori** (فونتِ PelakFA از دیسک) تا فارسی درست رندر شود. رنگ‌ها hex صریح (نه `var()`؛ نه backdrop-filter).
+  3. **مسیرِ تصویر:** `GET /share/[id]/image?format=card|poster` — زیرِ درختِ عمومیِ `/share` (هم‌خانهٔ صفحه و `opengraph-image`)، گِیت‌شده با `isShared` (خصوصی/ناموجود → کارتِ برند). `opengraph-image.tsx` هم به همین `CompactCard` ریفکتور شد (DRY، یک منبعِ حقیقت).
+  4. **اجزای مودال (همه، طبق تأییدِ مالک):** سوییچِ فرمت (کارت/پوستر، toggleِ حالت) + پیش‌نمایشِ زنده + **دانلودِ PNG** + کپیِ لینک + **QR زنده** (`qrcode`) + X/لینکدین/تلگرام/اینستاگرام + **اشتراکِ سیستمی** (Web Share L2 — تلاش برای اشتراکِ فایلِ تصویر، سپس لینک، سپس کپی).
+  5. **متنِ تأمل:** فقط یک **نقل‌قولِ کوتاه** در پوستر (تصمیم مالک) — نه کلِ متن. (صفحهٔ عمومیِ `/share` مطابق DECISION-052 کلِ متن را دارد.)
+- **رفعِ دو باگِ نهفته (حین کار کشف شد):**
+  - **`/share` عمومی نبود** → بازدیدکنندهٔ بدونِ لاگین به `/login` ریدایرکت می‌شد و کلِ اشتراک‌گذاری برای مخاطبِ واقعی شکسته بود. `/share` به `PUBLIC_PATHS` میدلور اضافه شد (گارد `isShared` در خودِ هندلر).
+  - **جداکنندهٔ سال:** ICUِ Node عددِ ۴‌رقمیِ سال را گروه‌بندی می‌کرد (`۱٬۴۰۴`) برخلافِ مرورگر؛ در پایپ‌لاینِ تصویر `noGroup()` اعمال شد (هم کارت/پوستر هم OG).
+- **gating تولید گزارش (تأییدِ مجددِ مالک):** تحلیل فقط پس از کلیکِ `GenerateReportButton` نمایش داده می‌شود؛ هیچ auto-generation/auto-display نیست (بدون تغییر — تأییدِ DECISION-053 پابرجاست).
+- **وابستگیِ جدید:** `qrcode` (+ `@types/qrcode`).
+- **فایل‌های جدید:** `src/lib/reports/share-image.tsx`، `src/app/share/[id]/image/route.tsx`، `docs/ui/share-modal-reference.md`.
+- **تغییریافته:** `ShareModal.tsx` (بازنویسیِ کامل)، `opengraph-image.tsx` (DRY)، `globals.css` (بخش Share modal)، `middleware.ts` (`/share` عمومی).
+- **تأیید:** `tsc --noEmit` ✅ · `next build` ✅ · **تأییدِ تصویریِ card + poster** (رِندِرِ PNG از مسیرِ واقعی + بازبینیِ چشمی — سال بدونِ جداکننده، نمودارها/نقل‌قول/فوتر درست) ✅. ربط: DECISION-051، DECISION-052، DECISION-047، [[reference-share-card-sample]].
+
+---
+
+### DECISION-055 ✅ | پاک‌کردن چت همدم — watermark سروری (chatClearedAt)
+- **تاریخ:** ۲۰۲۶-۰۶-۰۴
+- **وضعیت:** ✅ تأیید شده (تأیید صریح مالک)
+- **زمینه:** وقتی کاربر چت را پاک می‌کند، باید پیام‌های قبلی را در هیچ سشنی (روز بعد، مرورگر دیگر) نبیند. اما داده‌ها باید در DB حفظ شوند (برای AI context و نگه‌داری داده کاربر).
+- **گزینه‌ها:**
+  - الف) فیلد `chatClearedAt DateTime?` روی User — watermark (پیام‌های قبلش پنهان)
+  - ب) expiresAt = now (داده از بین می‌رود پس از cleanup)
+  - ج) ذخیره در AiConfig (hacky)
+- **تصمیم:** گزینه (الف) — مالک گزینه migration را صریحاً تأیید کرد.
+- **دلیل:** داده‌ها کاملاً در DB محفوظ می‌مانند (برای AI context قابل استفاده در POST)؛ فقط GET آن‌ها را فیلتر می‌کند. این الگو دقیقاً مشابه `supportChatHiddenUntil` است که قبلاً در DECISION-049 برای پشتیبانی آنلاین پیاده شده.
+- **پیامدها:**
+  - `schema.prisma`: `chatClearedAt DateTime?` روی `User` اضافه شد + `db push` اعمال شد
+  - `POST /api/chat/clear`: watermark = `getNow()` روی User ثبت می‌کند
+  - `GET /api/chat/messages`: فقط پیام‌های `createdAt > chatClearedAt` برمی‌گرداند
+  - `ChatWindow.tsx`: clear button → API call + `setMessages([])` + `hasLoaded.current = false` (reload از سرور در باز شدن بعدی)
+  - داده‌های قبل از `chatClearedAt` همچنان در POST برای AI context در دسترس هستند (AI تاریخچه می‌خواند مستقیم از DB بدون فیلتر chatClearedAt)
+
+---
+
+---
+
+### DECISION-056 ✅ | آواتار تصویری + پیش‌فرض سبز + بازطراحی پروفایل کاربر
+- **تاریخ:** ۲۰۲۶-۰۶-۰۴
+- **وضعیت:** ✅ تأیید شده (تأیید صریح مالک در درخواست)
+- **زمینه:** صفحه پروفایل فاقد آپلود تصویر، رنگ پیش‌فرض آواتار تاریک (ink) بود، طراحی به‌اندازه کافی web-first و زیبا نبود.
+- **گزینه‌ها:**
+  - الف) ذخیره تصویر در فایل‌سیستم (نیاز به CDN/Storage)
+  - ب) ذخیره base64 JPEG فشرده در DB (ساده، بدون dependency خارجی)
+  - ج) استفاده از کتابخانه‌های crop مثل react-image-crop
+- **تصمیم:** گزینه (ب) — base64 JPEG ≤400px @ 0.78 quality (Canvas API بومی مرورگر، ~۲۰–۴۰KB حجم) + پیش‌فرض رنگ = sage (index 3) که با `--color-sage` برند همخوانی دارد.
+- **دلیل:** Canvas API بدون dependency خارجی، حجم معقول برای SQLite، کاربر UX ساده دارد (کلیک روی آواتار، انتخاب تصویر، فشرده‌سازی خودکار).
+- **پیامدها:**
+  - `schema.prisma`: `avatarImage String?` روی `User` و `AdminUser` + `@default(3)` روی `User.avatarPreset`
+  - `prisma db push` اعمال شد
+  - `/api/profile` و `/api/admin/profile`: اعتبارسنجی `avatarImage` (فرمت data:image + حداکثر ۱۵۰,۰۰۰ کاراکتر)
+  - `AvatarSection.tsx`: بازنویسی کامل — hover overlay + file input + Canvas compress + preview آنی + حذف عکس + گرید ۴ ستونی رنگ با «پیش‌فرض» زیر sage
+  - `PersonalInfoSection.tsx`: رفع نقض DECISION-053 (متن دکمه ثابت + Spinner)
+  - `settings/profile/page.tsx`: بازطراحی کامل — hero رنگی‌شده با رنگ آواتار کاربر + halo محیطی + نوار آمار (تعهدها/گزارش‌ها/روزهای همراهی) + گرید کارت‌های ساختاریافته
+  - `AdminProfileForm.tsx`: آپلود تصویر (همترازی ادمین↔پروژه)
+  - `admin/profile/page.tsx`: ارسال `avatarImage` به فرم
+- **محافظ:** فرمت اشتباه → 422؛ حجم بیش از ۱۵۰ کیلوکاراکتر → 422؛ حذف تصویر → null ذخیره می‌شود.
+- **خارج از scope:** crop/rotate تصویر در client (فاز بعدی اگر مالک بخواهد).
+
+---
+
+*هر تصمیم جدید باید به این فایل اضافه شود — نه به TASKS.md یا CLAUDE.md*

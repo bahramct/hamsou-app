@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>همسو — برای واقعی‌تر زندگی کردن</title>
+<meta name="description" content="یک تعهد در روز. یک پرسش آرام فردا. همسو، آینه‌ای برای صادق ماندن با خود.">
+
+<!-- TailwindCSS Play CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink:'#1A1A1F', charcoal:'#2E2C28', stone:'#6B6657',
+          fog:'#BDB6A7', bone:'#EAE4D6', paper:'#F5F2EB',
+          sage:'#7A8471', 'sage-deep':'#5C6555',
+          ember:'#C75D3C', mist:'#9BB4C7', gold:'#C19A4A',
+        },
+        fontFamily: { pelak: ['PelakFA','Tahoma','Segoe UI','sans-serif'] },
+      }
+    }
+  }
+</script>
+
+<style>
+/* ============================================================
+   Pelak FA — installed locally; paths intentionally preserved
+   ============================================================ */
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Thin.woff2') format('woff2'); font-weight:100; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-ExtraBold.woff2') format('woff2'); font-weight:800; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Black.woff2') format('woff2'); font-weight:900; font-style:normal; font-display:swap; }
+
+:root {
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657;
+  --fog:#BDB6A7; --bone:#EAE4D6; --paper:#F5F2EB;
+  --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --gold:#C19A4A;
+
+  --ease-calm: cubic-bezier(0.25,0.46,0.45,0.94);
+  --ease-expo: cubic-bezier(0.19,1,0.22,1);
+}
+
+*,*::before,*::after { box-sizing:border-box; }
+html { scroll-behavior:smooth; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+body {
+  font-family:'PelakFA',Tahoma,sans-serif;
+  background:var(--paper); color:var(--ink);
+  margin:0; min-height:100vh; overflow-x:hidden;
+  font-weight:400; line-height:1.65;
+  position:relative;
+}
+
+.fa-num { font-feature-settings:"ss01" on; }
+
+/* ===== Paper grain (film grain over everything) ===== */
+.grain::after {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.09 0 0 0 0 0.08 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity:0.45; mix-blend-mode:multiply;
+}
+
+/* ===== Ambient gradient blobs ===== */
+.bg-stage { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.blob { position:absolute; border-radius:50%; filter:blur(90px); will-change:transform; }
+.blob-1 { width:620px; height:620px; top:-160px; right:-160px; background:radial-gradient(circle, rgba(122,132,113,0.42), transparent 70%); animation:drift1 26s ease-in-out infinite; }
+.blob-2 { width:520px; height:520px; bottom:-180px; left:-140px; background:radial-gradient(circle, rgba(155,180,199,0.40), transparent 70%); animation:drift2 30s ease-in-out infinite; }
+.blob-3 { width:380px; height:380px; top:40%; left:55%; background:radial-gradient(circle, rgba(193,154,74,0.18), transparent 70%); animation:drift3 36s ease-in-out infinite; }
+.blob-4 { width:300px; height:300px; top:60%; right:20%; background:radial-gradient(circle, rgba(199,93,60,0.10), transparent 70%); animation:drift1 40s ease-in-out infinite reverse; }
+
+@keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,40px)} }
+@keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+@keyframes drift3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-20px,20px) scale(1.08)} }
+
+/* ===== Glass surfaces ===== */
+.glass {
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(20px) saturate(120%);
+  -webkit-backdrop-filter:blur(20px) saturate(120%);
+  border:1px solid rgba(26,26,31,0.06);
+  box-shadow:0 14px 40px rgba(46,44,40,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.glass-strong {
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(28px) saturate(120%);
+  -webkit-backdrop-filter:blur(28px) saturate(120%);
+  border:1px solid rgba(26,26,31,0.06);
+  box-shadow:0 22px 56px rgba(46,44,40,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.glass-tinted {
+  background:linear-gradient(135deg, rgba(122,132,113,0.10), rgba(155,180,199,0.06));
+  backdrop-filter:blur(22px) saturate(120%);
+  -webkit-backdrop-filter:blur(22px) saturate(120%);
+  border:1px solid rgba(122,132,113,0.18);
+  box-shadow:0 18px 44px rgba(46,44,40,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.glass-nav {
+  background:rgba(245,242,235,0.72);
+  backdrop-filter:blur(20px) saturate(120%);
+  -webkit-backdrop-filter:blur(20px) saturate(120%);
+  border-bottom:1px solid rgba(26,26,31,0.06);
+}
+
+/* ===== Calm animations ===== */
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes scaleSoft { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+@keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@keyframes shimmerLine { 0%{transform:scaleX(0); transform-origin:right;} 100%{transform:scaleX(1); transform-origin:right;} }
+
+.anim-fade-up { animation: fadeUp 600ms var(--ease-expo) both; }
+.anim-fade-in { animation: fadeIn 800ms var(--ease-calm) both; }
+.anim-scale { animation: scaleSoft 700ms var(--ease-expo) both; }
+.anim-line { animation: shimmerLine 900ms var(--ease-expo) both; }
+.floaty { animation: floaty 7s ease-in-out infinite; }
+
+.d-1 { animation-delay: 60ms } .d-2 { animation-delay: 140ms }
+.d-3 { animation-delay: 220ms } .d-4 { animation-delay: 300ms }
+.d-5 { animation-delay: 380ms } .d-6 { animation-delay: 460ms }
+.d-7 { animation-delay: 540ms } .d-8 { animation-delay: 620ms }
+
+/* Reveal-on-scroll utility */
+.reveal { opacity:0; transform:translateY(24px); transition: opacity 700ms var(--ease-expo), transform 700ms var(--ease-expo); }
+.reveal.in { opacity:1; transform:translateY(0); }
+
+/* Hover transitions (calm, no spring) */
+.hover-rise { transition: transform 350ms var(--ease-expo), box-shadow 350ms var(--ease-expo); }
+.hover-rise:hover { transform: translateY(-3px); box-shadow:0 26px 60px rgba(46,44,40,0.12); }
+
+/* ===== Buttons ===== */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:.625rem; padding:.95rem 1.75rem; border-radius:9999px; font-weight:500; font-size:15px; transition:all 350ms var(--ease-expo); white-space:nowrap; line-height:1; cursor:pointer; border:none; font-family:inherit; }
+.btn-primary { background:var(--sage); color:var(--paper); box-shadow:0 10px 28px rgba(122,132,113,0.32); }
+.btn-primary:hover { background:var(--sage-deep); box-shadow:0 14px 38px rgba(122,132,113,0.42); transform:translateY(-1px); }
+.btn-ghost { background:transparent; color:var(--ink); border:1px solid rgba(26,26,31,0.14); }
+.btn-ghost:hover { background:rgba(26,26,31,0.04); border-color:rgba(26,26,31,0.22); }
+.btn-glass { background:rgba(255,255,255,0.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border:1px solid rgba(26,26,31,0.08); color:var(--ink); }
+.btn-glass:hover { background:rgba(255,255,255,0.88); border-color:rgba(26,26,31,0.14); }
+.btn-lg { padding:1.125rem 2.25rem; font-size:16px; }
+
+.link-arrow { display:inline-flex; align-items:center; gap:.375rem; font-size:14px; color:var(--sage-deep); transition: gap 350ms var(--ease-expo); }
+.link-arrow:hover { gap:.625rem; color:var(--ink); }
+
+/* ===== Hairline ===== */
+.hr-line { height:1px; background:rgba(26,26,31,0.08); border:none; }
+
+/* ===== Soft pill (pre-headline) ===== */
+.pill { display:inline-flex; align-items:center; gap:.5rem; padding:.375rem .875rem; border-radius:9999px; background:rgba(255,255,255,0.6); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(26,26,31,0.06); font-size:13px; color:var(--stone); font-weight:400; }
+.pill-dot { width:6px; height:6px; border-radius:50%; background:var(--sage); }
+
+/* ===== Number badges (solution steps) ===== */
+.step-num { display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; border-radius:50%; background:linear-gradient(135deg,rgba(255,255,255,0.8),rgba(234,228,214,0.5)); border:1px solid rgba(26,26,31,0.08); font-weight:300; font-size:22px; color:var(--sage-deep); }
+
+/* ===== Difference table rows ===== */
+.diff-not { border-right:3px solid var(--ember); padding-right:1.25rem; }
+.diff-yes { border-right:3px solid var(--sage); padding-right:1.25rem; }
+
+/* ===== Quote mark decoration ===== */
+.qmark::before { content:"\201C"; font-size:96px; font-weight:300; color:var(--fog); line-height:0; vertical-align:-18px; margin-left:8px; opacity:0.6; }
+
+/* ===== Floating commitment card (hero) ===== */
+.float-card {
+  position:relative; padding:24px; border-radius:24px;
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(28px) saturate(130%);
+  -webkit-backdrop-filter:blur(28px) saturate(130%);
+  border:1px solid rgba(26,26,31,0.06);
+  box-shadow:0 30px 70px rgba(46,44,40,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+/* ===== Number ribbon ===== */
+.ribbon-num { font-weight:100; color:var(--fog); font-size:120px; line-height:1; letter-spacing:-0.04em; }
+
+/* ===== Smooth wave divider ===== */
+.wave-div {
+  display:block; width:100%; height:60px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
+  .floaty,.blob-1,.blob-2,.blob-3,.blob-4 { animation:none!important; }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns:1fr !important; }
+  .float-card { transform:none !important; }
+  .nav-links { display:none !important; }
+}
+</style>
+</head>
+
+<body class="grain">
+
+<!-- ===== Ambient background stage ===== -->
+<div class="bg-stage">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+  <div class="blob blob-4"></div>
+</div>
+
+<!-- ===== NAV ===== -->
+<nav class="glass-nav fixed top-0 inset-x-0 z-50 anim-fade-in">
+  <div class="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-3">
+      <img src="logo.png" alt="همسو" class="h-9 w-auto" style="filter:none;">
+    </a>
+    <div class="nav-links flex items-center gap-1">
+      <a href="#solution" class="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">چطور کار می‌کند</a>
+      <a href="#difference" class="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">آنچه نیست</a>
+      <a href="#testimonial" class="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">از کاربران</a>
+    </div>
+    <a href="#final" class="btn btn-primary" style="padding:.65rem 1.25rem; font-size:14px;">شروع کن</a>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="relative z-10 pt-32 pb-24 lg:pt-44 lg:pb-32 px-6 lg:px-10">
+  <div class="max-w-7xl mx-auto">
+    <div class="hero-grid grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-16 items-center">
+
+      <!-- LEFT: copy -->
+      <div>
+        <!-- pre-headline -->
+        <div class="anim-fade-up d-1 mb-8">
+          <span class="pill"><span class="pill-dot"></span>یک اپلیکیشن آرام برای توسعه فردی</span>
+        </div>
+
+        <!-- main headline -->
+        <h1 class="anim-fade-up d-2" style="font-weight:100; font-size:clamp(40px, 6.5vw, 92px); line-height:1.05; letter-spacing:-0.025em; color:var(--ink);">
+          هر روز یک <span style="font-style:italic; font-weight:300;">تعهد</span> به خودت.
+          <br>
+          فردا، یک <span style="font-style:italic; font-weight:300; color:var(--sage-deep);">پرسش آرام</span>.
+        </h1>
+
+        <!-- subheadline -->
+        <p class="anim-fade-up d-3 mt-8 max-w-xl text-stone" style="font-weight:300; font-size:19px; line-height:1.75;">
+          همسو فاصله میان حرف و عملت را، بدون فشار و بدون قضاوت، کم می‌کند. نه برای بیشتر انجام دادن — <span class="text-ink" style="font-weight:400;">برای واقعی‌تر زندگی کردن.</span>
+        </p>
+
+        <!-- CTAs -->
+        <div class="anim-fade-up d-4 mt-10 flex flex-wrap items-center gap-4">
+          <a href="#final" class="btn btn-primary btn-lg">
+            شروع کن — رایگان
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(-1);"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#solution" class="btn btn-ghost btn-lg">چطور کار می‌کند؟</a>
+        </div>
+
+        <!-- trust line -->
+        <div class="anim-fade-up d-5 mt-10 flex items-center gap-3 text-stone text-sm" style="font-weight:300;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>رایگان · بدون کارت بانکی · حریم خصوصی کامل</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: floating commitment cards -->
+      <div class="relative h-[520px] hidden lg:block">
+
+        <!-- top card -->
+        <div class="float-card floaty anim-scale d-3 absolute top-0 right-0 w-[340px]" style="animation-delay:0s, 220ms;">
+          <div class="flex items-center justify-between mb-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs" style="background:rgba(122,132,113,0.14); color:var(--sage-deep);">
+              <span style="width:6px; height:6px; border-radius:50%; background:var(--sage); display:inline-block;"></span>
+              انجام شد
+            </span>
+            <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۴</span>
+          </div>
+          <p style="font-weight:400; font-size:16px; line-height:1.7;">امروز نیم‌ساعت پیاده‌روی می‌کنم و گوشی را کنار می‌گذارم.</p>
+          <p class="mt-3 text-stone" style="font-weight:300; font-style:italic; font-size:13px; border-right:2px solid var(--fog); padding-right:10px;">واقعاً لذت بردم. فکر می‌کنم باید این کار را ادامه بدم.</p>
+        </div>
+
+        <!-- bottom card -->
+        <div class="float-card floaty anim-scale d-5 absolute bottom-0 left-0 w-[300px]" style="animation-delay:1.5s, 380ms; transform:rotate(-2deg);">
+          <div class="flex items-center justify-between mb-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs" style="background:rgba(199,93,60,0.10); color:#9b4a31;">
+              <span style="width:6px; height:6px; border-radius:50%; background:var(--ember); display:inline-block;"></span>
+              انجام نشد
+            </span>
+            <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۳</span>
+          </div>
+          <p style="font-weight:400; font-size:15px; line-height:1.7;">به یک دوست قدیمی زنگ می‌زنم.</p>
+          <p class="mt-3 text-stone" style="font-weight:300; font-style:italic; font-size:13px; border-right:2px solid var(--fog); padding-right:10px;">سرم شلوغ بود. شاید فردا.</p>
+        </div>
+
+        <!-- AI mirror reflection -->
+        <div class="glass-tinted rounded-3xl p-5 floaty anim-fade-up d-7 absolute" style="bottom:120px; right:40px; width:280px; animation-delay:3s, 540ms;">
+          <div class="flex items-center gap-2 mb-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--sage-deep);"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+            <span class="text-sage-deep" style="font-size:12px; font-weight:500;">پرسش آرام</span>
+          </div>
+          <p style="font-weight:300; font-size:14px; line-height:1.7; color:var(--charcoal);">«دیدم که این هفته سه بار به این تعهد بازگشتی. می‌خواهی کمی درباره‌اش بنویسی؟»</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile-only mini card -->
+    <div class="float-card lg:hidden mt-12 anim-scale d-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs" style="background:rgba(122,132,113,0.14); color:var(--sage-deep);">
+          <span style="width:6px; height:6px; border-radius:50%; background:var(--sage); display:inline-block;"></span>
+          انجام شد
+        </span>
+        <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۴</span>
+      </div>
+      <p style="font-weight:400; font-size:16px; line-height:1.7;">امروز نیم‌ساعت پیاده‌روی می‌کنم و گوشی را کنار می‌گذارم.</p>
+      <p class="mt-3 text-stone" style="font-weight:300; font-style:italic; font-size:13px; border-right:2px solid var(--fog); padding-right:10px;">واقعاً لذت بردم.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MANIFESTO QUOTE ===== -->
+<section class="relative z-10 px-6 lg:px-10 py-24 lg:py-32">
+  <div class="max-w-4xl mx-auto text-center reveal">
+    <div class="flex items-center justify-center gap-3 mb-8">
+      <span class="hr-line w-12 anim-line"></span>
+      <span class="text-stone text-xs uppercase tracking-[0.18em]" style="font-weight:500;">مانیفست</span>
+      <span class="hr-line w-12 anim-line"></span>
+    </div>
+    <blockquote style="font-weight:100; font-size:clamp(28px, 4.5vw, 52px); line-height:1.4; letter-spacing:-0.01em;">
+      «ما نیامده‌ایم که دغدغه‌های تو را
+      <br>
+      بیشتر کنیم. آمده‌ایم که تو را
+      <span style="font-style:italic; font-weight:300; color:var(--sage-deep);">واقعی‌تر</span>
+      کنیم.»
+    </blockquote>
+    <p class="mt-8 text-stone" style="font-weight:300; font-size:15px;">— مانیفست همسو</p>
+  </div>
+</section>
+
+<!-- ===== PROBLEM ===== -->
+<section class="relative z-10 px-6 lg:px-10 py-24 lg:py-28">
+  <div class="max-w-5xl mx-auto">
+    <div class="grid lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-20 items-start">
+      <div class="reveal">
+        <div class="ribbon-num fa-num">۰۱</div>
+        <span class="text-stone text-sm mt-2 block" style="font-weight:500; letter-spacing:.04em;">— مشکل</span>
+      </div>
+      <div class="reveal">
+        <h2 style="font-weight:300; font-size:clamp(30px, 4vw, 46px); line-height:1.25; letter-spacing:-0.01em;">
+          شاید مشکل تو،
+          <br>
+          <span style="font-style:italic; color:var(--sage-deep);">کمبود انگیزه</span>
+          نباشد.
+        </h2>
+        <div class="mt-8 space-y-5 text-stone max-w-xl" style="font-weight:300; font-size:17px; line-height:1.85;">
+          <p>صبح، با خودت قراری می‌گذاری. شب، فراموش کرده‌ای چه قراری بود. این فاصله‌ی کوچک، روز به روز بزرگ‌تر می‌شود. اعتمادت به کلمات خودت، آرام آرام فرو می‌ریزد.</p>
+          <p style="color:var(--ink); font-weight:400;">نه — این تنبلی نیست. این خستگی از زندگی در میان وعده‌هایی است که با هیچ‌کس، حتی خودت، در میانشان نگذاشته‌ای.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SOLUTION ===== -->
+<section id="solution" class="relative z-10 px-6 lg:px-10 py-24 lg:py-32">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <span class="hr-line w-10"></span>
+        <span class="text-stone text-xs uppercase tracking-[0.18em] fa-num" style="font-weight:500;">۰۲ — راه‌حل</span>
+        <span class="hr-line w-10"></span>
+      </div>
+      <h2 style="font-weight:300; font-size:clamp(30px, 4.2vw, 50px); line-height:1.2; letter-spacing:-0.01em;">
+        یک چرخه ساده.
+        <span style="font-style:italic; color:var(--sage-deep);">یک تمرین صادقانه.</span>
+      </h2>
+    </div>
+
+    <!-- 3 columns -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+
+      <!-- step 1 -->
+      <div class="glass rounded-3xl p-8 hover-rise reveal">
+        <div class="flex items-center justify-between mb-8">
+          <div class="step-num fa-num">۱</div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fog);"><path d="M11 4H4v16h16v-7"/><path d="m17 3 4 4-9 9H8v-4z"/></svg>
+        </div>
+        <h3 style="font-weight:400; font-size:24px; letter-spacing:-0.005em;">می‌نویسی</h3>
+        <p class="mt-4 text-stone" style="font-weight:300; font-size:15px; line-height:1.85;">
+          هر روز یک تعهد کوتاه به خودت. هر چه می‌خواهی — کاری، شخصی، احساسی. یک جمله، نه بیشتر.
+        </p>
+      </div>
+
+      <!-- step 2 -->
+      <div class="glass rounded-3xl p-8 hover-rise reveal" style="transition-delay:60ms;">
+        <div class="flex items-center justify-between mb-8">
+          <div class="step-num fa-num">۲</div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fog);"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
+        </div>
+        <h3 style="font-weight:400; font-size:24px; letter-spacing:-0.005em;">برمی‌گردی</h3>
+        <p class="mt-4 text-stone" style="font-weight:300; font-size:15px; line-height:1.85;">
+          فردا قبل از تعهد جدید، یک پرسش: دیروز چه شد؟ بدون نمره. بدون قضاوت. فقط بازتاب.
+        </p>
+      </div>
+
+      <!-- step 3 -->
+      <div class="glass rounded-3xl p-8 hover-rise reveal" style="transition-delay:120ms;">
+        <div class="flex items-center justify-between mb-8">
+          <div class="step-num fa-num">۳</div>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" style="color:var(--fog);"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg>
+        </div>
+        <h3 style="font-weight:400; font-size:24px; letter-spacing:-0.005em;">می‌بینی</h3>
+        <p class="mt-4 text-stone" style="font-weight:300; font-size:15px; line-height:1.85;">
+          هر هفته، یک تحلیل آرام از روند خودت. AI آینه می‌شود، نه قاضی. نه نصیحت — فقط دیدن.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== DIFFERENCE ===== -->
+<section id="difference" class="relative z-10 px-6 lg:px-10 py-24 lg:py-32">
+  <div class="max-w-6xl mx-auto">
+    <div class="max-w-3xl mb-16 reveal">
+      <div class="flex items-center gap-3 mb-6">
+        <span class="hr-line w-10"></span>
+        <span class="text-stone text-xs uppercase tracking-[0.18em] fa-num" style="font-weight:500;">۰۳ — تمایز</span>
+      </div>
+      <h2 style="font-weight:300; font-size:clamp(30px, 4.2vw, 50px); line-height:1.2; letter-spacing:-0.01em;">
+        آنچه در همسو
+        <em style="color:var(--ember); font-style:italic; font-weight:300;">نیست</em>،
+        مهم‌تر از آنچه هست.
+      </h2>
+    </div>
+
+    <div class="glass-strong rounded-3xl overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2">
+
+        <!-- NOT column -->
+        <div class="p-10 lg:p-12" style="border-bottom:1px solid rgba(26,26,31,0.06);">
+          <span class="text-ember text-xs uppercase tracking-[0.18em]" style="font-weight:600;">— نیست</span>
+          <ul class="mt-8 space-y-7">
+            <li class="diff-not reveal">
+              <div style="font-weight:500; font-size:18px;">استریک</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">چون یک روز شکستن نباید همه‌چیز را خراب کند.</p>
+            </li>
+            <li class="diff-not reveal">
+              <div style="font-weight:500; font-size:18px;">امتیاز و رتبه</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">چون رشد، با دیگران مقایسه نمی‌شود.</p>
+            </li>
+            <li class="diff-not reveal">
+              <div style="font-weight:500; font-size:18px;">نوتیفیکیشن مزاحم</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">چون صدای درون تو از زنگ ما مهم‌تر است.</p>
+            </li>
+            <li class="diff-not reveal">
+              <div style="font-weight:500; font-size:18px;">گیمیفیکیشن</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">چون زندگی واقعی، بازی نیست.</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- YES column -->
+        <div class="p-10 lg:p-12" style="background:linear-gradient(135deg, rgba(122,132,113,0.06), rgba(122,132,113,0.02));">
+          <span class="text-sage-deep text-xs uppercase tracking-[0.18em]" style="font-weight:600;">— هست</span>
+          <ul class="mt-8 space-y-7">
+            <li class="diff-yes reveal">
+              <div style="font-weight:500; font-size:18px;">یک تعهد در روز</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">چون سادگی، خودش یک تصمیم است.</p>
+            </li>
+            <li class="diff-yes reveal">
+              <div style="font-weight:500; font-size:18px;">AI به‌عنوان آینه</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">نه نصیحت‌گر. نه کوچ. فقط بازتاب.</p>
+            </li>
+            <li class="diff-yes reveal">
+              <div style="font-weight:500; font-size:18px;">حریم خصوصی کامل</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">داده‌های تو نزد تو می‌مانند.</p>
+            </li>
+            <li class="diff-yes reveal">
+              <div style="font-weight:500; font-size:18px;">سکوت، نه فشار</div>
+              <p class="mt-1 text-stone text-sm" style="font-weight:300; line-height:1.7;">هر وقت آماده بودی — همسو منتظر است.</p>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TESTIMONIAL ===== -->
+<section id="testimonial" class="relative z-10 px-6 lg:px-10 py-24 lg:py-32">
+  <div class="max-w-3xl mx-auto text-center reveal">
+    <div class="flex items-center justify-center gap-3 mb-8">
+      <span class="hr-line w-10"></span>
+      <span class="text-stone text-xs uppercase tracking-[0.18em] fa-num" style="font-weight:500;">۰۴ — از کاربران</span>
+      <span class="hr-line w-10"></span>
+    </div>
+    <p class="qmark" style="font-weight:300; font-style:italic; font-size:clamp(22px, 3.2vw, 34px); line-height:1.6; color:var(--ink); letter-spacing:-0.005em;">
+      اولین اپلیکیشنی است که هر روز باز می‌کنم، بدون اینکه احساس کنم چیزی از من می‌خواهد.
+    </p>
+    <div class="mt-10 flex items-center justify-center gap-4">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background:var(--bone); color:var(--sage-deep); font-weight:300; font-size:18px;">س</div>
+      <div class="text-right">
+        <div style="font-weight:500;">سارا، ۳۲ ساله</div>
+        <div class="text-stone text-sm" style="font-weight:300;">طراح UX — تهران</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section id="final" class="relative z-10 px-6 lg:px-10 py-24 lg:py-32">
+  <div class="max-w-5xl mx-auto reveal">
+    <div class="glass-tinted rounded-[40px] p-12 lg:p-20 text-center relative overflow-hidden">
+      <!-- decorative -->
+      <div style="position:absolute; top:-40px; left:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(122,132,113,0.35), transparent 70%); filter:blur(30px);"></div>
+      <div style="position:absolute; bottom:-30px; right:-30px; width:160px; height:160px; border-radius:50%; background:radial-gradient(circle, rgba(155,180,199,0.30), transparent 70%); filter:blur(30px);"></div>
+
+      <div class="relative">
+        <h2 style="font-weight:100; font-size:clamp(34px, 5.5vw, 64px); line-height:1.2; letter-spacing:-0.02em;">
+          امروز یک جمله بنویس.
+          <br>
+          ببین <span style="font-style:italic; color:var(--sage-deep);">فردا</span> چه می‌گویی.
+        </h2>
+        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#" class="btn btn-primary btn-lg">
+            شروع کن
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="transform:scaleX(-1);"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+        <p class="mt-6 text-stone" style="font-weight:300; font-size:14px;">رایگان. بدون کارت بانکی. بدون نیاز به ایمیل کاری.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="relative z-10 px-6 lg:px-10 pt-16 pb-10" style="border-top:1px solid rgba(26,26,31,0.06);">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+      <div>
+        <img src="logo.png" alt="همسو" class="h-10 w-auto mb-4">
+        <p class="text-stone" style="font-weight:300; font-size:14px; line-height:1.7; max-width:280px;">
+          آینه‌ای آرام برای کلماتت. برای واقعی‌تر زندگی کردن.
+        </p>
+      </div>
+      <div>
+        <div class="text-fog text-xs uppercase tracking-[0.18em] mb-4" style="font-weight:600;">محصول</div>
+        <ul class="space-y-3 text-stone text-sm" style="font-weight:300;">
+          <li><a href="#solution" class="hover:text-ink transition-colors">چطور کار می‌کند</a></li>
+          <li><a href="#difference" class="hover:text-ink transition-colors">آنچه همسو نیست</a></li>
+          <li><a href="#" class="hover:text-ink transition-colors">سوالات رایج</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="text-fog text-xs uppercase tracking-[0.18em] mb-4" style="font-weight:600;">برند</div>
+        <ul class="space-y-3 text-stone text-sm" style="font-weight:300;">
+          <li><a href="#" class="hover:text-ink transition-colors">درباره ما</a></li>
+          <li><a href="#" class="hover:text-ink transition-colors">حریم خصوصی</a></li>
+          <li><a href="#" class="hover:text-ink transition-colors">تماس آرام</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="hr-line mb-6"></div>
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <p class="text-fog text-xs" style="font-weight:300;">© ۱۴۰۵ همسو · کلیه حقوق محفوظ است.</p>
+      <p class="text-fog text-xs" style="font-weight:300; font-style:italic;">«آنچه می‌گویی، همان شو.»</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Reveal-on-scroll
+  document.addEventListener('DOMContentLoaded', () => {
+    const reveals = document.querySelectorAll('.reveal');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          obs.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+    reveals.forEach(el => obs.observe(el));
+
+    // Subtle parallax on background blobs based on scroll
+    const blobs = document.querySelectorAll('.blob');
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const y = window.scrollY;
+          blobs.forEach((b, i) => {
+            const dir = i % 2 === 0 ? 1 : -1;
+            b.style.transform = `translateY(${y * 0.08 * dir}px)`;
+          });
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  });
+</script>
+
+</body>
+</html>

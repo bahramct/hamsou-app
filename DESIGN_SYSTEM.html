@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>همسو — سیستم طراحی برند</title>
+
+<!-- TailwindCSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          // ---- Hamso Brand Palette (from brand book §12) ----
+          ink:      '#1A1A1F',
+          charcoal: '#2E2C28',
+          stone:    '#6B6657',
+          fog:      '#BDB6A7',
+          bone:     '#EAE4D6',
+          paper:    '#F5F2EB',
+          // Accents (5% rule)
+          sage:     '#7A8471',
+          'sage-deep': '#5C6555',
+          ember:    '#C75D3C',
+          mist:     '#9BB4C7',
+          gold:     '#C19A4A',
+        },
+        fontFamily: {
+          pelak: ['PelakFA', 'Tahoma', 'Segoe UI', 'sans-serif'],
+        },
+        boxShadow: {
+          'paper-sm': '0 1px 2px rgba(46,44,40,0.04), 0 1px 1px rgba(46,44,40,0.02)',
+          'paper':    '0 4px 16px rgba(46,44,40,0.06), 0 1px 2px rgba(46,44,40,0.03)',
+          'paper-md': '0 8px 28px rgba(46,44,40,0.08), 0 2px 4px rgba(46,44,40,0.04)',
+          'paper-lg': '0 18px 50px rgba(46,44,40,0.10), 0 4px 8px rgba(46,44,40,0.05)',
+          'paper-xl': '0 30px 80px rgba(46,44,40,0.14), 0 8px 14px rgba(46,44,40,0.06)',
+          'glass':    '0 12px 40px rgba(46,44,40,0.08), inset 0 1px 0 rgba(255,255,255,0.55)',
+          'glass-lg': '0 24px 60px rgba(46,44,40,0.10), inset 0 1px 0 rgba(255,255,255,0.6)',
+          'sage-glow':'0 14px 40px rgba(122,132,113,0.28)',
+        },
+        transitionTimingFunction: {
+          'calm':  'cubic-bezier(0.25,0.46,0.45,0.94)',
+          'expo':  'cubic-bezier(0.19,1,0.22,1)',
+        },
+        transitionDuration: {
+          '350': '350ms',
+          '450': '450ms',
+          '700': '700ms',
+        },
+      }
+    }
+  }
+</script>
+
+<style>
+/* ============================================================
+   Pelak FA — locally installed, do NOT change paths
+   ============================================================ */
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Thin.woff2') format('woff2'); font-weight:100; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2') format('woff2'); font-weight:300; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2') format('woff2'); font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2') format('woff2'); font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2') format('woff2'); font-weight:600; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2') format('woff2'); font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-ExtraBold.woff2') format('woff2'); font-weight:800; font-style:normal; font-display:swap; }
+@font-face { font-family:'PelakFA'; src:url('Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Black.woff2') format('woff2'); font-weight:900; font-style:normal; font-display:swap; }
+
+:root {
+  /* Color tokens — brand book §12 (Warm Paper system) */
+  --ink:#1A1A1F;        --charcoal:#2E2C28;    --stone:#6B6657;
+  --fog:#BDB6A7;        --bone:#EAE4D6;        --paper:#F5F2EB;
+  --sage:#7A8471;       --sage-deep:#5C6555;
+  --ember:#C75D3C;      --mist:#9BB4C7;        --gold:#C19A4A;
+
+  /* Glass tokens — light/warm glass for paper backgrounds */
+  --glass-bg-1: rgba(255,255,255,0.55);
+  --glass-bg-2: rgba(255,255,255,0.72);
+  --glass-bg-3: rgba(255,255,255,0.88);
+  --glass-bg-tint-sage: rgba(122,132,113,0.08);
+  --glass-border: 1px solid rgba(26,26,31,0.06);
+  --glass-border-strong: 1px solid rgba(26,26,31,0.10);
+  --glass-inner-light: inset 0 1px 0 rgba(255,255,255,0.6);
+
+  /* Motion — calm only (brand principle #3) */
+  --ease-calm: cubic-bezier(0.25,0.46,0.45,0.94);
+  --ease-expo: cubic-bezier(0.19,1,0.22,1);
+  --dur-base: 350ms;
+  --dur-slow: 500ms;
+}
+
+html { scroll-behavior:smooth; -webkit-font-smoothing:antialiased; }
+body {
+  font-family:'PelakFA',Tahoma,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-weight:400;
+  letter-spacing:0;
+}
+
+/* Persian digit feature (use ss01 if font supports it) */
+.fa-num { font-feature-settings:"ss01" on; }
+
+/* ===== Paper grain texture — soft film grain ===== */
+.grain::before {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.10 0 0 0 0 0.09 0 0 0 0 0.08 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  opacity:0.5; mix-blend-mode:multiply;
+}
+
+/* ===== Glass surfaces ===== */
+.glass        { background:var(--glass-bg-1); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border:var(--glass-border); box-shadow:0 12px 40px rgba(46,44,40,0.08), var(--glass-inner-light); }
+.glass-strong { background:var(--glass-bg-2); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); border:var(--glass-border); box-shadow:0 18px 50px rgba(46,44,40,0.10), var(--glass-inner-light); }
+.glass-solid  { background:var(--glass-bg-3); backdrop-filter:blur(36px); -webkit-backdrop-filter:blur(36px); border:var(--glass-border-strong); box-shadow:0 24px 60px rgba(46,44,40,0.12), var(--glass-inner-light); }
+.glass-sage   { background:linear-gradient(135deg,rgba(122,132,113,0.10),rgba(122,132,113,0.04)); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(122,132,113,0.20); }
+
+/* ===== Calm motion utilities ===== */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes drift   { 0%{transform:translate3d(0,0,0) rotate(0deg)} 50%{transform:translate3d(20px,-30px,0) rotate(8deg)} 100%{transform:translate3d(0,0,0) rotate(0deg)} }
+.anim-fade-up { animation: fadeUp 500ms var(--ease-expo) both; }
+.anim-fade-in { animation: fadeIn 700ms var(--ease-calm) both; }
+.delay-1 { animation-delay:80ms } .delay-2 { animation-delay:160ms }
+.delay-3 { animation-delay:240ms } .delay-4 { animation-delay:320ms }
+.delay-5 { animation-delay:400ms } .delay-6 { animation-delay:480ms }
+
+/* gentle hover lift — brand rule: no bounce, no spring */
+.hover-rise { transition: transform 350ms var(--ease-expo), box-shadow 350ms var(--ease-expo); }
+.hover-rise:hover { transform: translateY(-2px); box-shadow: 0 20px 50px rgba(46,44,40,0.10); }
+
+/* ===== Background ambient blobs (low opacity, large, soft) ===== */
+.amb { position:fixed; border-radius:50%; filter:blur(80px); opacity:0.45; z-index:0; pointer-events:none; }
+
+/* ===== Hairline separators ===== */
+.hairline { height:1px; background:rgba(26,26,31,0.08); border:0; }
+
+/* ===== Code chip ===== */
+.code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px; color:var(--stone); background:rgba(26,26,31,0.04); padding:2px 8px; border-radius:6px; direction:ltr; display:inline-block; }
+
+/* ===== Buttons (brand-aligned) ===== */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.875rem 1.5rem; border-radius:9999px; font-weight:500; font-size:15px; transition:all 350ms var(--ease-expo); white-space:nowrap; line-height:1; cursor:pointer; }
+.btn-primary { background:var(--sage); color:var(--paper); box-shadow:0 8px 24px rgba(122,132,113,0.30); }
+.btn-primary:hover { background:var(--sage-deep); box-shadow:0 12px 32px rgba(122,132,113,0.40); transform:translateY(-1px); }
+.btn-ghost   { background:transparent; color:var(--ink); border:1px solid rgba(26,26,31,0.14); }
+.btn-ghost:hover { background:rgba(26,26,31,0.04); border-color:rgba(26,26,31,0.22); }
+.btn-glass   { background:var(--glass-bg-2); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:var(--glass-border-strong); color:var(--ink); }
+.btn-glass:hover { background:var(--glass-bg-3); }
+.btn-text    { background:transparent; color:var(--sage-deep); padding-left:0; padding-right:0; }
+.btn-text:hover { color:var(--ink); }
+.btn-sm { padding:.55rem 1rem; font-size:13px; }
+.btn-lg { padding:1.125rem 2rem; font-size:16px; }
+
+/* ===== Inputs ===== */
+.field { width:100%; background:var(--glass-bg-2); border:1px solid rgba(26,26,31,0.08); border-radius:14px; padding:14px 18px; font-family:inherit; font-size:15px; color:var(--ink); transition:all 350ms var(--ease-expo); resize:none; }
+.field:focus { outline:none; border-color:rgba(122,132,113,0.45); background:#fff; box-shadow:0 0 0 4px rgba(122,132,113,0.08); }
+.field::placeholder { color:var(--fog); }
+
+/* ===== Badges ===== */
+.badge { display:inline-flex; align-items:center; gap:.375rem; padding:.25rem .75rem; border-radius:9999px; font-size:12px; font-weight:500; line-height:1; }
+.badge-sage   { background:rgba(122,132,113,0.14); color:var(--sage-deep); }
+.badge-ember  { background:rgba(199,93,60,0.12); color:#9b4a31; }
+.badge-mist   { background:rgba(155,180,199,0.18); color:#5a7385; }
+.badge-gold   { background:rgba(193,154,74,0.14); color:#8a6b2f; }
+.badge-paper  { background:rgba(26,26,31,0.05); color:var(--stone); }
+
+/* ===== Doc sidebar nav ===== */
+.nav-link { display:flex; align-items:center; gap:.625rem; padding:.5rem .875rem; border-radius:10px; color:var(--stone); font-size:13px; font-weight:500; transition:all 200ms var(--ease-calm); cursor:pointer; }
+.nav-link:hover { color:var(--ink); background:rgba(26,26,31,0.04); }
+.nav-link.active { color:var(--sage-deep); background:rgba(122,132,113,0.12); }
+.nav-link .dot { width:5px; height:5px; border-radius:50%; background:currentColor; opacity:.4; }
+.nav-link.active .dot { opacity:1; }
+.nav-group-title { font-size:11px; font-weight:600; letter-spacing:.08em; color:var(--fog); text-transform:uppercase; padding:.5rem .875rem; margin-top:1rem; }
+
+/* Token tables */
+.tok-table { width:100%; border-collapse:collapse; font-size:13px; }
+.tok-table th,.tok-table td { padding:14px 16px; text-align:right; border-bottom:1px solid rgba(26,26,31,0.06); }
+.tok-table th { color:var(--fog); font-weight:600; font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+.tok-table td { color:var(--stone); }
+.tok-name { font-family:ui-monospace,monospace; font-size:12px; color:var(--sage-deep); direction:ltr; text-align:left; }
+
+/* Commitment card variant (brand component) */
+.entry-card {
+  background:var(--glass-bg-2); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:var(--glass-border); border-radius:24px; padding:24px;
+  box-shadow:0 14px 40px rgba(46,44,40,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+  transition:all 350ms var(--ease-expo);
+}
+.entry-card:hover { transform:translateY(-2px); box-shadow:0 20px 50px rgba(46,44,40,0.10); }
+.entry-card .border-right-mark { border-right:2px solid var(--fog); padding-right:14px; }
+
+/* Toggle status dot */
+.dot-status { width:8px; height:8px; border-radius:50%; }
+.dot-done   { background:var(--sage); box-shadow:0 0 0 4px rgba(122,132,113,0.18); }
+.dot-not    { background:var(--ember); box-shadow:0 0 0 4px rgba(199,93,60,0.14); }
+
+/* ===== Color swatch ===== */
+.swatch { border:1px solid rgba(26,26,31,0.06); border-radius:14px; padding:14px; background:rgba(255,255,255,0.6); display:flex; flex-direction:column; gap:10px; transition:all 350ms var(--ease-expo); }
+.swatch:hover { background:#fff; box-shadow:0 8px 24px rgba(46,44,40,0.06); transform:translateY(-1px); }
+.swatch-tile { height:90px; border-radius:10px; border:1px solid rgba(26,26,31,0.04); }
+
+/* ===== Component preview canvas ===== */
+.canvas { background:rgba(255,255,255,0.45); border:1px solid rgba(26,26,31,0.06); border-radius:20px; padding:32px; display:flex; flex-wrap:wrap; gap:18px; align-items:center; }
+.canvas.col { flex-direction:column; align-items:stretch; gap:14px; }
+.canvas.warmer { background:linear-gradient(135deg,rgba(255,255,255,0.6),rgba(234,228,214,0.45)); }
+
+/* Smooth-rendered border */
+.b-hair { border:1px solid rgba(26,26,31,0.08); }
+
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .ds-sidebar { display:none; }
+  .ds-main { margin-right:0!important; max-width:100%!important; padding:24px 18px!important; }
+}
+</style>
+</head>
+
+<body class="grain font-pelak text-ink bg-paper relative min-h-screen overflow-x-hidden">
+
+<!-- ===== Ambient background blobs ===== -->
+<div class="amb" style="width:520px; height:520px; top:-180px; left:-160px; background:radial-gradient(circle, rgba(122,132,113,0.35), transparent 70%);"></div>
+<div class="amb" style="width:480px; height:480px; bottom:-200px; right:-140px; background:radial-gradient(circle, rgba(155,180,199,0.30), transparent 70%);"></div>
+<div class="amb" style="width:380px; height:380px; top:40%; left:50%; transform:translate(-50%,-50%); background:radial-gradient(circle, rgba(193,154,74,0.10), transparent 70%); opacity:0.35;"></div>
+
+<!-- ===== Layout ===== -->
+<div class="flex min-h-screen relative z-[2]">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="ds-sidebar fixed top-0 right-0 h-screen w-[260px] z-30 p-6 overflow-y-auto" style="background:linear-gradient(180deg, rgba(245,242,235,0.85), rgba(234,228,214,0.65)); backdrop-filter:blur(20px); border-left:1px solid rgba(26,26,31,0.06);">
+
+    <!-- Brand mark -->
+    <div class="flex items-center gap-3 pb-6 mb-6 border-b" style="border-color:rgba(26,26,31,0.06);">
+      <div class="w-10 h-10 rounded-2xl flex items-center justify-center" style="background:var(--ink); color:var(--paper);">
+        <span style="font-weight:300; font-size:22px;">ه</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-medium text-ink" style="font-size:16px;">همسو</span>
+        <span class="text-stone" style="font-size:11px;">سیستم طراحی · ۱.۰</span>
+      </div>
+    </div>
+
+    <nav class="flex flex-col gap-1">
+      <span class="nav-group-title">شروع</span>
+      <a class="nav-link active" href="#brand"><span class="dot"></span>جوهر برند</a>
+      <a class="nav-link" href="#voice"><span class="dot"></span>صدا و لحن</a>
+
+      <span class="nav-group-title">پایه‌ها</span>
+      <a class="nav-link" href="#colors"><span class="dot"></span>پالت رنگی</a>
+      <a class="nav-link" href="#typography"><span class="dot"></span>تایپوگرافی</a>
+      <a class="nav-link" href="#spacing"><span class="dot"></span>فاصله و شعاع</a>
+      <a class="nav-link" href="#shadow"><span class="dot"></span>سایه و عمق</a>
+
+      <span class="nav-group-title">زبان بصری</span>
+      <a class="nav-link" href="#glass"><span class="dot"></span>شیشه گرم</a>
+      <a class="nav-link" href="#motion"><span class="dot"></span>حرکت آرام</a>
+      <a class="nav-link" href="#icons"><span class="dot"></span>آیکون‌ها</a>
+
+      <span class="nav-group-title">المان‌ها</span>
+      <a class="nav-link" href="#buttons"><span class="dot"></span>دکمه‌ها</a>
+      <a class="nav-link" href="#inputs"><span class="dot"></span>فیلدهای ورودی</a>
+      <a class="nav-link" href="#badges"><span class="dot"></span>برچسب‌ها</a>
+
+      <span class="nav-group-title">الگوهای همسو</span>
+      <a class="nav-link" href="#commit"><span class="dot"></span>کارت تعهد</a>
+      <a class="nav-link" href="#history"><span class="dot"></span>تاریخچه</a>
+      <a class="nav-link" href="#report"><span class="dot"></span>گزارش هفتگی</a>
+
+      <span class="nav-group-title">قواعد بازدارنده</span>
+      <a class="nav-link" href="#not"><span class="dot"></span>آنچه همسو نیست</a>
+    </nav>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="ds-main flex-1 mr-[260px] max-w-[calc(100%-260px)] px-12 py-14 flex flex-col gap-24">
+
+    <!-- ===== Brand Essence ===== -->
+    <section id="brand" class="anim-fade-up">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="hairline w-12"></span>
+        <span class="text-stone text-sm" style="letter-spacing:.04em;">کتاب برند · نسخه ۱.۰ · ۱۴۰۵</span>
+      </div>
+      <h1 class="font-pelak" style="font-weight:100; font-size:clamp(48px,7vw,96px); line-height:1.05; letter-spacing:-0.02em;">
+        سیستم طراحی <span class="italic font-light" style="color:var(--sage-deep);">همسو</span>
+      </h1>
+      <p class="mt-6 max-w-2xl text-stone" style="font-weight:300; font-size:19px; line-height:1.75;">
+        این مرجع، توکن‌ها و کامپوننت‌های برند را بازنمایی می‌کند — با وفاداری به فلسفه‌ی هسته‌ای: <em>سکوت بصری</em>، صداقت آرام، و فضای منفی به‌عنوان عنصر طراحی.
+      </p>
+
+      <!-- manifesto card -->
+      <div class="mt-12 glass-strong rounded-3xl p-10 max-w-3xl anim-fade-up delay-2">
+        <span class="badge badge-sage mb-6">مانیفست</span>
+        <p class="font-pelak" style="font-weight:300; font-size:26px; line-height:1.7;">
+          ما نیامده‌ایم که دغدغه‌های تو را بیشتر کنیم. آمده‌ایم که تو را <span style="font-style:italic; color:var(--sage-deep);">واقعی‌تر</span> کنیم.
+        </p>
+        <p class="mt-5 text-stone" style="font-weight:300; font-size:15px; line-height:1.85;">
+          در جهانی که هر اپلیکیشن، هر یادآور، هر نوتیفیکیشن از تو می‌خواهد بیشتر بدوی، بیشتر بسازی، بیشتر باشی — ما یک پیشنهاد دیگر داریم: کمتر، اما راست‌تر.
+        </p>
+      </div>
+
+      <!-- pillars -->
+      <div class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4 anim-fade-up delay-3">
+        <div class="glass rounded-2xl p-5">
+          <div class="text-fog text-xs mb-2" style="letter-spacing:.06em;">جوهر</div>
+          <div style="font-weight:400; font-size:17px;">صداقت آرام با خود</div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="text-fog text-xs mb-2" style="letter-spacing:.06em;">آرکتایپ</div>
+          <div style="font-weight:400; font-size:17px;">حکیم آرام</div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="text-fog text-xs mb-2" style="letter-spacing:.06em;">تمایز</div>
+          <div style="font-weight:400; font-size:17px;">یک تعهد در روز</div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <div class="text-fog text-xs mb-2" style="letter-spacing:.06em;">شعار</div>
+          <div style="font-weight:400; font-size:17px; font-style:italic;">برای واقعی‌تر زندگی کردن</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Voice ===== -->
+    <section id="voice" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۱</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">صدا و لحن</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">آرام، نه افسرده. بالغ، نه نصیحت‌گر. مشخص، نه شعاری. ایرانی، نه ترجمه‌شده.</p>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glass rounded-2xl p-7">
+          <div class="text-stone text-sm mb-2" style="font-weight:500;">به جای:</div>
+          <p class="text-fog line-through mb-5" style="font-weight:300;">«روز دیگری برای پیشرفت!»</p>
+          <div class="text-sage-deep text-sm mb-2" style="font-weight:500;">می‌گوییم:</div>
+          <p style="font-weight:400; font-size:20px;">«صبح بخیر.»</p>
+        </div>
+        <div class="glass rounded-2xl p-7">
+          <div class="text-stone text-sm mb-2" style="font-weight:500;">به جای:</div>
+          <p class="text-fog line-through mb-5" style="font-weight:300;">«استریک ۷ روزه! عالی!»</p>
+          <div class="text-sage-deep text-sm mb-2" style="font-weight:500;">می‌گوییم:</div>
+          <p style="font-weight:400; font-size:20px;">«<span class="fa-num">هفت</span> روز است که برمی‌گردی. این خودش یک چیز است.»</p>
+        </div>
+        <div class="glass rounded-2xl p-7">
+          <div class="text-stone text-sm mb-2" style="font-weight:500;">به جای:</div>
+          <p class="text-fog line-through mb-5" style="font-weight:300;">«شکست خوردی، دوباره تلاش کن!»</p>
+          <div class="text-sage-deep text-sm mb-2" style="font-weight:500;">می‌گوییم:</div>
+          <p style="font-weight:400; font-size:20px;">«دیروز انجام نشد. می‌خواهی کمی درباره‌اش بنویسی؟»</p>
+        </div>
+        <div class="glass rounded-2xl p-7">
+          <div class="text-stone text-sm mb-2" style="font-weight:500;">به جای:</div>
+          <p class="text-fog line-through mb-5" style="font-weight:300;">«هم‌اکنون شروع کنید!»</p>
+          <div class="text-sage-deep text-sm mb-2" style="font-weight:500;">می‌گوییم:</div>
+          <p style="font-weight:400; font-size:20px;">«هر وقت آماده بودی.»</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== COLORS ===== -->
+    <section id="colors" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۲</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">پالت رنگی</h2>
+        <p class="mt-3 text-stone max-w-3xl" style="font-weight:300; font-size:16px; line-height:1.8;">
+          مرجع پالت، کاغذِ کهنه است نه صفحه دیجیتال. قانون <span class="code">۸۰ / ۱۵ / ۵</span>: هشتاد درصد سفید/خاکی، پانزده درصد متن تیره، فقط پنج درصد آکسنت.
+        </p>
+      </header>
+
+      <h3 class="text-stone uppercase tracking-widest text-xs mb-4" style="font-weight:600;">پالت اصلی (Primary)</h3>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        <div class="swatch"><div class="swatch-tile" style="background:#1A1A1F;"></div><div><div style="font-weight:500;">Deep Ink</div><div class="code">#1A1A1F</div><div class="text-stone text-xs mt-1">متن اصلی، لوگو</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#2E2C28;"></div><div><div style="font-weight:500;">Charcoal</div><div class="code">#2E2C28</div><div class="text-stone text-xs mt-1">سطوح تیره</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#6B6657;"></div><div><div style="font-weight:500;">Stone</div><div class="code">#6B6657</div><div class="text-stone text-xs mt-1">متن ثانوی</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#BDB6A7;"></div><div><div style="font-weight:500;">Fog</div><div class="code">#BDB6A7</div><div class="text-stone text-xs mt-1">تقسیم‌گرها</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#EAE4D6;"></div><div><div style="font-weight:500;">Bone</div><div class="code">#EAE4D6</div><div class="text-stone text-xs mt-1">پس‌زمینه ثانوی</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#F5F2EB;"></div><div><div style="font-weight:500;">Warm Paper</div><div class="code">#F5F2EB</div><div class="text-stone text-xs mt-1">پس‌زمینه اصلی</div></div></div>
+      </div>
+
+      <h3 class="text-stone uppercase tracking-widest text-xs mb-4" style="font-weight:600;">پالت آکسنت (محدود — ۵٪)</h3>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="swatch"><div class="swatch-tile" style="background:#7A8471;"></div><div><div style="font-weight:500;">Sage</div><div class="code">#7A8471</div><div class="text-stone text-xs mt-1">تایید، AI، CTA</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#5C6555;"></div><div><div style="font-weight:500;">Sage Deep</div><div class="code">#5C6555</div><div class="text-stone text-xs mt-1">هاور سج</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#9BB4C7;"></div><div><div style="font-weight:500;">Mist Sky</div><div class="code">#9BB4C7</div><div class="text-stone text-xs mt-1">تأملی، بازتابی</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#C19A4A;"></div><div><div style="font-weight:500;">Antique Gold</div><div class="code">#C19A4A</div><div class="text-stone text-xs mt-1">هشدار آرام</div></div></div>
+        <div class="swatch"><div class="swatch-tile" style="background:#C75D3C;"></div><div><div style="font-weight:500;">Ember</div><div class="code">#C75D3C</div><div class="text-stone text-xs mt-1">لحظات احساسی نادر</div></div></div>
+      </div>
+
+      <div class="mt-10 glass rounded-2xl p-6 max-w-3xl" style="border-right:3px solid var(--gold);">
+        <div class="text-gold text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">یادآور</div>
+        <p class="text-stone" style="font-weight:300; line-height:1.8;">
+          نسخه‌ی دیجیتال محصول (UI درون اپ) می‌تواند از پالت dark موجود استفاده کند، اما همه‌ی ارتباطات برند خارج از محصول — لندینگ، ایمیل، شبکه‌ها، چاپ — با همین پالت گرم اجرا می‌شوند.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===== TYPOGRAPHY ===== -->
+    <section id="typography" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۳</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">تایپوگرافی — پلک</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">یک فونت، چندین صدا. تیترهای بزرگ با وزن <span class="code">Thin</span> یا <span class="code">Light</span> — این، انتخاب جسورانه‌ای است که سکون را بصری می‌کند.</p>
+      </header>
+
+      <!-- Hierarchy preview -->
+      <div class="canvas col">
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Display · 100</span><span style="font-weight:100; font-size:64px; letter-spacing:-0.02em; line-height:1;">برای واقعی‌تر زندگی کردن</span></div>
+        <div class="hairline"></div>
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">H1 · 300</span><span style="font-weight:300; font-size:42px;">هر روز یک تعهد به خودت</span></div>
+        <div class="hairline"></div>
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">H2 · 400</span><span style="font-weight:400; font-size:28px;">فردا، یک پرسش آرام</span></div>
+        <div class="hairline"></div>
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">H3 · 500</span><span style="font-weight:500; font-size:19px;">یک چرخه ساده. یک تمرین صادقانه.</span></div>
+        <div class="hairline"></div>
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Body · 400</span><span style="font-weight:400; font-size:16px; line-height:1.7;">همسو فاصله میان حرف و عملت را، بدون فشار و بدون قضاوت، کم می‌کند.</span></div>
+        <div class="hairline"></div>
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Caption · 300</span><span style="font-weight:300; font-size:13px; color:var(--stone);">۱۴۰۴/۰۳/۰۴ — یک‌شنبه</span></div>
+        <div class="hairline"></div>
+        <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Quote · 300i</span><span style="font-weight:300; font-style:italic; font-size:22px; line-height:1.6; color:var(--sage-deep);">«آنچه می‌گویی، همان شو.»</span></div>
+      </div>
+
+      <!-- Weight ladder -->
+      <div class="mt-10">
+        <h4 class="text-stone text-xs uppercase tracking-widest mb-4" style="font-weight:600;">وزن‌های فونت پلک</h4>
+        <div class="canvas col">
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Thin 100</span><span style="font-weight:100; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Light 300</span><span style="font-weight:300; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Regular 400</span><span style="font-weight:400; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Medium 500</span><span style="font-weight:500; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">SemiBold 600</span><span style="font-weight:600; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Bold 700</span><span style="font-weight:700; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">ExtraBold 800</span><span style="font-weight:800; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+          <div class="flex items-baseline gap-6"><span class="text-fog text-xs w-24" style="direction:ltr;">Black 900</span><span style="font-weight:900; font-size:28px;">همسو — فاصله میان حرف و عمل</span></div>
+        </div>
+        <p class="text-fog text-xs mt-3" style="font-weight:300;">قاعده برند: Bold و سنگین‌تر فقط برای تأکید نادر. بدنه‌ی متن همیشه Regular (400).</p>
+      </div>
+
+      <!-- Persian digits -->
+      <div class="mt-10">
+        <h4 class="text-stone text-xs uppercase tracking-widest mb-4" style="font-weight:600;">ارقام فارسی (الزامی)</h4>
+        <div class="canvas">
+          <span style="font-weight:100; font-size:72px; color:var(--ink);" class="fa-num">۱۴۰۴</span>
+          <span style="font-weight:300; font-size:48px; color:var(--sage-deep);" class="fa-num">۱,۴۳۲</span>
+          <span style="font-weight:400; font-size:28px;" class="fa-num">۸۹ کشور</span>
+          <span style="font-weight:300; font-size:22px; color:var(--stone);" class="fa-num">۱۲.۴ هزار</span>
+          <span style="font-weight:300; font-size:18px; color:var(--fog);" class="fa-num">۲ ساعت پیش</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SPACING / RADIUS ===== -->
+    <section id="spacing" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۴</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">فاصله، شعاع، خط</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">فضای منفی عنصر طراحی است، نه نبود محتوا.</p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Spacing scale -->
+        <div class="glass rounded-2xl p-7">
+          <h4 class="text-stone text-xs uppercase tracking-widest mb-5" style="font-weight:600;">مقیاس فاصله</h4>
+          <table class="tok-table">
+            <thead><tr><th>توکن</th><th>مقدار</th><th>پیش‌نمایش</th></tr></thead>
+            <tbody>
+              <tr><td class="tok-name">space-1</td><td class="fa-num">۴ پیکسل</td><td><div style="width:4px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-2</td><td class="fa-num">۸ پیکسل</td><td><div style="width:8px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-3</td><td class="fa-num">۱۲ پیکسل</td><td><div style="width:12px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-4</td><td class="fa-num">۱۶ پیکسل</td><td><div style="width:16px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-6</td><td class="fa-num">۲۴ پیکسل</td><td><div style="width:24px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-8</td><td class="fa-num">۳۲ پیکسل</td><td><div style="width:32px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-12</td><td class="fa-num">۴۸ پیکسل</td><td><div style="width:48px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-16</td><td class="fa-num">۶۴ پیکسل</td><td><div style="width:64px; height:18px; background:var(--sage);"></div></td></tr>
+              <tr><td class="tok-name">space-24</td><td class="fa-num">۹۶ پیکسل</td><td><div style="width:96px; height:18px; background:var(--sage);"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Radius scale -->
+        <div class="glass rounded-2xl p-7">
+          <h4 class="text-stone text-xs uppercase tracking-widest mb-5" style="font-weight:600;">شعاع گوشه</h4>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="flex flex-col items-center gap-2">
+              <div style="width:64px; height:64px; background:var(--bone); border-radius:6px;"></div>
+              <div class="code">radius-sm</div>
+              <div class="text-fog text-xs fa-num">۶</div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div style="width:64px; height:64px; background:var(--bone); border-radius:12px;"></div>
+              <div class="code">radius-md</div>
+              <div class="text-fog text-xs fa-num">۱۲</div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div style="width:64px; height:64px; background:var(--bone); border-radius:18px;"></div>
+              <div class="code">radius-lg</div>
+              <div class="text-fog text-xs fa-num">۱۸</div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div style="width:64px; height:64px; background:var(--bone); border-radius:24px;"></div>
+              <div class="code">radius-xl</div>
+              <div class="text-fog text-xs fa-num">۲۴</div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div style="width:64px; height:64px; background:var(--bone); border-radius:32px;"></div>
+              <div class="code">radius-2xl</div>
+              <div class="text-fog text-xs fa-num">۳۲</div>
+            </div>
+            <div class="flex flex-col items-center gap-2">
+              <div style="width:64px; height:64px; background:var(--bone); border-radius:9999px;"></div>
+              <div class="code">radius-full</div>
+              <div class="text-fog text-xs">∞</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SHADOW ===== -->
+    <section id="shadow" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۵</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">سایه و عمق</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">سایه‌ها گرم‌رنگ‌اند نه خاکستری خنثا — تا با کاغذِ گرم هماهنگ بمانند.</p>
+      </header>
+
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+        <div class="text-center"><div class="rounded-2xl p-6 mb-3" style="background:#fff; box-shadow:0 1px 2px rgba(46,44,40,0.04);"><span class="text-fog text-xs">xs</span></div><div class="code">paper-xs</div></div>
+        <div class="text-center"><div class="rounded-2xl p-6 mb-3" style="background:#fff; box-shadow:0 4px 16px rgba(46,44,40,0.06);"><span class="text-fog text-xs">sm</span></div><div class="code">paper-sm</div></div>
+        <div class="text-center"><div class="rounded-2xl p-6 mb-3" style="background:#fff; box-shadow:0 8px 28px rgba(46,44,40,0.08);"><span class="text-fog text-xs">md</span></div><div class="code">paper-md</div></div>
+        <div class="text-center"><div class="rounded-2xl p-6 mb-3" style="background:#fff; box-shadow:0 18px 50px rgba(46,44,40,0.10);"><span class="text-fog text-xs">lg</span></div><div class="code">paper-lg</div></div>
+        <div class="text-center"><div class="rounded-2xl p-6 mb-3" style="background:#fff; box-shadow:0 30px 80px rgba(46,44,40,0.14);"><span class="text-fog text-xs">xl</span></div><div class="code">paper-xl</div></div>
+      </div>
+    </section>
+
+    <!-- ===== GLASS ===== -->
+    <section id="glass" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۶</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">شیشه گرم (Warm Glass)</h2>
+        <p class="mt-3 text-stone max-w-3xl" style="font-weight:300; font-size:16px; line-height:1.8;">
+          مرفولوژی شیشه‌ای در همسو، روشن و آراست — نه شیشه‌ی فراست تیره. کارت‌ها روی پس‌زمینه‌ی کاغذی شناورند، با محوسازی نرم و حاشیه‌ی نامحسوس.
+        </p>
+      </header>
+
+      <div class="canvas warmer" style="padding:48px; min-height:280px; position:relative; overflow:hidden;">
+        <!-- mini background blobs inside the canvas -->
+        <div style="position:absolute; width:220px; height:220px; top:-60px; right:-40px; border-radius:50%; background:radial-gradient(circle,rgba(122,132,113,0.35),transparent 70%); filter:blur(40px);"></div>
+        <div style="position:absolute; width:180px; height:180px; bottom:-50px; left:20px; border-radius:50%; background:radial-gradient(circle,rgba(155,180,199,0.4),transparent 70%); filter:blur(40px);"></div>
+
+        <div class="glass rounded-2xl p-6 relative z-10 hover-rise" style="min-width:200px;">
+          <div class="text-stone text-xs mb-1">glass · soft</div>
+          <div style="font-weight:300; font-size:18px;">شیشه نرم</div>
+          <div class="text-fog text-xs mt-2 code">blur(۱۸)</div>
+        </div>
+        <div class="glass-strong rounded-2xl p-6 relative z-10 hover-rise" style="min-width:200px;">
+          <div class="text-stone text-xs mb-1">glass · strong</div>
+          <div style="font-weight:300; font-size:18px;">شیشه قوی</div>
+          <div class="text-fog text-xs mt-2 code">blur(۲۸)</div>
+        </div>
+        <div class="glass-solid rounded-2xl p-6 relative z-10 hover-rise" style="min-width:200px;">
+          <div class="text-stone text-xs mb-1">glass · solid</div>
+          <div style="font-weight:300; font-size:18px;">شیشه جامد</div>
+          <div class="text-fog text-xs mt-2 code">blur(۳۶)</div>
+        </div>
+        <div class="glass-sage rounded-2xl p-6 relative z-10 hover-rise" style="min-width:200px;">
+          <div class="text-sage-deep text-xs mb-1">glass · sage tint</div>
+          <div style="font-weight:300; font-size:18px;">شیشه با ته‌رنگ سج</div>
+          <div class="text-fog text-xs mt-2 code">tint + blur(۲۰)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== MOTION ===== -->
+    <section id="motion" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۷</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">حرکت آرام</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">حرکت‌ها از <span class="code">۲۲۰</span> تا <span class="code">۵۰۰</span> میلی‌ثانیه. هرگز bounce. هرگز spring پررنگ.</p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass rounded-2xl p-6">
+          <h4 class="text-stone text-xs uppercase tracking-widest mb-5" style="font-weight:600;">توکن‌های مدت</h4>
+          <table class="tok-table">
+            <thead><tr><th>توکن</th><th>مقدار</th><th>کاربرد</th></tr></thead>
+            <tbody>
+              <tr><td class="tok-name">dur-instant</td><td class="fa-num">۸۰ms</td><td>تغییر حالت لحظه‌ای</td></tr>
+              <tr><td class="tok-name">dur-fast</td><td class="fa-num">۱۵۰ms</td><td>هاور، تغییر رنگ</td></tr>
+              <tr><td class="tok-name">dur-base</td><td class="fa-num">۲۲۰ms</td><td>دکمه‌ها، آیکون</td></tr>
+              <tr><td class="tok-name">dur-slow</td><td class="fa-num">۳۵۰ms</td><td>ورود کارت</td></tr>
+              <tr><td class="tok-name">dur-slower</td><td class="fa-num">۵۰۰ms</td><td>ورود صفحه، fade-up</td></tr>
+              <tr><td class="tok-name">dur-cinematic</td><td class="fa-num">۷۰۰ms</td><td>fade کلی، parallax</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <h4 class="text-stone text-xs uppercase tracking-widest mb-5" style="font-weight:600;">توکن‌های ease</h4>
+          <table class="tok-table">
+            <thead><tr><th>توکن</th><th>مقدار</th><th>کاربرد</th></tr></thead>
+            <tbody>
+              <tr><td class="tok-name">ease-calm</td><td class="text-xs">cubic-bezier(.25,.46,.45,.94)</td><td>پیش‌فرض</td></tr>
+              <tr><td class="tok-name">ease-expo</td><td class="text-xs">cubic-bezier(.19,1,.22,1)</td><td>ورود صفحه</td></tr>
+              <tr><td class="tok-name" style="color:#c75d3c; text-decoration:line-through;">ease-bounce</td><td class="text-xs text-fog">—</td><td class="text-fog">ممنوع</td></tr>
+              <tr><td class="tok-name" style="color:#c75d3c; text-decoration:line-through;">ease-spring</td><td class="text-xs text-fog">—</td><td class="text-fog">ممنوع</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="canvas mt-6">
+        <div class="glass rounded-xl p-5 hover-rise" style="min-width:160px; cursor:pointer;">
+          <div class="text-fog text-xs mb-2">هاور کن</div>
+          <div class="text-sage-deep" style="font-weight:500;">hover-rise</div>
+        </div>
+        <button class="btn btn-primary">انیمیشن کلیک</button>
+        <div class="glass rounded-xl p-5 anim-fade-up" style="min-width:160px;">
+          <div class="text-fog text-xs mb-2">ورود</div>
+          <div style="font-weight:500;">fade-up</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ICONS ===== -->
+    <section id="icons" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۸</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">آیکون‌ها</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">SVG، stroke-based، خط نازک. در React از <span class="code">lucide-react</span>.</p>
+      </header>
+
+      <div class="canvas">
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><path d="M20 6 9 17l-5-5"/></svg><span class="text-fog text-xs">check</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><path d="M11 4H4v16h16v-7"/><path d="m17 3 4 4-9 9H8v-4z"/></svg><span class="text-fog text-xs">edit</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span class="text-fog text-xs">clock</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg><span class="text-fog text-xs">return</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><path d="M3 12h18"/><path d="m12 5 7 7-7 7"/></svg><span class="text-fog text-xs">arrow</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></svg><span class="text-fog text-xs">reflect</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ink);"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span class="text-fog text-xs">history</span></div>
+        <div class="flex flex-col items-center gap-2"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--sage-deep);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="text-fog text-xs">privacy</span></div>
+      </div>
+
+      <div class="mt-4 text-stone text-sm" style="font-weight:300;">
+        قواعد: <span class="code">stroke-width: 1.5</span>، <span class="code">stroke: currentColor</span>، <span class="code">fill: none</span>، <span class="code">viewBox: 0 0 24 24</span>
+      </div>
+    </section>
+
+    <!-- ===== BUTTONS ===== -->
+    <section id="buttons" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۰۹</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">دکمه‌ها</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">یک عمل غالب در هر صفحه. CTAها فعل دعوت‌کننده‌اند، نه فعل امری.</p>
+      </header>
+
+      <div class="canvas">
+        <button class="btn btn-primary">شروع کن</button>
+        <button class="btn btn-ghost">چطور کار می‌کند؟</button>
+        <button class="btn btn-glass">تنظیمات</button>
+        <button class="btn btn-text">بیشتر بدان →</button>
+      </div>
+      <div class="canvas mt-4">
+        <button class="btn btn-primary btn-sm">کوچک</button>
+        <button class="btn btn-primary">معمولی</button>
+        <button class="btn btn-primary btn-lg">بزرگ</button>
+      </div>
+      <div class="canvas mt-4">
+        <button class="btn btn-glass" style="color:var(--sage-deep);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          انجام شد
+        </button>
+        <button class="btn btn-glass" style="color:#9b4a31;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          انجام نشد
+        </button>
+      </div>
+    </section>
+
+    <!-- ===== INPUTS ===== -->
+    <section id="inputs" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۱۰</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">فیلدهای ورودی</h2>
+      </header>
+
+      <div class="canvas col" style="max-width:520px;">
+        <textarea class="field" rows="3" placeholder="تعهد امروز خود را بنویس…"></textarea>
+        <textarea class="field" rows="2" placeholder="یادداشت اختیاری — چه اتفاقی افتاد؟"></textarea>
+        <input class="field" type="tel" placeholder="۰۹۱۲ ۳۴۵ ۶۷۸۹">
+      </div>
+    </section>
+
+    <!-- ===== BADGES ===== -->
+    <section id="badges" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۱۱</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">برچسب‌ها</h2>
+      </header>
+
+      <div class="canvas">
+        <span class="badge badge-sage">انجام شد</span>
+        <span class="badge badge-ember">انجام نشد</span>
+        <span class="badge badge-mist">در جریان</span>
+        <span class="badge badge-gold">یادآور آرام</span>
+        <span class="badge badge-paper">آرشیو</span>
+      </div>
+    </section>
+
+    <!-- ===== COMMITMENT CARD ===== -->
+    <section id="commit" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۱۲</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">کارت تعهد روزانه</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">کامپوننت قلبِ همسو — یک تعهد، یک پرسش، یک یادداشت.</p>
+      </header>
+
+      <div class="canvas col" style="max-width:680px;">
+        <div class="entry-card">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2"><span class="dot-status dot-done"></span><span class="badge badge-sage">انجام شد</span></div>
+            <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۴ — یک‌شنبه</span>
+          </div>
+          <p style="font-weight:400; font-size:18px; line-height:1.7;">امروز نیم‌ساعت پیاده‌روی می‌کنم و گوشی را کنار می‌گذارم.</p>
+          <p class="border-right-mark text-stone" style="font-weight:300; font-style:italic; font-size:14px;">واقعاً لذت بردم. فکر می‌کنم باید این کار را ادامه بدم.</p>
+          <div class="flex items-center justify-between pt-3 border-t" style="border-color:rgba(26,26,31,0.06);">
+            <span class="text-fog text-xs fa-num">۲ ساعت پیش ثبت شد</span>
+            <span class="text-fog text-xs">قابل ویرایش</span>
+          </div>
+        </div>
+        <div class="entry-card">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2"><span class="dot-status dot-not"></span><span class="badge badge-ember">انجام نشد</span></div>
+            <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۳ — شنبه</span>
+          </div>
+          <p style="font-weight:400; font-size:18px; line-height:1.7;">به یک دوست قدیمی زنگ می‌زنم که مدتی ازش بی‌خبرم.</p>
+          <p class="border-right-mark text-stone" style="font-weight:300; font-style:italic; font-size:14px;">سرم شلوغ بود. شاید فردا.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HISTORY ===== -->
+    <section id="history" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۱۳</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">فهرست تاریخچه</h2>
+      </header>
+
+      <div class="canvas col" style="max-width:680px; gap:8px;">
+        <div class="glass rounded-xl p-4 flex items-start gap-4 hover-rise">
+          <span class="dot-status dot-done mt-2"></span>
+          <div class="flex-1">
+            <div style="font-weight:400; font-size:15px;">نیم ساعت پیاده‌روی و کنار گذاشتن گوشی</div>
+            <div class="text-stone text-xs mt-1" style="font-weight:300;">واقعاً لذت بردم.</div>
+          </div>
+          <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۴</span>
+        </div>
+        <div class="glass rounded-xl p-4 flex items-start gap-4 hover-rise">
+          <span class="dot-status dot-not mt-2"></span>
+          <div class="flex-1">
+            <div style="font-weight:400; font-size:15px;">زنگ زدن به دوست قدیمی</div>
+            <div class="text-stone text-xs mt-1" style="font-weight:300;">سرم شلوغ بود.</div>
+          </div>
+          <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۳</span>
+        </div>
+        <div class="glass rounded-xl p-4 flex items-start gap-4 hover-rise">
+          <span class="dot-status dot-done mt-2"></span>
+          <div class="flex-1">
+            <div style="font-weight:400; font-size:15px;">یک فصل از کتاب مورد علاقه‌ام خواندم</div>
+          </div>
+          <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۲</span>
+        </div>
+        <div class="glass rounded-xl p-4 flex items-start gap-4 hover-rise">
+          <span class="dot-status dot-not mt-2"></span>
+          <div class="flex-1">
+            <div style="font-weight:400; font-size:15px;">کمتر از ۲ ساعت شبکه‌های اجتماعی</div>
+          </div>
+          <span class="text-fog text-xs fa-num">۱۴۰۴/۰۳/۰۱</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== WEEKLY REPORT ===== -->
+    <section id="report" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۱۴</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">گزارش هفتگی — AI به‌عنوان آینه</h2>
+        <p class="mt-3 text-stone" style="font-weight:300; font-size:16px;">AI نصیحت نمی‌کند، تحلیل می‌کند. آینه می‌شود، نه قاضی.</p>
+      </header>
+
+      <div class="canvas warmer" style="padding:48px;">
+        <div class="glass-strong rounded-3xl p-8 w-full" style="border:1px solid rgba(122,132,113,0.18);">
+          <div class="flex items-center gap-2 mb-1"><span class="badge badge-sage">گزارش هفتگی</span></div>
+          <h3 style="font-weight:300; font-size:30px;" class="mt-2">گزارش هفته سوم خرداد</h3>
+          <p class="text-fog text-sm fa-num mt-1">۱۴۰۴/۰۳/۰۱ — ۱۴۰۴/۰۳/۰۷</p>
+          <p class="mt-6 text-stone" style="font-weight:300; font-size:16px; line-height:1.85;">
+            این هفته <span class="fa-num">۵</span> تعهد ثبت کردی و <span class="fa-num">۳</span> تایشان را عملی کردی. آنچه جالب است: تعهدهایی که به ارتباط و حضور فیزیکی مرتبط بودند — مثل پیاده‌روی و خواندن کتاب — موفق‌تر پیش رفتند. تعهدهای مرتبط با محدود کردن فناوری سخت‌تر بودند. این الگو ارزش توجه دارد.
+          </p>
+          <div class="grid grid-cols-4 gap-3 mt-7">
+            <div class="glass rounded-2xl p-5 text-center">
+              <div class="fa-num" style="font-weight:300; font-size:38px;">۵</div>
+              <div class="text-fog text-xs mt-1">تعهد ثبت‌شده</div>
+            </div>
+            <div class="glass rounded-2xl p-5 text-center">
+              <div class="fa-num" style="font-weight:300; font-size:38px; color:var(--sage-deep);">۳</div>
+              <div class="text-fog text-xs mt-1">انجام شده</div>
+            </div>
+            <div class="glass rounded-2xl p-5 text-center">
+              <div class="fa-num" style="font-weight:300; font-size:38px; color:#9b4a31;">۲</div>
+              <div class="text-fog text-xs mt-1">انجام نشده</div>
+            </div>
+            <div class="glass rounded-2xl p-5 text-center">
+              <div class="fa-num" style="font-weight:300; font-size:38px; color:var(--gold);">۶۰٪</div>
+              <div class="text-fog text-xs mt-1">نسبت موفقیت</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== NOT ===== -->
+    <section id="not" class="ds-section">
+      <header class="mb-8">
+        <div class="flex items-center gap-3 mb-3"><span class="hairline w-10"></span><span class="text-stone text-sm">۱۵</span></div>
+        <h2 style="font-weight:300; font-size:42px; letter-spacing:-0.01em;">آنچه همسو <em style="color:var(--ember); font-style:italic;">نیست</em></h2>
+        <p class="mt-3 text-stone max-w-3xl" style="font-weight:300; font-size:16px; line-height:1.8;">
+          تعریف یک برند به اندازه‌ی گفتن آنچه نیست، مهم است. این فهرست در طول زمان باید مقدس باقی بماند.
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="glass rounded-2xl p-6 hover-rise" style="border-right:3px solid var(--ember);">
+          <div class="text-ember text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">نیست</div>
+          <h4 style="font-weight:500; font-size:18px;">تسک‌منیجر</h4>
+          <p class="text-stone text-sm mt-2" style="font-weight:300; line-height:1.7;">هیچ‌گاه لیست کارها، اولویت‌بندی، deadline یا category. یک تعهد در روز، نه یک پروژه.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 hover-rise" style="border-right:3px solid var(--ember);">
+          <div class="text-ember text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">نیست</div>
+          <h4 style="font-weight:500; font-size:18px;">Habit Tracker</h4>
+          <p class="text-stone text-sm mt-2" style="font-weight:300; line-height:1.7;">نه streak، نه تقویم چک‌مارک، نه «۲۱ روز عادت». تعهد روزانه، نه «عادت».</p>
+        </div>
+        <div class="glass rounded-2xl p-6 hover-rise" style="border-right:3px solid var(--ember);">
+          <div class="text-ember text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">نیست</div>
+          <h4 style="font-weight:500; font-size:18px;">اپلیکیشن انگیزشی</h4>
+          <p class="text-stone text-sm mt-2" style="font-weight:300; line-height:1.7;">هیچ نقل‌قول صبحگاهی، هیچ پیام انگیزشی، هیچ «You got this!».</p>
+        </div>
+        <div class="glass rounded-2xl p-6 hover-rise" style="border-right:3px solid var(--ember);">
+          <div class="text-ember text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">نیست</div>
+          <h4 style="font-weight:500; font-size:18px;">شبکه اجتماعی</h4>
+          <p class="text-stone text-sm mt-2" style="font-weight:300; line-height:1.7;">اشتراک‌گذاری اختیاری وجود دارد، اما هیچ feed، follower، like یا comment.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 hover-rise" style="border-right:3px solid var(--ember);">
+          <div class="text-ember text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">نیست</div>
+          <h4 style="font-weight:500; font-size:18px;">کوچ یا روانشناس</h4>
+          <p class="text-stone text-sm mt-2" style="font-weight:300; line-height:1.7;">AI نصیحت نمی‌کند، راه‌حل تجویز نمی‌کند، تشخیص نمی‌دهد. تنها بازتاب می‌دهد.</p>
+        </div>
+        <div class="glass rounded-2xl p-6 hover-rise" style="border-right:3px solid var(--ember);">
+          <div class="text-ember text-xs mb-2" style="font-weight:600; letter-spacing:.08em;">نیست</div>
+          <h4 style="font-weight:500; font-size:18px;">پلتفرم بهره‌وری</h4>
+          <p class="text-stone text-sm mt-2" style="font-weight:300; line-height:1.7;">ادغام با Google Calendar، Notion، Slack، Trello — هرگز.</p>
+        </div>
+      </div>
+
+      <div class="mt-10 glass-sage rounded-2xl p-8 max-w-3xl text-center">
+        <p style="font-weight:300; font-size:22px; line-height:1.7; font-style:italic; color:var(--sage-deep);">
+          «اگر روزی شک کردی که یک تصمیم با همسو همسو است یا نه، این صفحه را بخوان.»
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="pt-12 pb-6 border-t" style="border-color:rgba(26,26,31,0.06);">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <p class="text-stone text-sm" style="font-weight:300;">سیستم طراحی همسو · نسخه ۱.۰</p>
+          <p class="text-fog text-xs mt-1" style="font-weight:300;">برای واقعی‌تر زندگی کردن.</p>
+        </div>
+        <p class="text-fog text-xs">© ۱۴۰۵ · کلیه حقوق محفوظ است.</p>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // active nav on scroll
+  document.addEventListener('DOMContentLoaded', () => {
+    const links = document.querySelectorAll('.nav-link');
+    links.forEach(l => l.addEventListener('click', e => {
+      e.preventDefault();
+      const id = l.getAttribute('href').slice(1);
+      const tgt = document.getElementById(id);
+      if (tgt) {
+        tgt.scrollIntoView({behavior:'smooth', block:'start'});
+        links.forEach(x => x.classList.remove('active'));
+        l.classList.add('active');
+      }
+    }));
+    const sections = document.querySelectorAll('.ds-section, #brand');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          const id = en.target.id;
+          links.forEach(l => {
+            l.classList.remove('active');
+            if (l.getAttribute('href') === '#'+id) l.classList.add('active');
+          });
+        }
+      });
+    }, {rootMargin:'-30% 0px -60% 0px'});
+    sections.forEach(s => obs.observe(s));
+
+    // fade-up sections as they scroll into view
+    const fadeObs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('anim-fade-up');
+          fadeObs.unobserve(en.target);
+        }
+      });
+    }, {threshold:0.05});
+    document.querySelectorAll('.ds-section').forEach(s => fadeObs.observe(s));
+  });
+</script>
+</body>
+</html>
