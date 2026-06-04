@@ -10,7 +10,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getPreset } from "@/lib/profile/avatarPresets";
+import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toFaDigits as toFa } from "@/lib/utils/digits";
 
 type BadgeKey = "tickets" | "chat";
@@ -197,7 +197,7 @@ function AdminUserCard({
   role: { label: string };
   compact?: boolean;
 }) {
-  const preset = getPreset(admin.avatarPreset);
+  const preset = AVATAR_COLOR;
   return (
     <div className={`${compact ? "" : "border-t border-black/6"} px-4 py-3 flex items-center gap-3`}>
       <Link

@@ -48,15 +48,7 @@ export async function PATCH(req: NextRequest) {
     data.phone = phone;
   }
 
-  if (b.avatarPreset !== undefined) {
-    const n = Number(b.avatarPreset);
-    if (!Number.isInteger(n) || n < 0 || n > 11) {
-      return NextResponse.json({ error: "آواتار نامعتبر است." }, { status: 400 });
-    }
-    data.avatarPreset = n;
-  }
-
-  // avatarImage — base64 JPEG فشرده‌شده از Canvas (DECISION-056)
+  // avatarImage — base64 JPEG فشرده‌شده از کراپ (DECISION-057)
   if ("avatarImage" in b) {
     const raw = b.avatarImage;
     if (raw === null || raw === undefined) {
@@ -65,7 +57,7 @@ export async function PATCH(req: NextRequest) {
       if (!raw.startsWith("data:image/")) {
         return NextResponse.json({ error: "فرمت تصویر معتبر نیست." }, { status: 400 });
       }
-      if (raw.length > 150_000) {
+      if (raw.length > 250_000) {
         return NextResponse.json({ error: "حجم تصویر بیش از حد مجاز است." }, { status: 400 });
       }
       data.avatarImage = raw;

@@ -64,7 +64,7 @@ export default async function AdminSupportPage({
       take: PAGE_SIZE,
       select: {
         id: true, subject: true, category: true, status: true, priority: true, lastMessageAt: true,
-        user: { select: { displayName: true, phone: true } },
+        user: { select: { displayName: true, phone: true, email: true } },
         _count: { select: { messages: true } },
       },
     }),
@@ -153,7 +153,9 @@ export default async function AdminSupportPage({
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <div className="text-stone text-xs">{t.user.displayName || "—"}</div>
-                    <div className="text-[10px] text-fog" dir="ltr">{toFaDigits(t.user.phone)}</div>
+                    <div className="text-[10px] text-fog num-latin" dir="ltr">
+                      {t.user.phone ? toFaDigits(t.user.phone) : t.user.email ?? "—"}
+                    </div>
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
                   <td className="px-4 py-3 hidden md:table-cell"><PriorityBadge priority={t.priority} /></td>

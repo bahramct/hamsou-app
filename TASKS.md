@@ -15,6 +15,29 @@
 
 ## 🔴 وظیفه جاری (In Progress)
 
+### TASK-AUTH-MULTI | احراز هویتِ چندگانه (ایمیل/پسورد + نام‌کاربری) + بازطراحیِ آواتار (DECISION-057/058) — ✅ ۲۰۲۶-۰۶-۰۴
+- **منبع:** درخواست صریح مالک (۳ تسک) + پاسخ به سوالات ویژوال. تأییدِ صریحِ migration.
+- **تسک ۱ — آواتارِ تک‌رنگ (DECISION-057):**
+  - [x] حذفِ پالت؛ رنگِ ثابتِ طلایی (`gold` #C19A4A) برای آواتارِ بدون‌عکس — سایت + پنل
+  - [x] `avatarPresets.ts` → `AVATAR_COLOR`/`getAvatarColor`؛ نقاطِ نمایش به آن وصل شدند (بدون migration)
+- **تسک ۲ — کراپِ تصویر (DECISION-057):**
+  - [x] `AvatarCropModal` با `react-easy-crop` (دایره‌ای، زوم/چرخش)؛ خروجی ۵۱۲px JPEG ۰.۸۵
+  - [x] اتصال به `AvatarSection` (سایت) و `AdminProfileForm` (پنل)؛ سقفِ API به ۲۵۰K
+- **تسک ۳ — احراز هویتِ چندگانه (DECISION-058) — فقط سایت:**
+  - [x] schema: `phone` اختیاری + `email`/`passwordHash`/`username`/`emailVerifiedAt` + مدلِ `EmailCode` (`db push`، بدون data-loss)
+  - [x] session: `phone` اختیاری، هویت بر پایهٔ `userId`
+  - [x] `EmailAdapter` + `MockEmailAdapter` + `getEmailAdapter()` (Adapter Pattern، dev-mock مثل OTP)
+  - [x] APIها: `auth/email/request-code`+`verify`، `auth/login-password`، `account/credentials`، `account/email/*`
+  - [x] UI: `login` با تبِ موبایل/ایمیل (ورود+ثبت‌نام)؛ بخشِ «امنیت و ورود» در `settings/account`
+  - [x] سازگاریِ phone-nullable در صفحاتِ ادمین/پروفایل/حذف‌حساب · `tsc` ✅ · `next build` ✅
+- **پالایشِ بازخوردِ مالک (DECISION-059):**
+  - [x] کارتِ یکپارچهٔ «هویت و ورود» در پروفایل (موبایل/ایمیل/نام‌کاربری/رمز، ویرایشِ inline) — `IdentityCard`
+  - [x] افزودنِ موبایل با OTP برای کاربرِ ایمیلی — `api/account/phone/*`
+  - [x] نمایشِ `@username` در پروفایل و پنل · پنل: همهٔ فیلدهای کاربر حتی خالی
+  - [x] رفعِ فضای خالیِ کارت‌ها: آواتارِ ویرایش‌پذیر در hero (`EditableAvatar`)؛ حذفِ کارت‌های کم‌محتوا
+  - [x] کراپرِ اختصاصیِ همسو بدونِ zoom/rotate (کادرِ قابل‌تغییراندازه)؛ حذفِ `react-easy-crop` · `tsc`/`build` ✅
+- **خارج از scope (فاز بعد):** فراموشیِ رمز، اجباری‌شدنِ نام‌کاربری، EmailProvider واقعی، تغییرِ موبایل/ایمیلِ ثبت‌شده.
+
 ### TASK-AI-NOMOCK | حذف کامل Mock + رفع باگ روتینگ سرویس AI (DECISION-048) — ✅ ۲۰۲۶-۰۶-۰۱
 - **منبع:** باگ کشف‌شده توسط مالک — سرویس‌ها به‌جای GapGPT به Mock می‌رفتند (dev، country=null → INTL → Mock). مالک: Mock کاملاً حذف شود (API واقعی هست).
 - **تصمیم مالک:** Fallback سراسری (یک سرویس برای همه؛ منطقهٔ بدون سرویس → پیش‌فرض سراسری).

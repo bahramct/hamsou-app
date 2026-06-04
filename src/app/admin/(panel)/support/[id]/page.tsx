@@ -32,7 +32,7 @@ export default async function AdminTicketPage({
   const ticket = await prisma.supportTicket.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, displayName: true, phone: true, plan: true } },
+      user: { select: { id: true, displayName: true, phone: true, email: true, plan: true } },
       messages: {
         orderBy: { createdAt: "asc" },
         include: { authorAdmin: { select: { displayName: true } } },
@@ -86,7 +86,9 @@ export default async function AdminTicketPage({
           <div className="rounded-2xl border border-black/8 bg-white/50 p-4 space-y-2">
             <h2 className="text-xs font-semibold text-ink">کاربر</h2>
             <div className="text-sm text-stone">{ticket.user.displayName || "—"}</div>
-            <div className="text-xs text-fog" dir="ltr">{toFaDigits(ticket.user.phone)}</div>
+            <div className="text-xs text-fog num-latin" dir="ltr">
+              {ticket.user.phone ? toFaDigits(ticket.user.phone) : ticket.user.email ?? "—"}
+            </div>
             <div className="flex items-center justify-between pt-1">
               <span className="text-[11px] text-fog">پلن: {ticket.user.plan}</span>
               <Link href={`/admin/users/${ticket.user.id}`} className="text-[11px] text-ember hover:underline">پروفایل کاربر</Link>

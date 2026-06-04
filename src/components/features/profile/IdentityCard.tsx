@@ -1,0 +1,525 @@
+"use client";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IdentityCard — کارتِ یکپارچهٔ «هویت و ورود» در پروفایل (DECISION-059)
+//
+// چهار ردیف: موبایل · ایمیل · نام‌کاربری · رمز عبور — هر کدام با وضعیت و ویرایشِ
+// inline. کاربرِ موبایلی ایمیل اضافه می‌کند و بالعکس؛ نام‌کاربری به‌صورت @username
+// نمایش داده می‌شود (پایهٔ تگ/منشن در شبکهٔ اجتماعیِ آینده). فقط یک ردیف هم‌زمان باز.
+//
+// قواعد: toast برای نتیجه (DECISION-046)، متنِ دکمه ثابت + Spinner (DECISION-053).
+// حذفِ حساب: مودالِ تأیید درون همین کارت (نه صفحهٔ جدا).
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "@/lib/notifications/toast";
+import { Spinner } from "@/components/ui/Spinner";
+import { DevOnly } from "@/components/dev/DevOnly";
+import { DevOtpPanel } from "@/components/dev/DevOtpPanel";
+import { toFaDigits } from "@/lib/utils/digits";
+
+interface Props {
+  phone: string | null;
+  email: string | null;
+  emailVerified: boolean;
+  username: string | null;
+  hasPassword: boolean;
+}
+
+type RowKey = "phone" | "email" | "username" | "password";
+
+const inp =
+  "w-full rounded-xl px-3 py-2.5 text-sm bg-white/70 border border-bone text-ink focus:outline-none focus:border-sage transition-colors disabled:opacity-50";
+const codeInp = `${inp} text-center tracking-[0.4em]`;
+const btn =
+  "inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-ink text-paper text-xs font-medium hover:bg-charcoal transition-colors disabled:opacity-40";
+
+export function IdentityCard({ phone, email, emailVerified, username, hasPassword }: Props) {
+  const [open, setOpen] = useState<RowKey | null>(null);
+  const [showDelete, setShowDelete] = useState(false);
+  const toggle = (k: RowKey) => setOpen((cur) => (cur === k ? null : k));
+
+  return (
+    <section className="glass rounded-2xl p-6 space-y-1">
+      <div className="space-y-0.5 mb-4">
+        <h2 className="text-sm font-semibold text-ink">هویت و ورود</h2>
+        <p className="text-xs text-fog leading-relaxed">
+          راه‌های ورود و شناسهٔ تو در همسو. با تکمیل آن‌ها از هر کدام می‌توانی وارد شوی.
+        </p>
+      </div>
+
+      {/* موبایل */}
+      <Row
+        icon={<PhoneIcon />}
+        label="موبایل"
+        value={phone ? <span dir="ltr">{toFaDigits(phone)}</span> : null}
+        done={!!phone}
+        open={open === "phone"}
+        onToggle={() => toggle("phone")}
+        actionLabel={phone ? undefined : "افزودن"}
+        locked={!!phone}
+      >
+        <PhoneAdd onDone={() => setOpen(null)} />
+      </Row>
+
+      {/* ایمیل */}
+      <Row
+        icon={<MailIcon />}
+        label="ایمیل"
+        value={email && emailVerified ? <span dir="ltr" className="num-latin">{email}</span> : null}
+        done={!!email && emailVerified}
+        open={open === "email"}
+        onToggle={() => toggle("email")}
+        actionLabel={email && emailVerified ? undefined : "افزودن"}
+        locked={!!email && emailVerified}
+      >
+        <EmailAdd onDone={() => setOpen(null)} />
+      </Row>
+
+      {/* نام‌کاربری */}
+      <Row
+        icon={<AtIcon />}
+        label="نام کاربری"
+        value={username ? <span dir="ltr" className="num-latin">@{username}</span> : null}
+        done={!!username}
+        open={open === "username"}
+        onToggle={() => toggle("username")}
+        actionLabel={username ? "تغییر" : "انتخاب"}
+      >
+        <UsernameEdit initial={username} onDone={() => setOpen(null)} />
+      </Row>
+
+      {/* رمز عبور */}
+      <Row
+        icon={<LockIcon />}
+        label="رمز عبور"
+        value={hasPassword ? <span className="text-sage-deep">تنظیم‌شده</span> : null}
+        done={hasPassword}
+        open={open === "password"}
+        onToggle={() => toggle("password")}
+        actionLabel={hasPassword ? "تغییر" : "تنظیم"}
+      >
+        <PasswordEdit hasPassword={hasPassword} onDone={() => setOpen(null)} />
+      </Row>
+
+      {/* حذف حساب — کنارِ خط جدا‌کننده، بازکنندهٔ مودال */}
+      <div className="border-t border-black/5 pt-3">
+        <button
+          type="button"
+          onClick={() => setShowDelete(true)}
+          className="text-xs text-fog hover:text-ember transition-colors"
+        >
+          حذف حساب کاربری
+        </button>
+      </div>
+
+      {/* مودال حذف حساب */}
+      {showDelete && (
+        <DeleteModal
+          phone={phone}
+          email={email}
+          onClose={() => setShowDelete(false)}
+        />
+      )}
+    </section>
+  );
+}
+
+// ─── ردیفِ پایه ──────────────────────────────────────────────────────────────
+function Row({
+  icon, label, value, done, open, onToggle, actionLabel, locked, children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode | null;
+  done: boolean;
+  open: boolean;
+  onToggle: () => void;
+  actionLabel?: string;
+  locked?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="border-b border-black/5 last:border-0">
+      <div className="flex items-center gap-3 py-3">
+        <span className="shrink-0 w-8 h-8 rounded-xl bg-bone/60 text-stone flex items-center justify-center">
+          {icon}
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-xs text-fog">{label}</div>
+          <div className="text-sm text-ink truncate">
+            {value ?? <span className="text-fog/70">تنظیم نشده</span>}
+          </div>
+        </div>
+        {done && (
+          <span className="shrink-0 text-sage-deep" aria-label="تأیید شده">
+            <CheckIcon />
+          </span>
+        )}
+        {!locked && actionLabel && (
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
+              open ? "border-ink/30 text-ink" : "border-black/10 text-stone hover:text-ink hover:border-black/20"
+            }`}
+          >
+            {open ? "بستن" : actionLabel}
+          </button>
+        )}
+      </div>
+      {open && !locked && <div className="pb-4 pr-11 animate-fade-in">{children}</div>}
+    </div>
+  );
+}
+
+// ─── افزودن موبایل (OTP) ─────────────────────────────────────────────────────
+function PhoneAdd({ onDone }: { onDone: () => void }) {
+  const router = useRouter();
+  const [step, setStep] = useState<"form" | "code">("form");
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
+
+  async function request() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/phone/request-code", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const d = (await res.json()) as { error?: string; devCode?: string };
+      if (!res.ok) { toast.error(d.error ?? "خطا."); return; }
+      if (typeof d.devCode === "string") setDevCode(d.devCode);
+      setStep("code");
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  async function verify() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/phone/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code }),
+      });
+      const d = (await res.json()) as { error?: string };
+      if (!res.ok) { toast.error(d.error ?? "کد نادرست."); return; }
+      toast.success("موبایل تأیید شد");
+      onDone(); router.refresh();
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="space-y-3">
+      <input
+        inputMode="numeric" dir="ltr" placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+        value={phone} onChange={(e) => setPhone(e.target.value)} disabled={busy || step === "code"}
+        className={`${inp} text-center`}
+      />
+      {step === "form" ? (
+        <button onClick={request} disabled={busy || !phone.trim()} className={btn}>
+          {busy && <Spinner />}ارسال کد
+        </button>
+      ) : (
+        <>
+          <input
+            inputMode="numeric" dir="ltr" placeholder="کد ۶ رقمی"
+            value={code}
+            onChange={(e) => setCode(onlyDigits(e.target.value).slice(0, 6))}
+            disabled={busy} className={codeInp}
+          />
+          <button onClick={verify} disabled={busy || code.length < 6} className={btn}>
+            {busy && <Spinner />}تأیید موبایل
+          </button>
+          <DevOnly><DevOtpPanel code={devCode} onFill={(c) => setCode(onlyDigits(c).slice(0, 6))} /></DevOnly>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── افزودن ایمیل (کد) ───────────────────────────────────────────────────────
+function EmailAdd({ onDone }: { onDone: () => void }) {
+  const router = useRouter();
+  const [step, setStep] = useState<"form" | "code">("form");
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
+
+  async function request() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/email/request-code", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const d = (await res.json()) as { error?: string; devCode?: string };
+      if (!res.ok) { toast.error(d.error ?? "خطا."); return; }
+      if (typeof d.devCode === "string") setDevCode(d.devCode);
+      setStep("code");
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  async function verify() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/email/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code }),
+      });
+      const d = (await res.json()) as { error?: string };
+      if (!res.ok) { toast.error(d.error ?? "کد نادرست."); return; }
+      toast.success("ایمیل تأیید شد");
+      onDone(); router.refresh();
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="space-y-3">
+      <input
+        type="email" dir="ltr" autoCapitalize="none" placeholder="you@example.com"
+        value={email} onChange={(e) => setEmail(e.target.value)} disabled={busy || step === "code"}
+        className={`${inp} num-latin`}
+      />
+      {step === "form" ? (
+        <button onClick={request} disabled={busy || !email.trim()} className={btn}>
+          {busy && <Spinner />}ارسال کد
+        </button>
+      ) : (
+        <>
+          <input
+            inputMode="numeric" dir="ltr" placeholder="کد ۶ رقمی"
+            value={code}
+            onChange={(e) => setCode(onlyDigits(e.target.value).slice(0, 6))}
+            disabled={busy} className={codeInp}
+          />
+          <button onClick={verify} disabled={busy || code.length < 6} className={btn}>
+            {busy && <Spinner />}تأیید ایمیل
+          </button>
+          <DevOnly><DevOtpPanel code={devCode} onFill={(c) => setCode(onlyDigits(c).slice(0, 6))} /></DevOnly>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── نام‌کاربری ──────────────────────────────────────────────────────────────
+function UsernameEdit({ initial, onDone }: { initial: string | null; onDone: () => void }) {
+  const router = useRouter();
+  const [username, setUsername] = useState(initial ?? "");
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/credentials", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      const d = (await res.json()) as { error?: string };
+      if (!res.ok) { toast.error(d.error ?? "خطا."); return; }
+      toast.success("نام کاربری ذخیره شد");
+      onDone(); router.refresh();
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-fog text-sm">@</span>
+        <input
+          dir="ltr" autoCapitalize="none" placeholder="username"
+          value={username} onChange={(e) => setUsername(e.target.value)} disabled={busy}
+          className={`${inp} num-latin pr-7`}
+        />
+      </div>
+      <p className="text-[11px] text-fog">۳ تا ۲۴ کاراکتر؛ حروف کوچک انگلیسی، رقم و زیرخط.</p>
+      <button onClick={save} disabled={busy || !username.trim()} className={btn}>
+        {busy && <Spinner />}ذخیره
+      </button>
+    </div>
+  );
+}
+
+// ─── رمز عبور ────────────────────────────────────────────────────────────────
+function PasswordEdit({ hasPassword, onDone }: { hasPassword: boolean; onDone: () => void }) {
+  const router = useRouter();
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (next !== confirm) { toast.error("رمز جدید و تکرارش یکسان نیستند."); return; }
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account/credentials", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: next, currentPassword: current || undefined }),
+      });
+      const d = (await res.json()) as { error?: string };
+      if (!res.ok) { toast.error(d.error ?? "خطا."); return; }
+      toast.success(hasPassword ? "رمز تغییر کرد" : "رمز تنظیم شد");
+      onDone(); router.refresh();
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <div className="space-y-2">
+      {hasPassword && (
+        <input type="password" autoComplete="current-password" dir="ltr" placeholder="رمز فعلی"
+          value={current} onChange={(e) => setCurrent(e.target.value)} disabled={busy} className={inp} />
+      )}
+      <input type="password" autoComplete="new-password" dir="ltr" placeholder="رمز جدید (حداقل ۸ کاراکتر)"
+        value={next} onChange={(e) => setNext(e.target.value)} disabled={busy} className={inp} />
+      <input type="password" autoComplete="new-password" dir="ltr" placeholder="تکرار رمز جدید"
+        value={confirm} onChange={(e) => setConfirm(e.target.value)} disabled={busy} className={inp} />
+      <button onClick={save} disabled={busy || next.length < 8 || !confirm || (hasPassword && !current)} className={btn}>
+        {busy && <Spinner />}{hasPassword ? "تغییر رمز" : "تنظیم رمز"}
+      </button>
+    </div>
+  );
+}
+
+// ─── کمکی ────────────────────────────────────────────────────────────────────
+function onlyDigits(s: string): string {
+  return s.replace(/[^۰-۹0-9]/g, "").replace(/[۰-۹]/g, (d) => String(d.codePointAt(0)! - 0x06f0));
+}
+
+// ─── آیکن‌ها ──────────────────────────────────────────────────────────────────
+const ico = { width: 16, height: 16, fill: "none", stroke: "currentColor", strokeWidth: 1.7, viewBox: "0 0 24 24", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+function PhoneIcon() { return <svg {...ico}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>; }
+function MailIcon() { return <svg {...ico}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>; }
+function AtIcon() { return <svg {...ico}><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>; }
+function LockIcon() { return <svg {...ico}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>; }
+function CheckIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>; }
+
+// ─── مودال حذف حساب ──────────────────────────────────────────────────────────
+function DeleteModal({ phone, email, onClose }: { phone: string | null; email: string | null; onClose: () => void }) {
+  const router = useRouter();
+  const [step, setStep] = useState<1 | 2>(1);
+  const [confirmInput, setConfirmInput] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const useEmail = !phone && !!email;
+  const targetValue = phone ?? email ?? "";
+
+  async function handleDelete() {
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: confirmInput }),
+      });
+      const data = (await res.json()) as { message?: string; ok?: boolean };
+      if (!res.ok || !data.ok) { setError(data.message ?? "خطایی رخ داد"); return; }
+      router.push("/");
+    } catch {
+      setError("اتصال به سرور برقرار نشد");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => { if (e.target === e.currentTarget && !busy) onClose(); }}
+    >
+      <div className="glass-strong rounded-3xl w-full max-w-sm animate-fade-up">
+        {/* هدر */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-3">
+          <h2 className="text-sm font-semibold text-ember">حذف حساب کاربری</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            aria-label="بستن"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-fog hover:text-ink hover:bg-black/6 transition-colors disabled:opacity-50"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div className="px-6 pb-6 space-y-4">
+          {step === 1 ? (
+            <>
+              <p className="text-sm text-stone leading-loose">
+                با حذف حساب، تمام داده‌هایت — تعهدها، بازخوردها، گزارش‌ها — برای همیشه پاک می‌شوند.
+              </p>
+              <p className="text-xs text-fog">این عملیات قابل بازگشت نیست.</p>
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-2.5 rounded-xl border border-bone text-sm text-stone hover:text-ink transition-colors"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="flex-1 py-2.5 rounded-xl border border-ember/40 bg-ember/5 text-sm text-ember hover:bg-ember/10 transition-colors"
+                >
+                  ادامه
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <p className="text-sm text-stone">
+                  برای تأیید، {useEmail ? "ایمیل" : "شماره موبایل"} خود را وارد کن:
+                </p>
+                <p className={`text-xs text-fog ${useEmail ? "num-latin" : ""}`} dir="ltr">
+                  {useEmail ? targetValue : toFaDigits(targetValue)}
+                </p>
+              </div>
+              <input
+                type={useEmail ? "email" : "tel"}
+                value={confirmInput}
+                onChange={(e) => { setConfirmInput(e.target.value); setError(null); }}
+                disabled={busy}
+                placeholder={useEmail ? "ایمیل" : "شماره موبایل"}
+                dir="ltr"
+                className={inp}
+              />
+              {error && <p className="text-xs text-ember">{error}</p>}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setStep(1); setConfirmInput(""); setError(null); }}
+                  disabled={busy}
+                  className="flex-1 py-2.5 rounded-xl border border-bone text-sm text-stone hover:text-ink transition-colors disabled:opacity-50"
+                >
+                  انصراف
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={busy || !confirmInput.trim()}
+                  className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ember/10 border border-ember/40 text-sm text-ember hover:bg-ember/20 disabled:opacity-40 transition-colors"
+                >
+                  {busy && <Spinner />}
+                  حذف نهایی
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

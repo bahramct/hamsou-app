@@ -31,18 +31,45 @@ model OtpCode {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EmailCode — کدهای تأیید ایمیل (DECISION-058) — آینهٔ OtpCode برای کانالِ ایمیل.
+// purpose="signup": پسوردِ هش‌شده تا لحظهٔ تأیید اینجا «معلق» می‌ماند و پس از تأیید
+//   روی User منتقل می‌شود (تا کاربرِ تأییدنشده در DB ساخته نشود).
+// purpose="add-email": افزودنِ ایمیل به کاربرِ موجود (userId پر است).
+// رکوردهای منقضی/مصرف‌شده در cleanup job فاز ۲ حذف می‌شوند.
+// ─────────────────────────────────────────────────────────────────────────────
+model EmailCode {
+  id           String   @id @default(cuid())
+  email        String
+  code         String
+  purpose      String   @default("signup") // "signup" | "add-email"
+  passwordHash String? // signup: پسوردِ معلق تا تأیید
+  userId       String? // add-email: کاربرِ موجود
+  expiresAt    DateTime
+  isUsed       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // User — کاربر همسو
 // مقادیر مجاز plan: "FREE" | "PLUS" | "PRO"  (constants/plans.ts)
 // ─────────────────────────────────────────────────────────────────────────────
 model User {
   id            String   @id @default(cuid())
-  phone         String   @unique
+  // احراز هویت چندگانه (DECISION-058): کاربر می‌تواند با موبایل (OTP) یا ایمیل+پسورد ثبت‌نام کند.
+  // هر دو اختیاری‌اند چون هر مسیرِ ثبت‌نام فقط یکی را پر می‌کند؛ unique تضمینِ یکتایی می‌دهد.
+  phone           String?  @unique // کاربرِ ایمیلی ممکن است موبایل نداشته باشد
+  email           String?  @unique // ورود/ثبت‌نام با ایمیل
+  emailVerifiedAt DateTime? // زمانِ تأییدِ مالکیتِ ایمیل (کدِ EmailCode)
+  passwordHash    String?  // scrypt "salt:hash" — هرگز plain؛ فقط برای مسیرِ ایمیل/پسورد
+  username        String?  @unique // هویتِ ورودِ دوم + handle شبکهٔ اجتماعی (آینده). فعلاً اختیاری.
   plan          String   @default("FREE")
   displayName   String?  // اسم نمایشی اختیاری — TASK-PROFILE-BASE
   companionName String?  // نام سفارشی دستیار — پیش‌فرض «همدم» در کد (TASK-AI-CHAT)
   bio           String?  // بیوگرافی کوتاه — TASK-PROFILE-BASE
-  avatarPreset  Int      @default(3) // ایندکس آواتار انتخابی (0-11) — پیش‌فرض سبز (sage) — DECISION-056
-  avatarImage   String?  // تصویر فشرده‌شده base64 (JPEG ≤100KB) — DECISION-056
+  avatarPreset  Int      @default(3) // legacy — پالت حذف شد (DECISION-057)؛ نمایش همیشه رنگِ طلاییِ ثابت. ستون برای سازگاری داده حفظ شده.
+  avatarImage   String?  // تصویر فشرده‌شده base64 (JPEG، کراپ‌شده) — DECISION-057
   isBanned      Boolean  @default(false) // مسدودسازی از پنل ادمین (DECISION-026/036)
   // watermark مخفی‌سازی چت آنلاین (DECISION-049): کاربر «پاک کردن» را بزند → این = الان.
   // کاربر فقط پیام‌های بعد از این لحظه را می‌بیند؛ پنل همه‌چیز را نگه می‌دارد (فلسفهٔ داده).
@@ -196,8 +223,8 @@ model AdminUser {
   mustChangePassword  Boolean   @default(true) // اجبار تغییر در ورود اول (حساب‌های auto-generate)
   displayName         String
   phone               String? // اختیاری — فقط برای تماس، نه ورود
-  avatarPreset        Int       @default(0) // ایندکس آواتار (0-11) — پروفایل ادمین
-  avatarImage         String?  // تصویر فشرده‌شده base64 (JPEG ≤100KB) — DECISION-056
+  avatarPreset        Int       @default(0) // legacy — پالت حذف شد (DECISION-057)؛ نمایش همیشه رنگِ طلاییِ ثابت.
+  avatarImage         String?  // تصویر فشرده‌شده base64 (JPEG، کراپ‌شده) — DECISION-057
   roleId              String
   isActive            Boolean   @default(true)
   failedLoginAttempts Int       @default(0) // محافظت brute-force (DECISION-038)

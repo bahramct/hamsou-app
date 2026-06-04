@@ -49,6 +49,7 @@ export default async function AdminUsersPage({
       select: {
         id: true,
         phone: true,
+        email: true,
         displayName: true,
         plan: true,
         isBanned: true,
@@ -133,7 +134,9 @@ export default async function AdminUsersPage({
                       {u.isBanned && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-ember/12 text-ember">مسدود</span>
                       )}
-                      <span>{toFaDigits(u.phone)}</span>
+                      <span className={u.phone ? "" : "num-latin"}>
+                        {u.phone ? toFaDigits(u.phone) : u.email ?? "—"}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-stone hidden sm:table-cell">{u.displayName || "—"}</td>

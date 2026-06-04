@@ -67,7 +67,6 @@ export async function PATCH(request: NextRequest) {
     displayName?: string | null;
     bio?: string | null;
     companionName?: string | null;
-    avatarPreset?: number;
     avatarImage?: string | null;
   } = {};
 
@@ -113,19 +112,7 @@ export async function PATCH(request: NextRequest) {
     data.companionName = val || null;
   }
 
-  // avatarPreset
-  if ("avatarPreset" in body) {
-    const raw = body.avatarPreset;
-    if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 0 || raw > 11) {
-      return NextResponse.json(
-        { ok: false, error: "invalid_avatar_preset", message: "آواتار انتخابی معتبر نیست" },
-        { status: 422 }
-      );
-    }
-    data.avatarPreset = raw;
-  }
-
-  // avatarImage — base64 JPEG فشرده‌شده از Canvas (DECISION-056)
+  // avatarImage — base64 JPEG فشرده‌شده از کراپ (DECISION-057)
   if ("avatarImage" in body) {
     const raw = body.avatarImage;
     if (raw === null || raw === undefined) {
@@ -137,7 +124,7 @@ export async function PATCH(request: NextRequest) {
           { status: 422 }
         );
       }
-      if (raw.length > 150_000) {
+      if (raw.length > 250_000) {
         return NextResponse.json(
           { ok: false, error: "image_too_large", message: "حجم تصویر بیش از حد مجاز است" },
           { status: 422 }

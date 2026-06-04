@@ -35,6 +35,10 @@ export default async function AdminUserDetailPage({
     select: {
       id: true,
       phone: true,
+      email: true,
+      emailVerifiedAt: true,
+      username: true,
+      passwordHash: true,
       displayName: true,
       bio: true,
       plan: true,
@@ -65,7 +69,7 @@ export default async function AdminUserDetailPage({
       {/* هدر */}
       <header className="flex items-center gap-4">
         <div className="w-14 h-14 rounded-2xl bg-ember/15 text-ember flex items-center justify-center text-lg font-semibold shrink-0">
-          {(user.displayName || user.phone).slice(-2)}
+          {(user.displayName || user.phone || user.email || user.username || "—").slice(-2)}
         </div>
         <div className="min-w-0">
           <h1 className="text-lg font-semibold text-ink flex items-center gap-2">
@@ -74,9 +78,41 @@ export default async function AdminUserDetailPage({
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-ember/12 text-ember">مسدود</span>
             )}
           </h1>
-          <p className="text-sm text-fog" dir="ltr">{toFaDigits(user.phone)}</p>
+          <p className="text-sm text-fog num-latin" dir="ltr">
+            {user.phone ? toFaDigits(user.phone) : user.email ?? (user.username ? `@${user.username}` : "—")}
+          </p>
         </div>
       </header>
+
+      {/* هویت و راه‌های ورود — همهٔ فیلدها، چه پر چه خالی */}
+      <section className="rounded-2xl border border-black/8 bg-white/40 p-5 space-y-3">
+        <h2 className="text-xs font-semibold text-ink">هویت و ورود</h2>
+        <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+          <Meta
+            label="موبایل"
+            value={user.phone ? toFaDigits(user.phone) : "ثبت نشده"}
+            muted={!user.phone}
+            ltr
+          />
+          <Meta
+            label="ایمیل"
+            value={user.email ? `${user.email}${user.emailVerifiedAt ? "" : " (تأییدنشده)"}` : "ثبت نشده"}
+            muted={!user.email}
+            ltr
+          />
+          <Meta
+            label="نام کاربری"
+            value={user.username ? `@${user.username}` : "ثبت نشده"}
+            muted={!user.username}
+            ltr
+          />
+          <Meta
+            label="رمز عبور"
+            value={user.passwordHash ? "تنظیم‌شده" : "تنظیم نشده"}
+            muted={!user.passwordHash}
+          />
+        </div>
+      </section>
 
       {/* متادیتا */}
       <section className="rounded-2xl border border-black/8 bg-white/40 p-5 grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
@@ -114,11 +150,16 @@ export default async function AdminUserDetailPage({
   );
 }
 
-function Meta({ label, value }: { label: string; value: string }) {
+function Meta({ label, value, muted, ltr }: { label: string; value: string; muted?: boolean; ltr?: boolean }) {
   return (
     <div>
       <div className="text-[11px] text-fog mb-0.5">{label}</div>
-      <div className="text-ink">{value}</div>
+      <div
+        className={`${muted ? "text-fog/70" : "text-ink"} ${ltr ? "num-latin" : ""}`}
+        dir={ltr ? "ltr" : undefined}
+      >
+        {value}
+      </div>
     </div>
   );
 }

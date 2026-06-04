@@ -16,6 +16,7 @@
 
 import type { AIAdapter } from "@/lib/adapters/ai.adapter";
 import type { SMSAdapter } from "@/lib/adapters/sms.adapter";
+import type { EmailAdapter } from "@/lib/adapters/email.adapter";
 import type { ResolvedAiService } from "@/lib/ai/services";
 
 // ─── AI Adapter — by-name factory ───────────────────────────────────────────
@@ -162,4 +163,29 @@ export function getSMSAdapter(): SMSAdapter {
   }
 
   return _smsAdapter;
+}
+
+// ─── Email Adapter (single instance — DECISION-058) ──────────────────────────
+
+let _emailAdapter: EmailAdapter | null = null;
+
+export function getEmailAdapter(): EmailAdapter {
+  if (_emailAdapter) return _emailAdapter;
+
+  const provider = process.env.EMAIL_PROVIDER ?? "mock";
+
+  switch (provider) {
+    case "mock": {
+      const { MockEmailAdapter } = require("@/lib/adapters/mock-email.adapter");
+      _emailAdapter = new MockEmailAdapter() as EmailAdapter;
+      break;
+    }
+    // فاز ۲: case "smtp" | "resend": ...
+    default:
+      throw new Error(
+        `[EmailAdapter] provider نامعتبر: "${provider}". مقادیر مجاز: mock`
+      );
+  }
+
+  return _emailAdapter;
 }

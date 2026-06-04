@@ -80,7 +80,6 @@ export function AppNav() {
             alt="همسو"
             style={{ width: "auto", height: "28px" }}
           />
-          <span className="text-sm font-semibold text-ink">همسو</span>
         </Link>
 
         {/* آیتم‌های ناوبری — مرکز (دسکتاپ) */}

@@ -15,7 +15,7 @@ import { prisma } from "@/lib/db/client";
 
 export interface AuthUser {
   userId: string;
-  phone: string;
+  phone?: string | null;
 }
 
 /**

@@ -23,7 +23,7 @@ function getJwtSecret(): Uint8Array {
  * ساخت JWT برای یک کاربر
  */
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
-  return await new SignJWT({ userId: payload.userId, phone: payload.phone })
+  return await new SignJWT({ userId: payload.userId, phone: payload.phone ?? null })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(SESSION_DURATION)
@@ -37,9 +37,10 @@ export async function verifySessionToken(token: string): Promise<SessionResult> 
   try {
     const { payload } = await jwtVerify(token, getJwtSecret());
     const userId = payload.userId as string | undefined;
-    const phone = payload.phone as string | undefined;
+    const phone = (payload.phone as string | null | undefined) ?? null;
 
-    if (!userId || !phone) return { valid: false, payload: null };
+    // هویتِ معتبر فقط به userId وابسته است (DECISION-058) — phone اختیاری است.
+    if (!userId) return { valid: false, payload: null };
 
     return { valid: true, payload: { userId, phone } };
   } catch {

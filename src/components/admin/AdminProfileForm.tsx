@@ -8,9 +8,10 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { AVATAR_PRESETS, getPreset } from "@/lib/profile/avatarPresets";
+import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toast } from "@/lib/notifications/toast";
 import { Spinner } from "@/components/ui/Spinner";
+import { AvatarCropModal } from "@/components/features/profile/AvatarCropModal";
 
 interface InitialProfile {
   displayName: string;
@@ -37,8 +38,8 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
   const [displayName, setDisplayName] = useState(initial.displayName);
   const [username, setUsername] = useState(initial.username);
   const [phone, setPhone] = useState(initial.phone);
-  const [avatar, setAvatar] = useState(initial.avatarPreset);
   const [previewImage, setPreviewImage] = useState<string | null>(initial.avatarImage);
+  const [cropSource, setCropSource] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -47,8 +48,7 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
   const dirty =
     displayName !== initial.displayName ||
     username !== initial.username ||
-    phone !== initial.phone ||
-    avatar !== initial.avatarPreset;
+    phone !== initial.phone;
 
   async function save() {
     setBusy(true);
@@ -56,7 +56,7 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
       const res = await fetch("/api/admin/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName, username, phone, avatarPreset: avatar }),
+        body: JSON.stringify({ displayName, username, phone }),
       });
       const d = (await res.json()) as { error?: string };
       if (!res.ok) { toast.error(d.error ?? "خطا در ذخیره."); return; }
@@ -66,32 +66,32 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
     finally { setBusy(false); }
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
+    if (fileInputRef.current) fileInputRef.current.value = "";
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("حجم فایل نباید بیشتر از ۸ مگابایت باشد");
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error("حجم فایل نباید بیشتر از ۱۲ مگابایت باشد");
       return;
     }
 
+    const reader = new FileReader();
+    reader.onerror = () => toast.error("خواندن فایل ناموفق بود");
+    reader.onload = () => setCropSource(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  async function handleCropped(dataUrl: string) {
+    setCropSource(null);
     setUploading(true);
-    let compressed: string;
-    try {
-      compressed = await compressAvatar(file);
-    } catch {
-      toast.error("خطا در پردازش تصویر");
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      return;
-    }
-
-    setPreviewImage(compressed);
+    const prev = previewImage;
+    setPreviewImage(dataUrl);
     try {
       const res = await fetch("/api/admin/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatarImage: compressed }),
+        body: JSON.stringify({ avatarImage: dataUrl }),
       });
       const d = (await res.json()) as { error?: string };
       if (res.ok) {
@@ -99,14 +99,13 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
         router.refresh();
       } else {
         toast.error(d.error ?? "آپلود ناموفق بود");
-        setPreviewImage(initial.avatarImage);
+        setPreviewImage(prev);
       }
     } catch {
       toast.error("اتصال برقرار نشد");
-      setPreviewImage(initial.avatarImage);
+      setPreviewImage(prev);
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
@@ -135,13 +134,13 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
     }
   }
 
-  const preset = getPreset(avatar);
+  const preset = AVATAR_COLOR;
 
   return (
     <section className="rounded-2xl border border-black/8 bg-white/40 p-5 space-y-5">
       <h2 className="text-sm font-semibold text-ink">اطلاعات و آواتار</h2>
 
-      {/* آواتار — پیش‌نمایش + آپلود + انتخاب رنگ */}
+      {/* آواتار — پیش‌نمایش + آپلود */}
       <div className="space-y-3">
         <div className="flex items-center gap-4">
           {/* پیش‌نمایش */}
@@ -167,21 +166,6 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
               {uploading ? <Spinner size={16} /> : <SmallCameraIcon />}
             </button>
           </div>
-
-          {/* grid رنگ‌ها */}
-          <div className="flex flex-wrap gap-2">
-            {AVATAR_PRESETS.map((p, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setAvatar(i)}
-                disabled={anyBusy}
-                aria-label={`آواتار ${i + 1}`}
-                className={`w-7 h-7 rounded-lg transition-all ${avatar === i && !previewImage ? "ring-2 ring-offset-2 ring-ink" : "hover:scale-110"}`}
-                style={{ backgroundColor: p.bg }}
-              />
-            ))}
-          </div>
         </div>
 
         {/* دکمه‌های آپلود */}
@@ -192,7 +176,7 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
             disabled={anyBusy}
             className="text-xs text-stone hover:text-ink transition-colors px-2.5 py-1 rounded-lg border border-black/10 hover:border-black/20 disabled:opacity-50"
           >
-            آپلود عکس
+            {previewImage ? "تغییر عکس" : "آپلود عکس"}
           </button>
           {previewImage && (
             <button
@@ -235,6 +219,14 @@ function InfoSection({ initial }: { initial: InitialProfile }) {
         {busy && <Spinner />}
         ذخیرهٔ اطلاعات
       </button>
+
+      {cropSource && (
+        <AvatarCropModal
+          source={cropSource}
+          onCancel={() => setCropSource(null)}
+          onCropped={handleCropped}
+        />
+      )}
     </section>
   );
 }
@@ -313,33 +305,4 @@ function SmallCameraIcon() {
       <circle cx="12" cy="13" r="4" />
     </svg>
   );
-}
-
-// ─── فشرده‌سازی تصویر با Canvas API (DECISION-056) ───────────────────────────
-async function compressAvatar(file: File): Promise<string> {
-  const MAX_DIM = 400;
-  const QUALITY = 0.78;
-
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("خواندن فایل ناموفق بود"));
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("پردازش تصویر ناموفق بود"));
-      img.onload = () => {
-        const ratio = Math.min(MAX_DIM / img.naturalWidth, MAX_DIM / img.naturalHeight, 1);
-        const w = Math.round(img.naturalWidth * ratio);
-        const h = Math.round(img.naturalHeight * ratio);
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) { reject(new Error("Canvas context unavailable")); return; }
-        ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/jpeg", QUALITY));
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
 }

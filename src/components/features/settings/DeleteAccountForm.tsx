@@ -12,15 +12,20 @@ import { useRouter } from "next/navigation";
 import { toFaDigits } from "@/lib/utils/digits";
 
 interface Props {
-  phone: string;
+  phone: string | null;
+  email: string | null;
 }
 
-export function DeleteAccountForm({ phone }: Props) {
+export function DeleteAccountForm({ phone, email }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<1 | 2>(1);
-  const [phoneInput, setPhoneInput] = useState("");
+  const [confirmInput, setConfirmInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // تأیید با موبایل (اگر هست) وگرنه با ایمیل
+  const useEmail = !phone && !!email;
+  const targetValue = phone ?? email ?? "";
 
   function handleDelete() {
     setError(null);
@@ -28,7 +33,7 @@ export function DeleteAccountForm({ phone }: Props) {
       const res = await fetch("/api/account", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: phoneInput }),
+        body: JSON.stringify({ confirm: confirmInput }),
       });
       const data = await res.json();
 
@@ -72,16 +77,18 @@ export function DeleteAccountForm({ phone }: Props) {
     <div className="space-y-6">
       <div className="space-y-2">
         <p className="text-sm text-stone">
-          برای تأیید، شماره موبایل خود را وارد کن:
+          برای تأیید، {useEmail ? "ایمیل" : "شماره موبایل"} خود را وارد کن:
         </p>
-        <p className="text-xs text-fog" dir="ltr">{toFaDigits(phone)}</p>
+        <p className={`text-xs text-fog ${useEmail ? "num-latin" : ""}`} dir="ltr">
+          {useEmail ? targetValue : toFaDigits(targetValue)}
+        </p>
       </div>
 
       <input
-        type="tel"
-        value={phoneInput}
-        onChange={(e) => { setPhoneInput(e.target.value); setError(null); }}
-        placeholder="شماره موبایل"
+        type={useEmail ? "email" : "tel"}
+        value={confirmInput}
+        onChange={(e) => { setConfirmInput(e.target.value); setError(null); }}
+        placeholder={useEmail ? "ایمیل" : "شماره موبایل"}
         className="
           w-full rounded-xl border border-mist bg-paper/60
           px-4 py-3 text-sm text-ink placeholder:text-fog/50
@@ -96,7 +103,7 @@ export function DeleteAccountForm({ phone }: Props) {
       <div className="flex gap-3">
         <button
           type="button"
-          onClick={() => { setStep(1); setPhoneInput(""); setError(null); }}
+          onClick={() => { setStep(1); setConfirmInput(""); setError(null); }}
           className="flex-1 rounded-xl border border-mist bg-transparent px-4 py-3 text-sm text-stone hover:text-ink transition-colors"
         >
           انصراف
@@ -104,7 +111,7 @@ export function DeleteAccountForm({ phone }: Props) {
         <button
           type="button"
           onClick={handleDelete}
-          disabled={isPending || !phoneInput.trim()}
+          disabled={isPending || !confirmInput.trim()}
           className="
             flex-1 rounded-xl bg-ember/10 border border-ember/40
             px-4 py-3 text-sm text-ember

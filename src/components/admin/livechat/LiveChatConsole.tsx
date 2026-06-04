@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { getPreset } from "@/lib/profile/avatarPresets";
+import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toFaDigits } from "@/lib/utils/digits";
 
 const CONV_POLL_MS = 5000;
@@ -20,7 +20,7 @@ interface ConvItem {
   sessionId: string;
   userId: string;
   displayName: string | null;
-  phone: string;
+  phone: string | null;
   avatarPreset: number;
   label: string;
   isToday: boolean;
@@ -41,7 +41,7 @@ interface Detail {
   sessionId: string;
   label: string;
   hiddenUntil: string | null;
-  user: { id: string; displayName: string | null; phone: string; avatarPreset: number; plan: string };
+  user: { id: string; displayName: string | null; phone: string | null; avatarPreset: number; plan: string };
   messages: DetailMsg[];
 }
 
@@ -202,7 +202,7 @@ export function LiveChatConsole({ canRespond }: Props) {
               <p className="text-xs text-fog italic text-center py-10">گفتگویی نیست.</p>
             ) : (
               conversations.map((c) => {
-                const preset = getPreset(c.avatarPreset);
+                const preset = AVATAR_COLOR;
                 const active = c.sessionId === selectedId;
                 return (
                   <button
@@ -321,7 +321,7 @@ export function LiveChatConsole({ canRespond }: Props) {
 
 // ─── هدر گفتگو ────────────────────────────────────────────────────────────────
 function ConvHeader({ detail }: { detail: Detail }) {
-  const preset = getPreset(detail.user.avatarPreset);
+  const preset = AVATAR_COLOR;
   return (
     <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-black/6 bg-white/50">
       <div
@@ -332,7 +332,7 @@ function ConvHeader({ detail }: { detail: Detail }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-ink truncate">{detail.user.displayName || "کاربر"}</div>
-        <div className="text-[10px] text-fog" dir="ltr">{toFaDigits(detail.user.phone)}</div>
+        <div className="text-[10px] text-fog" dir="ltr">{detail.user.phone ? toFaDigits(detail.user.phone) : "—"}</div>
       </div>
       <span className="text-[10px] text-fog fa-num shrink-0">{detail.label}</span>
     </div>
