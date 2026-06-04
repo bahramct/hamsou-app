@@ -34,11 +34,15 @@ export function NotificationBell() {
     }
   }, []);
 
-  // mount + polling
+  // mount + polling + گوش‌دادن به refresh event از MarkNotificationsRead
   useEffect(() => {
     load();
     const t = setInterval(load, POLL_MS);
-    return () => clearInterval(t);
+    window.addEventListener("hamsoo:notif:refresh", load);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("hamsoo:notif:refresh", load);
+    };
   }, [load]);
 
   // بستن با کلیک بیرون / Escape

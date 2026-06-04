@@ -14,7 +14,7 @@ import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 export const dynamic = "force-dynamic";
 
 const PLAN_LABELS: Record<string, string> = { FREE: "رایگان", PLUS: "پلاس", PRO: "پرو" };
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 12; // ۳ ستون × ۴ ردیف
 
 const PLAN_STYLE: Record<string, { pill: string; ring: string; dot: string }> = {
   FREE: {
@@ -79,6 +79,7 @@ export default async function AdminUsersPage({
         plan: true,
         isBanned: true,
         createdAt: true,
+        avatarImage: true,
         _count: {
           select: {
             entries: true,
@@ -156,7 +157,7 @@ export default async function AdminUsersPage({
       {users.length === 0 ? (
         <div className="text-center py-16 text-sm text-fog italic">کاربری یافت نشد.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {users.map((u) => {
             const planStyle = PLAN_STYLE[u.plan] ?? PLAN_STYLE.FREE;
             const initLetter = u.displayName?.trim()[0] ?? u.phone?.[0] ?? u.email?.[0] ?? "؟";
@@ -166,29 +167,30 @@ export default async function AdminUsersPage({
             return (
               <div
                 key={u.id}
-                className="group relative rounded-2xl border border-black/8 bg-white/55 backdrop-blur-sm shadow-[0_1px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.10)] hover:border-black/14 transition-all duration-250 overflow-hidden"
+                className="group relative rounded-2xl border border-black/8 bg-white/55 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.09)] hover:border-black/14 transition-all duration-250 overflow-hidden"
               >
-                {/* نوار رنگی پلن — بالای کارت */}
-                <div
-                  className={`absolute top-0 inset-x-0 h-0.5 rounded-t-2xl ${
-                    u.plan === "PRO" ? "bg-amber-400/70" : u.plan === "PLUS" ? "bg-sage/60" : "bg-black/10"
-                  }`}
-                />
+                {/* خط باریک ساده بالای کارت */}
+                <div className="absolute top-0 inset-x-0 h-px bg-black/8 rounded-t-2xl" />
 
-                <div className="px-5 pt-4 pb-4 space-y-3">
+                <div className="px-4 pt-4 pb-3.5 space-y-3">
                   {/* ردیف اول: آواتار + اطلاعات اصلی + badge پلن */}
-                  <div className="flex items-start gap-3.5">
+                  <div className="flex items-start gap-3">
                     {/* آواتار */}
                     <div
-                      className={`shrink-0 w-11 h-11 rounded-2xl ring-2 ${planStyle.ring} flex items-center justify-center text-base font-semibold select-none`}
-                      style={{ backgroundColor: ac.bg, color: ac.fg }}
+                      className={`shrink-0 w-10 h-10 rounded-xl ring-2 ${planStyle.ring} flex items-center justify-center text-sm font-semibold select-none overflow-hidden`}
+                      style={u.avatarImage ? undefined : { backgroundColor: ac.bg, color: ac.fg }}
                     >
-                      {initLetter}
+                      {u.avatarImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={u.avatarImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        initLetter
+                      )}
                     </div>
 
                     {/* نام + شناسه */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-sm font-semibold text-ink leading-tight truncate">
                           {u.displayName || <span className="text-fog font-normal">بدون نام</span>}
                         </span>
@@ -199,40 +201,38 @@ export default async function AdminUsersPage({
                         )}
                       </div>
                       <p
-                        className={`text-xs text-fog mt-0.5 truncate ${isEmail ? "num-latin" : "fa-num"}`}
+                        className={`text-[11px] text-fog mt-0.5 truncate ${isEmail ? "num-latin" : "fa-num"}`}
                         dir={isEmail ? "ltr" : "rtl"}
                       >
                         {identity}
                       </p>
                       {u.username && (
-                        <p className="text-[11px] text-stone/70 mt-0.5 num-latin" dir="ltr">
+                        <p className="text-[10px] text-stone/60 mt-0.5 num-latin" dir="ltr">
                           @{u.username}
                         </p>
                       )}
                     </div>
 
                     {/* badge پلن */}
-                    <div className="shrink-0 flex items-center gap-1.5">
-                      <span className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full font-medium ${planStyle.pill}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${planStyle.dot}`} />
-                        {PLAN_LABELS[u.plan] ?? u.plan}
-                      </span>
-                    </div>
+                    <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium ${planStyle.pill}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${planStyle.dot}`} />
+                      {PLAN_LABELS[u.plan] ?? u.plan}
+                    </span>
                   </div>
 
-                  {/* ردیف دوم: آمار + تاریخ + دکمه */}
-                  <div className="flex items-center gap-0 border-t border-black/5 pt-3">
-                    <div className="flex-1 flex items-center gap-4">
+                  {/* ردیف دوم: آمار + دکمه */}
+                  <div className="flex items-center border-t border-black/5 pt-2.5">
+                    <div className="flex-1 flex items-center gap-3">
                       <Stat value={u._count.entries} label="تعهد" />
                       <Stat value={u._count.supportTickets} label="تیکت" />
-                      <span className="text-[11px] text-fog fa-num">{faDate(u.createdAt)}</span>
+                      <span className="text-[10px] text-fog/70 fa-num">{faDate(u.createdAt)}</span>
                     </div>
                     <Link
                       href={`/admin/users/${u.id}`}
-                      className="shrink-0 inline-flex items-center gap-1 text-xs text-stone hover:text-ink transition-colors group-hover:text-ember"
+                      className="shrink-0 inline-flex items-center gap-0.5 text-[11px] text-stone hover:text-ember transition-colors"
                     >
                       جزئیات
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><path d="M9 18l-6-6 6-6"/></svg>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><path d="M9 18l-6-6 6-6"/></svg>
                     </Link>
                   </div>
                 </div>

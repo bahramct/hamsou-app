@@ -4,7 +4,8 @@
 // MarkNotificationsRead — پاک‌کردن badge به‌محض ورود به یک بخش (DECISION-046)
 //
 // یک بار هنگام mount، POST /api/notifications/read-by-type را صدا می‌زند.
-// مصرف: در صفحهٔ /support برای پاک‌کردن badge تیکت‌های پاسخ‌داده‌شده.
+// پس از موفقیت، CustomEvent "hamsoo:notif:refresh" را dispatch می‌کند تا
+// NotificationBell بلافاصله state خود را بروز کند (بدون انتظار polling 60s).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect } from "react";
@@ -16,11 +17,13 @@ interface Props {
 
 export function MarkNotificationsRead({ typePrefix }: Props) {
   useEffect(() => {
-    void fetch("/api/notifications/read-by-type", {
+    fetch("/api/notifications/read-by-type", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ typePrefix }),
-    });
+    })
+      .then((r) => { if (r.ok) window.dispatchEvent(new CustomEvent("hamsoo:notif:refresh")); })
+      .catch(() => { /* بی‌صدا */ });
   }, [typePrefix]);
 
   return null;
