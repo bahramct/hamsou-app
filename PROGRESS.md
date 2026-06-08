@@ -6,6 +6,63 @@
 
 ## آخرین تغییرات
 
+### اصلاحات UI — DECISION-063 (۲۰۲۶-۰۶-۰۸)
+- **مسیریابی:** `/forgot-password`، `/reset-password`، `/verify-email` به `PUBLIC_PATHS` در `src/proxy.ts` افزوده شدند — کاربر ناشناس دیگر به login ریدایرکت نمی‌شود.
+- **افزودن اولین کارت کیف‌پول:** دکمهٔ دَش‌دار «+ افزودن کارت بانکی» در `ProfileWalletSection` برای کاربری که هنوز کارتی ثبت نکرده نمایش داده می‌شود.
+- **سال شمسی بدون جداکننده:** `faYear()` در `date.ts` — ۱۴۰۵ به‌جای ۱٬۴۰۵. اثر سراسری در هر جایی که `formatJalali`/`formatJalaliFromISO` استفاده می‌شود.
+- **کارت ترکیبی پشتیبانی:** `SupportSection.tsx` (جدید) — تیکت + چت آنلاین در یک کارت با جداکننده. دکمه‌ها بر اساس `planAllows()` فعال/غیرفعال (grayed-out، بدون آیکون قفل). هم‌ترازی کامل با پنل ادمین.
+- **رسید بدون scroll:** `WalletReceiptModal` از `transform: scale` به `zoom: 0.58` تغییر کرد — scrollbar حذف شد.
+- `tsc` ✅.
+
+### TASK-AUTH-RECOVERY — تأیید ایمیل لینکی + بازیابی رمز (۲۰۲۶-۰۶-۰۸)
+- **تأیید ایمیل با لینک:** ثبت‌نام ایمیلی اکنون توکن ۳۲-بایتی (نه کد ۶ رقمی) در لینک ارسال می‌کند. کاربر روی لینک کلیک → صفحهٔ `/verify-email` خودکار تأیید → redirect به داشبورد. UI مرحلهٔ دوم ثبت‌نام: نمایش «ایمیل ارسال شد» + دکمهٔ ارسال مجدد.
+- **بازیابی رمز:** `/forgot-password` — ایمیل یا نام‌کاربری می‌گیرد (بدون افشای وجود/عدم‌وجود حساب). لینک یک‌ساعته ارسال می‌شود. `/reset-password` — توکن validate + فرم رمز جدید.
+- **EmailAdapter توسعه یافت:** `sendVerificationLink()` + `sendPasswordResetLink()` به Interface و MockAdapter افزوده شد.
+- **credentials.ts:** `generateEmailToken()` (32-char hex) + `getVerificationLinkExpiry()` (24h) + `getResetLinkExpiry()` (1h).
+- **بدون migration:** رویکرد بازاستفاده از `EmailCode.purpose` — مقادیر جدید `"signup"` (توکن‌محور) + `"reset-password"`.
+- **لینک «رمز عبور را فراموش کردم»** به فرم ورود EmailLogin افزوده شد.
+- **Admin parity (هم‌ترازی):**
+  - Badge وضعیت تأیید ایمیل (سبز/قرمز) در بخش «هویت و ورود» صفحهٔ `/admin/users/[id]`
+  - `EmailActions` component — «تأیید دستی ایمیل» + «ارسال لینک بازیابی رمز»
+  - API routes: `POST /api/admin/users/[id]/verify-email` + `POST /api/admin/users/[id]/send-password-reset`
+  - Audit log: `user.email.verify` + `user.send.password_reset`
+  - Permission جدید: `users.write` به catalog افزوده شد (seed idempotent — بدون migration)
+- `tsc` ✅ · `next build` ✅.
+
+### TASK-PAYMENT-WALLET-V2 — بهبودهای کیف‌پول + مدیریت پلن (۲۰۲۶-۰۶-۰۸) — DECISION-062 تکمیل
+- **کیف‌پول داخل پروفایل:** حذف از navbar؛ `ProfileWalletSection` در `/settings/profile` — موجودی + ۲ کارت + ۳ تراکنش اخیر + لینک به `/wallet`.
+- **۲ کارت پرداختی کاربر:** `paymentCardNumber2` به User اضافه شد (db push)؛ API `DELETE /api/account/payment-card?slot=2` + `PUT` با `slot: 1|2`؛ در TopupPanel کاربر کارت ارسال را انتخاب می‌کند.
+- **رسید حرفه‌ای:** بازطراحی `WalletReceiptCanvas` (680px، هدر تیره + جدول جزئیات + QR code واقعی + بارکد تزئینی)؛ `WalletReceiptModal` با `qrcode` npm و `html-to-image`.
+- **آرشیو ادمین توپاپ:** فیلتر تب‌محور (همه/در انتظار/تأیید/رد) + صفحه‌بندی ۲۵تایی + نمایش هر ۲ کارت کاربر با علامت «استفاده شد»/«عدم تطابق!».
+- **انتقال زمان باقی‌مانده:** `purchase.ts` — هم‌پلن فعال/ارتقا → زمان باقی‌مانده + مدت جدید؛ منقضی/FREE → از حالا.
+- **نمایش زمان باقی‌مانده:** `getEffectivePlan` اکنون `daysLeft` برمی‌گرداند؛ نمایش در پروفایل hero + کارت پلن در `/plans` (نارنجی اگر ≤۳ روز).
+- **هشدار ۳ روز:** در `getEffectivePlan` — اعلان `plan.expiring_soon` ساخته می‌شود، حداکثر یک‌بار در ۲۴ساعت (idempotent).
+- **محافظ downgrade:** `purchase.ts` + `PlansPricing` دوطرفه — خرید پلن پایین‌تر در دورهٔ فعال مسدود است + پیام توضیحی در UI.
+- `db push` ✅ · `tsc` ✅ · `next build` ✅.
+
+### TASK-PAYMENT-WALLET — کیف‌پول + شارژ کارت‌به‌کارت + پلن مدت‌دار (۲۰۲۶-۰۶-۰۷) — DECISION-062
+- **کیف‌پول واسطهٔ پرداخت** (هم‌زیست با درگاهِ آینده): خریدِ پلن از موجودی؛ شارژ با کارت‌به‌کارت و تأیید دستیِ ادمین. دو مدلِ جدید (`BankCard`/`WalletTransaction`) + سه ستونِ User (db push).
+- **شارژ:** کاربر کارتش را ثبت می‌کند → درخواست شارژ → **شناسهٔ یکتا `HM-hhmmdd-xxxx`** + کارتِ مرجع → ادمین با تطبیقِ شناسه+کارت تأیید (مبلغِ قابل‌اصلاح) → کیف‌پول اتمیک شارژ + اعلان + **رسیدِ canvas قابل‌دانلود**.
+- **خرید پلن مدت‌دار + تمدید هوشمند:** `planExpiresAt` افزوده شد (ماهانه ۳۰/سالانه ۳۶۵ روز)؛ هم‌پلن→تمدید، ارتقا→از حالا، اعطای دستیِ ادمین→بدون انقضا.
+- **هم‌ترازی (هستهٔ مهم):** `getEffectivePlan` تنها مرجعِ پلنِ فعلی با lazy-downgrade انقضا → وصل به چت/گزارش/تأمل/تیکتینگ/plans؛ خواندن‌های موجود نمی‌شکنند.
+- **درستیِ مالی:** تغییرِ موجودی فقط اتمیک با balanceAfter؛ مبلغ همیشه server-side (`applyDiscount`)؛ تأیید/خرید idempotent.
+- صفحهٔ `/wallet` + nav · `/plans` خرید/تمدید با کیف‌پول · پنل `/admin/payment` + badgeِ در-انتظار · کارتِ مرجع از env سید شد.
+- `db push` ✅ · `seed` ✅ · `tsc` ✅ · `next build` ✅.
+
+### TASK-010 (مرحلهٔ ۲) — مدیریت پنل پیامک + اطمینان از مسیر (۲۰۲۶-۰۶-۰۶) — DECISION-061
+- **منبع‌حقیقت به DB منتقل شد:** دو مدل `SmsService`/`SmsLog` (db push)؛ resolver `src/lib/sms/services.ts` + مسیر مرکزی `src/lib/sms/send.ts` (`sendVerificationSms` — تنها نقطهٔ ارسال، fallback: DB→env→mock).
+- **پنل ادمین `/admin/sms`:** بنر «سرویس فعال» + مدیریت سرویس‌ها (CRUD، کلید فقط Owner) + «ارسال تستی» + «تاریخچهٔ ارسال». nav از «به‌زودی» فعال شد.
+- **اطمینان:** هر ارسال در `SmsLog` با provider/sandbox/messageId ثبت می‌شود → بعد از ورود در سایت، رکورد تازه ثابت می‌کند مسیر smsir بوده نه mock.
+- **هم‌ترازی/عدم‌شکست:** هر دو caller (ورود + افزودن موبایل) به مسیر مرکزی وصل شدند؛ `getSMSAdapter()` قدیمی حذف؛ resolver هرگز throw نمی‌کند؛ لاگ best-effort؛ کد OTP لاگ نمی‌شود و شماره ماسک می‌شود؛ انتقال خودکار env→DB در seed.
+- `db push` ✅ · `seed` ✅ · `tsc` ✅ · `next build` ✅.
+
+### TASK-010 — اتصال SMS واقعی sms.ir (sandbox فعال) (۲۰۲۶-۰۶-۰۶) — DECISION-060
+- **آداپتر `SmsIrAdapter`** (`src/lib/adapters/smsir-sms.adapter.ts`): endpoint `POST /v1/send/verify` با `x-api-key`؛ موفقیت = `status:1`. تبدیل خودکار `+989…`→`09…`، timeout ۱۵s، بدون لو رفتن کلید، بدون throw.
+- **opt-in**: `getSMSAdapter()` → `case "smsir"`؛ پیش‌فرض همچنان `mock` (سیستم فعلی دست‌نخورده). فعال‌سازی فقط با `SMS_PROVIDER="smsir"` در env.
+- **sandbox و production یک endpoint**: برای محیط واقعی فقط کلید/قالب عوض می‌شود — صفر تغییر کد.
+- **تست امن:** کلید نامعتبر→`status:10`، قالب اشتباه→`status:113`، قالب واقعی 240766→`status:1 موفق`. تست مسیر کامل کد ✅. `tsc` ✅.
+- **باقی‌مانده (production):** تأیید نام پارامتر قالب 240766 (sandbox چک نمی‌کند؛ فعلاً `Code`)؛ کلید/قالب production.
+
 ### TASK-AUTH-MULTI (پالایش) — هویت در پروفایل + کراپرِ اختصاصی (۲۰۲۶-۰۶-۰۴) — DECISION-059
 - **کارتِ یکپارچهٔ «هویت و ورود» در پروفایل:** چهار ردیفِ موبایل/ایمیل/نام‌کاربری/رمز با ویرایشِ inline. کاربرِ موبایلی ایمیل اضافه می‌کند و کاربرِ ایمیلی موبایل (OTP) — `IdentityCard`.
 - **افزودنِ موبایل با OTP:** `api/account/phone/{request-code,verify}` (بدون تغییرِ schema).

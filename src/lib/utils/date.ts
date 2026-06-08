@@ -55,9 +55,14 @@ const JALALI_MONTHS = [
   "دی", "بهمن", "اسفند",
 ] as const;
 
-/** تبدیل عدد به رقم فارسی */
+/** تبدیل عدد به رقم فارسی (با جداکننده هزارتایی — برای اعداد غیرسالی) */
 function toFa(n: number): string {
   return n.toLocaleString("fa-IR");
+}
+
+/** تبدیل سال به رقم فارسی بدون جداکننده هزارتایی (۱۴۰۵ نه ۱٬۴۰۵) */
+function faYear(y: number): string {
+  return String(y).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[+d]);
 }
 
 /**
@@ -71,7 +76,7 @@ export function formatJalali(date: Date): string {
     d.getUTCMonth() + 1,
     d.getUTCDate(),
   );
-  return `${toFa(jd)} ${JALALI_MONTHS[jm - 1]} ${toFa(jy)}`;
+  return `${toFa(jd)} ${JALALI_MONTHS[jm - 1]} ${faYear(jy)}`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,7 +112,7 @@ export function jalaliPartsToISO(jy: number, jm: number, jd: number): string {
 export function formatJalaliFromISO(iso: string): string {
   const parts = isoToJalaliParts(iso);
   if (!parts) return "";
-  return `${toFa(parts.jd)} ${JALALI_MONTHS[parts.jm - 1]} ${toFa(parts.jy)}`;
+  return `${toFa(parts.jd)} ${JALALI_MONTHS[parts.jm - 1]} ${faYear(parts.jy)}`;
 }
 
 /** طول ماه جلالی (با احتساب سال کبیسه). */

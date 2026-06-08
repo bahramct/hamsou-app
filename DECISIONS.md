@@ -1172,4 +1172,85 @@
 
 ---
 
+### DECISION-060 ✅ | اتصال SMS Provider واقعی — sms.ir (sandbox → production)
+- **تاریخ:** ۲۰۲۶-۰۶-۰۶
+- **وضعیت:** ✅ پیاده‌سازی شد (sandbox فعال؛ آمادهٔ سوییچ به production)
+- **زمینه:** مالک یک پنل sms.ir راه‌اندازی کرده (فعلاً کلید sandbox) و خواست اتصال واقعی SMS با احتیاط و پس از تست امن انجام شود.
+- **تصمیم:**
+  - آداپتر `SmsIrAdapter` (`src/lib/adapters/smsir-sms.adapter.ts`) که `SMSAdapter` را پیاده می‌کند — مطابق Adapter Pattern (هیچ کد فیچری مستقیم Provider را صدا نمی‌زند؛ همه از `getSMSAdapter()`).
+  - endpoint «کد تأیید»: `POST {baseURL}/send/verify`، header `x-api-key`، body `{ mobile, templateId, parameters:[{name,value}] }`؛ موفقیت = `status === 1`.
+  - **sandbox و production یک endpoint دارند** — برای محیط واقعی فقط `SMSIR_API_KEY` (و در صورت لزوم `SMSIR_TEMPLATE_ID`) عوض می‌شود. هیچ تغییر کدی لازم نیست.
+  - پیکربندی **env-محور** (مثل الگوی فعلی SMS در CLAUDE.md §۱۱)، نه DB/پنل ادمین — تا migration و ریسک لازم نباشد. انتقال به پنل ادمین (مثل AiService، DECISION-039) به‌عنوان فاز بعدیِ اختیاری ثبت شد.
+  - opt-in: پیش‌فرض `getSMSAdapter()` همچنان `mock` است؛ فقط با `SMS_PROVIDER="smsir"` فعال می‌شود → سیستم فعلی دست‌نخورده.
+- **جزئیات پیاده‌سازی:**
+  - تبدیل خودکار شمارهٔ نرمال‌شدهٔ همسو (`+989…`) به فرمت sms.ir (`09…`) داخل آداپتر.
+  - `sendOTP` هرگز throw نمی‌کند؛ نتیجهٔ structured (`{success,error}`) برمی‌گرداند تا جریان OTP نشکند؛ AbortController timeout ۱۵s؛ کلید در پیام خطا لو نمی‌رود.
+  - `SMSIR_PARAM_NAME` (پیش‌فرض `Code`) برای تطبیق با placeholder قالب.
+- **اعتبارسنجی (تست امن):** اتصال به `api.sms.ir` از این سیستم برقرار است (برخلاف GapGPT). تست منفی: کلید نامعتبر → `status:10`؛ قالب اشتباه → `status:113`. تست موفق با قالب واقعی 240766 → `status:1 موفق`. تست مسیر کامل کد (normalizeIranPhone→adapter) ✅. `tsc` ✅.
+- **خارج از scope / باقی‌مانده:** تأیید نام پارامتر داخل قالب 240766 برای production (sandbox آن را چک نمی‌کند)؛ کلید/قالب production؛ انتقال اختیاری به پنل ادمین.
+
+---
+
+### DECISION-061 ✅ | مدیریت پنل پیامک + observability (انتقال SMS از env به DB)
+- **تاریخ:** ۲۰۲۶-۰۶-۰۶
+- **وضعیت:** ✅ پیاده‌سازی شد (آینهٔ AiService — DECISION-039؛ ادامهٔ DECISION-060)
+- **زمینه:** پس از فعال‌شدن sms.ir روی env (DECISION-060)، مالک خواست (۱) سرویس پیامک از پنل ادمین مدیریت شود (بدون دست‌زدن به کد/env، مخصوصاً برای سوییچ sandbox→production)، و (۲) ابزاری برای **اطمینان** که ورودِ OTPِ سایت واقعاً از مسیر sms.ir می‌گذرد نه mock.
+- **تصمیم‌های تأییدشدهٔ مالک:** جدول `SmsService` چندردیفی مثل AI · هر سه ابزار اطمینان (لاگ + بنر + دکمهٔ تست) · انتقال خودکار env فعلی به DB · تأیید صریح تغییر دیتابیس (`db push`).
+- **معماری (هم‌ترازی):**
+  - **منبع‌حقیقت واحد:** ردیف‌های `SmsService` در DB. سایت و پنل هر دو از همین می‌خوانند/می‌نویسند.
+  - دو مدل جدید (`db push`): `SmsService` (provider/apiKey/templateId/paramName/baseURL/isSandbox/isActive/isDefault) و `SmsLog` (provider/serviceId/purpose/phoneMasked/success/status/messageId/error/isSandbox/createdAt).
+  - **resolver** `src/lib/sms/services.ts` (آینهٔ `ai/services.ts`): cache کوتاه + `getDefaultSmsService()`؛ هرگز throw نمی‌کند.
+  - **مسیر مرکزی** `src/lib/sms/send.ts → sendVerificationSms(phone, code, purpose)` — قاعدهٔ طلایی مثل invokeAI: تنها نقطهٔ ارسال. resolve: **DB پیش‌فرض → env (legacy) → mock** (fallback امن). لاگ best-effort. هر دو caller (`request-otp`, `account/phone/request-code`) به این وصل شدند؛ `getSMSAdapter()` قدیمی حذف شد.
+  - **API ادمین** (آینهٔ `ai/services`): `/api/admin/sms/services` (GET/POST)، `/[id]` (PATCH/DELETE)، `/[id]/key` (POST، فقط Owner)، `/test` (POST، sms.send)، `/logs` (GET).
+  - **UI:** صفحهٔ `/admin/sms` با بنر «سرویس فعال» + `SmsServicesManager` + `SmsTestSender` + `SmsDeliveryLog`. nav از «به‌زودی» به فعال. permissionهای `sms.read/send/manage` از قبل بودند.
+  - **seed:** بلوک idempotent — اگر `SmsService` خالی بود، از env یک ردیف می‌سازد (انتقال خودکار env→DB).
+- **اطمینان (پاسخ به نیاز اصلی):** هر ارسال در `SmsLog` با provider/sandbox/status/messageId ثبت می‌شود؛ بعد از ورود در سایت، رکورد تازه در `/admin/sms` ثابت می‌کند مسیر smsir بوده نه mock. بنر «سرویس فعال» هم وضعیت لحظه‌ای را نشان می‌دهد.
+- **حریم خصوصی/امنیت:** کد OTP هرگز لاگ نمی‌شود؛ شماره ماسک می‌شود (`0935***3500`)؛ apiKey فقط Owner می‌بیند (POST `/key`).
+- **عدم‌شکست:** resolver با fallback؛ لاگ best-effort؛ env قبلی به fallback تبدیل شد (بازگشت‌پذیر). `isSandbox` فقط برچسب نمایشی (sandbox/prod یک endpoint).
+- **اعتبارسنجی:** `db push` ✅ · `seed` ✅ · `tsc` ✅ · `next build` ✅ · تست end-to-end (ورود سایت → رکورد smsir در لاگ پنل) ✅.
+
+---
+
+### DECISION-062 ✅ | کیف‌پول کاربری + شارژ کارت‌به‌کارت + پلن مدت‌دار (راهکار موقتِ هم‌زیست با درگاه)
+- **تاریخ:** ۲۰۲۶-۰۶-۰۷
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **زمینه:** اعطای درگاه پرداخت طولانی شده. به‌جای پرداختِ مستقیمِ کارت‌به‌کارت برای هر پلن (پیش‌نویسِ ردشده)، مدیر فروش راهکارِ بهترِ **کیف‌پول** را پیشنهاد داد که **حتی پس از راه‌اندازی درگاه هم حفظ می‌شود**: خریدِ پلن همیشه از موجودیِ کیف‌پول است؛ شارژِ کیف‌پول امروز کارت‌به‌کارت و فردا با درگاه — بدون بازنویسی/تداخل.
+- **جریان:** کاربر کارتِ پرداختش را در `/wallet` ثبت می‌کند → درخواست شارژ با مبلغ دلخواه → **شناسهٔ یکتا `HM-hhmmdd-xxxx`** (تاریخِ جلالی + ۴ رقم) + کارتِ مرجع نمایش داده می‌شود → کارت‌به‌کارت → ادمینِ پرداخت با تطبیقِ **شناسهٔ یکتا + کارتِ ثبت‌شدهٔ کاربر** تأیید (با مبلغِ قابل‌اصلاح) → کیف‌پول اتمیک شارژ + اعلان `wallet.topup.approved` + **رسیدِ canvas قابل‌دانلود** → کاربر در `/plans` با موجودی، پلن می‌خرد.
+- **تصمیم‌های مالک:** پلن **مدت‌دار + تمدید هوشمند** · رسید **تصویرِ canvas** (html-to-image، آینهٔ Share*Canvas) · مبلغِ شارژ را کاربر وارد و ادمین تأیید/اصلاح می‌کند · کیف‌پول **فقط شارژ و خرجِ پلن** (بدون برداشت/بازگشت).
+- **مدلِ پلنِ مدت‌دار:** ستونِ `User.planExpiresAt` افزوده شد. ماهانه=۳۰ روز، سالانه=۳۶۵ روز. خریدِ هم‌پلنِ فعال→تمدید (افزودن به انقضا)؛ ارتقا/منقضی/FREE→از حالا با مدتِ کامل. **اعطای دستیِ ادمین = بدون انقضا (permanent).**
+- **هستهٔ هم‌ترازی — پلنِ مؤثر:** `src/lib/plans/effective.ts → getEffectivePlan/getEffectivePlanKey` تنها مرجعِ «پلنِ فعلیِ کاربر» برای گیت‌هاست؛ اگر منقضی شده باشد **lazy-downgrade** به FREE می‌کند (DB به‌روز می‌ماند → خواندن‌های موجودِ `user.plan` نمی‌شکنند) + اعلان `plan.expired`. وصل‌شده به: چت (`api/chat/messages`)، گزارش/تأمل (`api/reports/weekly`)، تیکتینگ (`lib/support/server`)، صفحهٔ `/plans`.
+- **schema (db push):** `User.{walletBalance,paymentCardNumber,planExpiresAt}` + مدلِ `BankCard` (کارتِ مرجع، مدیریت از پنل، آینهٔ SmsService) + مدلِ `WalletTransaction` (دفترِ کل: topup/purchase/adjust؛ مبلغِ علامت‌دار + balanceAfter؛ refCode یکتا). بدون relationِ پریزما (مثل SmsLog).
+- **درستیِ مالی:** هر تغییرِ موجودی فقط داخلِ `prisma.$transaction` با re-readِ موجودی + ثبتِ balanceAfter؛ مبلغ همیشه server-side با `applyDiscount` (بازاستفاده)؛ تأیید/خرید idempotent؛ کدِ تخفیف هنگام خرید `usedCount++`.
+- **API:** کاربر `/api/wallet/{topup,purchase,receipt/[id]}` + `/api/wallet` + `/api/account/payment-card`؛ ادمین `/api/admin/payment/{cards,cards/[id],topups,topups/[id]/approve,topups/[id]/reject}`.
+- **UI:** صفحهٔ `/wallet` (موجودی + کارتِ من + شارژ + تاریخچه + رسید) + آیتم nav؛ `/plans` دکمهٔ «خرید/تمدید با کیف‌پول» + مودالِ خرید با چکِ موجودی؛ پنلِ `/admin/payment` (کارت‌ها + شارژها) با badgeِ در-انتظار. permissionهای `payment.read/manage` از قبل بودند.
+- **هم‌زیستی با درگاه:** کیف‌پول = منبعِ خرید؛ درگاهِ آینده فقط منبعِ دیگرِ شارژ خواهد بود → بدون تداخل و بدون دورریختن.
+- **اعتبارسنجی:** `db push` ✅ · `seed` (کارتِ مرجع از env) ✅ · `tsc` ✅ · `next build` ✅ · تستِ end-to-end.
+
+---
+
+### DECISION-063 ✅ | اصلاحات UI — مسیریابی صفحات عمومی + کارت پشتیبانی + رسید + ارقام سال
+- **تاریخ:** ۲۰۲۶-۰۶-۰۸
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **زمینه:** چهار مشکل UI گزارش شده توسط مالک؛ یک باگ مسیریابی بحرانی.
+- **تصمیم‌ها:**
+
+  **۱. مسیریابی صفحات عمومی (src/proxy.ts):**
+  صفحه‌های `/forgot-password`، `/reset-password`، `/verify-email` در `PUBLIC_PATHS` میدلور نبودند → کاربر ناشناس به `/login` ریدایرکت می‌شد. افزوده شدند.
+
+  **۲. کارت اول کیف‌پول (ProfileWalletSection.tsx):**
+  `CardSlotRow` وقتی کارتی ثبت نشده بود `null` برمی‌گرداند → کاربر جدید هیچ راهی برای افزودن اولین کارت نداشت. دکمهٔ دَش‌دار «+ افزودن کارت بانکی» اضافه شد.
+
+  **۳. سال شمسی بدون جداکننده هزارتایی (src/lib/utils/date.ts):**
+  `toFa(n)` از `n.toLocaleString("fa-IR")` استفاده می‌کرد که ۱۴۰۵ را به ۱٬۴۰۵ تبدیل می‌کند. تابع `faYear(y)` با جایگزینی ارقام (نه locale) اضافه شد و در `formatJalali` و `formatJalaliFromISO` برای جزءِ سال به‌کار رفت. اثر سراسری: داشبورد، تاریخچه، گزارش هفتگی، پنل ادمین.
+
+  **۴. کارت ترکیبی پشتیبانی (SupportSection.tsx — جدید):**
+  دو کارت جداگانهٔ «تیکت» و «چت آنلاین» ادغام شدند. دکمه‌ها بر اساس `planAllows()` فعال/غیرفعال می‌شوند (بدون آیکون قفل، grayed-out). هم‌ترازی کامل: تغییر در پنل ادمین → ظرف ۱۰ ثانیه (cache invalidation) در سایت منعکس می‌شود.
+
+  **۵. رسید بدون scroll (WalletReceiptModal.tsx):**
+  `transform: scale(0.62)` روی ابعاد layout اثر نمی‌گذاشت → ارتفاع wrapper معادل canvas کامل (~۷۰۰px) بود → scrollbar. جایگزینی با `zoom: 0.58` که ابعاد layout را هم کوچک می‌کند. `max-h` و `overflow-y-auto` حذف شدند.
+
+- **اعتبارسنجی:** `tsc` ✅.
+
+---
+
 *هر تصمیم جدید باید به این فایل اضافه شود — نه به TASKS.md یا CLAUDE.md*

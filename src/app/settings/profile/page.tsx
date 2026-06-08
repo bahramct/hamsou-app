@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /settings/profile — پروفایل کاربری (بازطراحی DECISION-057/059)
-// hero با آواتارِ قابل‌ویرایش + @username · کارتِ یکپارچهٔ هویت/ورود · چیدمانِ متوازن
+// /settings/profile — پروفایل کاربری (بازطراحی DECISION-057/059/062)
+// hero با آواتارِ قابل‌ویرایش + @username · کارتِ یکپارچهٔ هویت/ورود
+// + بخش کیف‌پول (زمان باقی‌مانده پلن + موجودی + کارت‌ها + تراکنش‌های اخیر)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { redirect } from "next/navigation";
@@ -11,11 +12,15 @@ import { prisma } from "@/lib/db/client";
 import { EditableAvatar } from "@/components/features/profile/EditableAvatar";
 import { PersonalInfoSection } from "@/components/features/profile/PersonalInfoSection";
 import { IdentityCard } from "@/components/features/profile/IdentityCard";
-import { SupportChatCard } from "@/components/features/support-chat/SupportChatCard";
+import { SupportSection } from "@/components/features/support-chat/SupportSection";
+import { ProfileWalletSection, type ProfileWalletTx } from "@/components/features/wallet/ProfileWalletSection";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { planAllows } from "@/lib/plans/access";
 import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
+import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import { toFaDigits } from "@/lib/utils/digits";
+import { getEffectivePlan } from "@/lib/plans/effective";
+import { getNow } from "@/lib/dev/time";
 
 function formatMemberSince(date: Date): string {
   return date.toLocaleDateString("fa-IR", { year: "numeric", month: "long" });
@@ -26,6 +31,13 @@ const PLAN_BADGE: Record<string, { label: string; className: string }> = {
   PLUS: { label: "پلاس", className: "bg-sage/20 text-sage-deep" },
   PRO:  { label: "پرو", className: "bg-ember/15 text-ember" },
 };
+
+function daysLeftLabel(daysLeft: number | null): string | null {
+  if (daysLeft == null) return null;
+  if (daysLeft === 0) return "امروز منقضی می‌شود";
+  if (daysLeft === 1) return "۱ روز مانده";
+  return `${daysLeft.toLocaleString("fa-IR")} روز مانده`;
+}
 
 export default async function ProfileSettingsPage() {
   const session = await getSessionUser();
@@ -45,21 +57,48 @@ export default async function ProfileSettingsPage() {
       avatarImage: true,
       birthDate: true,
       plan: true,
+      planExpiresAt: true,
       createdAt: true,
+      walletBalance: true,
+      paymentCardNumber: true,
+      paymentCardNumber2: true,
     },
   });
   if (!user) redirect("/login");
 
-  const [entryCount, reportCount] = await Promise.all([
+  // پلن مؤثر (با lazy-downgrade + چک ۳ روز)
+  const effectivePlan = await getEffectivePlan(session.userId);
+  const now = getNow();
+
+  const [entryCount, reportCount, recentTxsRaw] = await Promise.all([
     prisma.dailyEntry.count({ where: { userId: session.userId } }),
     prisma.weeklyReport.count({ where: { userId: session.userId } }),
+    prisma.walletTransaction.findMany({
+      where: { userId: session.userId },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    }),
   ]);
-  const daysSince = Math.max(0, Math.floor((Date.now() - user.createdAt.getTime()) / 86_400_000));
+
+  const daysSince = Math.max(0, Math.floor((now.getTime() - user.createdAt.getTime()) / 86_400_000));
 
   const color = AVATAR_COLOR;
   const initialLetter = user.displayName?.trim()?.[0] ?? "ه";
-  const planBadge = PLAN_BADGE[user.plan] ?? { label: user.plan, className: "bg-fog/25 text-stone" };
-  const liveChatAllowed = await planAllows(user.plan, LIVE_CHAT_FEATURE_KEY);
+  const planBadge = PLAN_BADGE[effectivePlan.plan] ?? { label: effectivePlan.plan, className: "bg-fog/25 text-stone" };
+  const [liveChatAllowed, ticketingAllowed] = await Promise.all([
+    planAllows(effectivePlan.plan, LIVE_CHAT_FEATURE_KEY),
+    planAllows(effectivePlan.plan, TICKETING_FEATURE_KEY),
+  ]);
+  const daysLeftStr = daysLeftLabel(effectivePlan.daysLeft);
+
+  const recentTxs: ProfileWalletTx[] = recentTxsRaw.map((t) => ({
+    id: t.id,
+    type: t.type,
+    amount: t.amount,
+    status: t.status,
+    refCode: t.refCode,
+    createdAt: t.createdAt.toISOString(),
+  }));
 
   return (
     <AppShell>
@@ -101,6 +140,17 @@ export default async function ProfileSettingsPage() {
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${planBadge.className}`}>
                   {planBadge.label}
                 </span>
+                {/* زمان باقی‌مانده پلن */}
+                {daysLeftStr && (
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs ${
+                    (effectivePlan.daysLeft ?? 99) <= 3 ? "bg-ember/10 text-ember" : "bg-fog/20 text-stone"
+                  }`}>
+                    {(effectivePlan.daysLeft ?? 99) <= 3 && (
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                    )}
+                    {daysLeftStr}
+                  </span>
+                )}
                 <span className="text-xs text-fog">عضو از {formatMemberSince(user.createdAt)}</span>
               </div>
             </div>
@@ -130,10 +180,15 @@ export default async function ProfileSettingsPage() {
           />
         </div>
 
-        {/* ───── ردیف دوم: پشتیبانی ───── */}
+        {/* ───── ردیف دوم: کیف‌پول + پشتیبانی ───── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <SupportEntry />
-          <SupportChatCard allowed={liveChatAllowed} />
+          <ProfileWalletSection
+            balance={user.walletBalance}
+            cardNumber={user.paymentCardNumber}
+            cardNumber2={user.paymentCardNumber2}
+            recentTxs={recentTxs}
+          />
+          <SupportSection ticketingAllowed={ticketingAllowed} liveChatAllowed={liveChatAllowed} />
         </div>
 
         {/* ───── ردیف سوم: یادآوری‌ها ───── */}
@@ -172,21 +227,3 @@ function NotificationsCard() {
   );
 }
 
-function SupportEntry() {
-  return (
-    <section className="glass rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <div className="space-y-0.5">
-        <h2 className="text-sm font-semibold text-ink">پشتیبانی</h2>
-        <p className="text-xs text-fog leading-relaxed">
-          سؤال یا مشکلی داری؟ تیکت بفرست و گفتگو را همان‌جا پیگیری کن.
-        </p>
-      </div>
-      <Link
-        href="/support"
-        className="shrink-0 inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors"
-      >
-        تیکت‌های پشتیبانی
-      </Link>
-    </section>
-  );
-}

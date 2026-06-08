@@ -13,6 +13,177 @@
 
 ---
 
+## 🗺️ نقشه ادامه کار — اولویت‌بندی‌شده (۲۰۲۶-۰۶-۰۸)
+
+> برگرفته از جلسه مرور وضعیت + بررسی گپ‌های حیاتی پیش از رشد.
+> هر تسک پس از شروع به بخش «وظیفه جاری» منتقل می‌شود.
+
+| # | تسک | نوع | اولویت | وضعیت | یادداشت |
+|---|-----|-----|--------|--------|---------|
+| ۰ | TASK-UI-FIXES-063 | اصلاح باگ | ✅ | ✅ تمام | مسیریابی + کارت کیف‌پول + سال شمسی + کارت پشتیبانی + رسید — ۲۰۲۶-۰۶-۰۸ |
+| ۱ | TASK-AUTH-RECOVERY | رفع گپ حیاتی | 🔴 Critical | ✅ تمام | تأیید ایمیل با لینک + بازیابی رمز — ۲۰۲۶-۰۶-۰۸ |
+| ۲ | TASK-EMAIL-PROVIDER | زیرساخت | 🔴 Critical | ⏳ شروع نشده | mock فعلی؛ Resend/SendGrid با Adapter Pattern |
+| ۳ | TASK-GATEWAY | فیچر برنامه‌ریزی‌شده | 🔴 Critical | ⏳ تصمیم لازم | کیف‌پول آماده؛ درگاه = منبع دوم شارژ |
+| ۴ | TASK-ONBOARDING | فیچر جدید ✨ | 🟠 High | ⏳ شروع نشده | ۳ مرحله ساده؛ تأییدشده |
+| ۵ | TASK-PWA | فیچر برنامه‌ریزی‌شده | 🟠 High | ⏳ شروع نشده | بازار موبایل ایران؛ manifest + SW + آیکون |
+| ۶ | TASK-NOTIF-WAVE2 | فیچر برنامه‌ریزی‌شده | 🟠 High | ⏳ شروع نشده | زیرساخت آماده؛ scheduler + UI تنظیمات |
+| ۷ | TASK-SOCIAL-SHARE | فیچر برنامه‌ریزی‌شده | 🟡 Medium | ⏳ شروع نشده | گزارش هفتگی؛ لینک عمومی با token |
+| ۸ | TASK-ADMIN-KPI | فیچر برنامه‌ریزی‌شده | 🟡 Medium | ⏳ شروع نشده | DAU · retention · revenue |
+| ۹ | TASK-I18N | زیرساخت | 🟡 Medium | ⏳ شروع نشده | هر چه دیرتر سخت‌تر |
+| ۱۰ | TASK-AI-PATTERN | فیچر برنامه‌ریزی‌شده | 🟡 Medium | ⏳ موکول | نیاز به ۳+ ماه داده کاربری |
+
+---
+
+### TASK-AUTH-RECOVERY | تأیید ایمیل با لینک + بازیابی رمز — ✅ تمام (۲۰۲۶-۰۶-۰۸)
+
+- **تأیید ایمیل لینکی:** ثبت‌نام ایمیلی اکنون لینک ارسال می‌کند (توکن ۳۲-بایتی، ۲۴ ساعت). صفحهٔ `/verify-email` توکن را خودکار تأیید و کاربر را به داشبورد هدایت می‌کند.
+- **بازیابی رمز:** `/forgot-password` ایمیل یا نام‌کاربری می‌گیرد؛ لینک بازیابی یک‌ساعته به ایمیل ارسال می‌شود. `/reset-password` رمز جدید را می‌گیرد.
+- **EmailAdapter:** دو متد جدید `sendVerificationLink` + `sendPasswordResetLink` افزوده شد.
+- **بدون migration:** توکن‌ها با `purpose: "reset-password"|"signup"` در مدل `EmailCode` ذخیره می‌شوند.
+- **admin parity:** `/admin/users/[id]` — badge وضعیت ایمیل + «تأیید دستی» + «ارسال لینک بازیابی». API routes + audit log.
+- **permission جدید:** `users.write` به catalog افزوده شد (seed idempotent).
+- `tsc` ✅ · `next build` ✅.
+
+---
+
+### TASK-EMAIL-PROVIDER | Email Provider واقعی — ⏳ شروع نشده
+
+- **اولویت:** 🔴 Critical — هم برای OTP ایمیل، هم برای بازیابی رمز
+- **وابستگی:** TASK-AUTH-MULTI ✅ (EmailAdapter interface آماده)
+- **پیشنهاد:** Resend (ساده‌ترین API؛ free tier کافی؛ SMTP نیاز ندارد) یا Mailgun
+- **معماری:** مثل SMS — `ResendEmailAdapter` پشت Interface؛ مدیریت از پنل `/admin/email`
+- **ساب‌تسک‌ها:**
+  - [ ] `src/lib/adapters/resend-email.adapter.ts`
+  - [ ] `getSMTPAdapter()` factory → `case "resend"`
+  - [ ] مدل `EmailService`/`EmailLog` (db push، مثل SmsService)
+  - [ ] `/admin/email` — بنر سرویس فعال + CRUD + ارسال تستی + تاریخچه
+  - [ ] وصل به `EmailAdapter` در `api/auth/email/*`
+
+---
+
+### TASK-GATEWAY | درگاه پرداخت — ⏳ تصمیم لازم
+
+- **اولویت:** 🔴 Critical
+- **وضعیت:** کیف‌پول و کارت‌به‌کارت آماده است؛ درگاه = منبع دوم شارژ بدون تداخل
+- **تصمیم باز:** انتخاب Provider — ZarinPal / Vandar / Shaparak مستقیم
+- **معماری:** `PaymentGatewayAdapter` interface → درگاه = فقط یک روش شارژ کیف‌پول جدید
+- **ساب‌تسک‌ها (پس از تصمیم):**
+  - [ ] `PaymentGatewayAdapter` interface (initiatePayment، verifyPayment)
+  - [ ] پیاده‌سازی Provider انتخابی
+  - [ ] `/api/wallet/gateway/initiate` · `/api/wallet/gateway/verify/[id]`
+  - [ ] صفحه redirect به درگاه + صفحه callback
+  - [ ] مدیریت از پنل ادمین (مثل SMS/Email)
+
+---
+
+### TASK-ONBOARDING | جریان ورود اول (Onboarding Flow) — ⏳ شروع نشده
+
+- **اولویت:** 🟠 High — تأییدشده؛ ۳ مرحله ساده
+- **وابستگی:** TASK-AUTH-MULTI ✅
+- **schema (migration لازم):** `User.onboardingCompletedAt DateTime?`
+- **جریان پیشنهادی:**
+  - مرحله ۱ — «همسو چیست؟» (توضیح کوتاه؛ بدون scroll; ۲ پاراگراف)
+  - مرحله ۲ — «اسمت چیه؟» (ست displayName؛ اختیاری‌بودن تأکید شود)
+  - مرحله ۳ — «اولین تعهدت» (EntryForm ساده‌شده؛ CTA به داشبورد)
+- **middleware:** اگر لاگین + `!onboardingCompletedAt` → redirect به `/onboarding`
+- **ساب‌تسک‌ها:**
+  - [ ] migration: `onboardingCompletedAt` روی User
+  - [ ] صفحه `/onboarding` با stepper ساده (بدون progress bar گیمیفای‌شده)
+  - [ ] API `POST /api/account/complete-onboarding`
+  - [ ] middleware redirect
+  - [ ] skip option («بعداً»)
+
+---
+
+### TASK-PWA | PWA + بهینه‌سازی موبایل — ⏳ شروع نشده
+
+- **اولویت:** 🟠 High — حیاتی برای بازار موبایل ایران
+- **ساب‌تسک‌ها:**
+  - [ ] `public/manifest.json` (نام/رنگ/آیکون فارسی)
+  - [ ] آیکون‌های ۱۹۲/۵۱۲ px
+  - [ ] `next.config.ts` → `next-pwa` یا custom SW
+  - [ ] Service Worker: cache-first برای assets استاتیک + network-first برای API
+  - [ ] صفحه offline (`/offline`) با لحن همسو
+  - [ ] meta تگ‌های iOS (`apple-mobile-web-app-*`)
+  - [ ] touch targets ≥ ۴۴px بررسی (audit)
+  - [ ] viewport safe-area رعایت (notch/home indicator)
+  - [ ] بنر «به صفحه اصلی اضافه کن» در داشبورد (یک‌بار + قابل بستن)
+
+---
+
+### TASK-NOTIF-WAVE2 | یادآوری‌های زمانی (موج ۲) — ⏳ شروع نشده
+
+- **اولویت:** 🟠 High — زیرساخت آماده؛ فقط scheduler + UI باقی است
+- **وابستگی:** TASK-NOTIF-CORE ✅ (catalog + createNotification آماده)
+- **انواع یادآوری:**
+  - «امروز تعهدت ثبت نشده» (ساعت قابل‌تنظیم)
+  - «بازخورد تعهد دیروز منتظر است»
+  - «گزارش هفتگی‌ات آماده است» (پس از generate)
+  - «پلن ۳ روز دیگر تمام می‌شود» (✅ قبلاً ساخته شد)
+- **تنظیمات کاربر:** `/settings/notifications` — کنترل per-type + ساعت یادآوری روزانه
+- **scheduler:** Vercel Cron (یا `node-cron` برای self-host)
+- **ساب‌تسک‌ها:**
+  - [ ] `src/lib/notifications/scheduler.ts` — منطق بررسی + ارسال دسته‌ای
+  - [ ] `POST /api/cron/daily-reminders` (با secret header)
+  - [ ] Vercel Cron config در `vercel.json`
+  - [ ] صفحه `/settings/notifications` با toggle per نوع + انتخاب ساعت
+  - [ ] migration: `NotificationPreference` per کاربر
+
+---
+
+### TASK-SOCIAL-SHARE | اشتراک گزارش هفتگی — ⏳ شروع نشده
+
+- **اولویت:** 🟡 Medium
+- **وابستگی:** TASK-WEEKLY-V3 ✅
+- **جریان:** دکمه «اشتراک» در گزارش → لینک عمومی با token یک‌بارمصرف (یا ۷ روز) → صفحه `/report/share/[token]` بدون نیاز به ورود
+- **schema:** ستون `shareToken String?` + `sharedAt DateTime?` روی `WeeklyReport`
+- **ساب‌تسک‌ها:**
+  - [ ] `POST /api/reports/weekly/[id]/share` — generate token
+  - [ ] `GET /api/reports/share/[token]` — بدون auth
+  - [ ] صفحه `/report/share/[token]` — نمایش گزارش عمومی (بدون اطلاعات شخصی)
+  - [ ] دکمه share در UI گزارش + کپی لینک
+
+---
+
+### TASK-ADMIN-KPI | داشبورد KPI ادمین — ⏳ شروع نشده
+
+- **اولویت:** 🟡 Medium
+- **وابستگی:** ادمین MVP ✅
+- **متریک‌های اول:**
+  - DAU (کاربران فعال روزانه — ثبت تعهد = active)
+  - تعداد ثبت‌نام روزانه/هفتگی
+  - توزیع پلن (FREE/PLUS/PRO)
+  - نرخ تکمیل بازخورد
+  - درآمد (تأیید topup × amount)
+- **ساب‌تسک‌ها:**
+  - [ ] `/api/admin/stats` — aggregate queries (بدون N+1)
+  - [ ] `/admin/stats` — صفحه داشبورد با چارت‌های SVG دست‌ساز (مثل گزارش)
+  - [ ] بازه زمانی: هفته/ماه/سه‌ماه
+
+---
+
+### TASK-I18N | زیرساخت چندزبانگی — ⏳ شروع نشده
+
+- **اولویت:** 🟡 Medium — هر چه دیرتر سخت‌تر
+- **پیشنهاد:** `next-intl` (بهترین DX با App Router)
+- **قانون:** فارسی همیشه canonical؛ انگلیسی optional
+- **ساب‌تسک‌ها:**
+  - [ ] نصب و تنظیم `next-intl` با locale routing
+  - [ ] استخراج string های موجود به `messages/fa.json`
+  - [ ] LTR/RTL خودکار بر اساس locale
+  - [ ] language switcher در settings
+
+---
+
+### TASK-AI-PATTERN | تحلیل الگو AI — ⏳ موکول
+
+- **اولویت:** 🟡 Medium — نیاز به ۳+ ماه داده
+- **وابستگی:** TASK-AI-ARCH ✅ + تاریخچه واقعی کاربران
+- **نقش:** `pattern-insight` در Registry
+- **شروع:** پس از اینکه کاربران واقعی ۳+ ماه داده داشتند
+
+---
+
 ## 🔴 وظیفه جاری (In Progress)
 
 ### TASK-AUTH-MULTI | احراز هویتِ چندگانه (ایمیل/پسورد + نام‌کاربری) + بازطراحیِ آواتار (DECISION-057/058) — ✅ ۲۰۲۶-۰۶-۰۴
@@ -659,10 +830,22 @@
 - **نیازمندی فنی:** تغییر `WeeklyReportOutput` schema + گسترش پرامپت به v2 یا نقش‌های جداگانه per-plan
 - **کتابخانه نمودار:** تعیین می‌شود (Recharts / Chart.js / CSS-only)
 
-### TASK-010 | SMS Provider واقعی
-- **اولویت:** ⏸️ Blocked — منتظر دستور صاحب پروژه
+### TASK-010 | SMS Provider واقعی — sms.ir
+- **اولویت:** 🟡 In Progress (sandbox فعال)
 - **وابستگی:** TASK-003
-- **یادداشت:** سیستم Mock SMS فعلی کافی است؛ صاحب پروژه هر زمان لازم شد اطلاع می‌دهد. اتصال به Kavenegar یا مشابه — فقط SMSAdapter پیاده‌سازی جدید (Interface ثابت می‌ماند)
+- **وضعیت ۲۰۲۶-۰۶-۰۶:** آداپتر `sms.ir` ساخته و در حالت **sandbox** فعال شد (DECISION-060).
+  - فایل: `src/lib/adapters/smsir-sms.adapter.ts` (endpoint `POST /v1/send/verify`، `x-api-key`).
+  - factory: `getSMSAdapter()` → `case "smsir"` (پیش‌فرض همچنان `mock`؛ Interface ثابت).
+  - env: `SMS_PROVIDER="smsir"` + `SMSIR_API_KEY`/`SMSIR_TEMPLATE_ID`/`SMSIR_PARAM_NAME` در `.env.local`.
+  - تأیید: تست واقعی sandbox (templateId=240766) → `status:1 موفق`؛ تست مسیر کامل (normalizeIranPhone→adapter) ✅.
+- **وضعیت ۲۰۲۶-۰۶-۰۶ (مرحلهٔ ۲ — DECISION-061):** مدیریت کامل از پنل ادمین + observability.
+  - دو مدل `SmsService`/`SmsLog` (db push)؛ resolver `src/lib/sms/services.ts` + مسیر مرکزی `src/lib/sms/send.ts`.
+  - صفحهٔ `/admin/sms`: بنر سرویس فعال + CRUD سرویس‌ها + ارسال تستی + تاریخچهٔ ارسال (اثبات مسیر).
+  - API: `/api/admin/sms/{services,services/[id],services/[id]/key,test,logs}`. nav فعال شد.
+  - انتقال خودکار env→DB در seed. هر دو caller به مسیر مرکزی وصل شدند.
+- **باقی‌مانده برای production:**
+  - [ ] تأیید نام دقیق پارامتر داخل قالب 240766 (placeholder بین `#…#`) — فعلاً `Code`؛ sandbox نام پارامتر را اعتبارسنجی نمی‌کند.
+  - [ ] از پنل: ساخت/پیش‌فرض‌کردن سرویس با کلید production و قالب نهایی (بدون تغییر کد).
 
 ### TASK-AI-PROVIDERS | اتصال Provider واقعی AI
 - **اولویت:** 🟠 High
@@ -720,6 +903,16 @@
 - **وابستگی:** TASK-ADMIN-MVP (پلن‌ها باید تعریف شده باشد)
 - **منبع:** admin-panel.md §۶
 - **ساب‌تسک‌ها:** TASK-PAYMENT-01 تا 06
+
+#### TASK-PAYMENT-WALLET | کیف‌پول + شارژ کارت‌به‌کارت (راهکار موقتِ هم‌زیست) — ✅ انجام شد ۲۰۲۶-۰۶-۰۷ (DECISION-062)
+- **چرا:** تا فراهم‌شدن درگاه، کیف‌پول واسطهٔ پرداخت است؛ خریدِ پلن از موجودی، شارژ با کارت‌به‌کارت و تأیید دستیِ ادمین. عمداً با درگاهِ آینده هم‌زیست (درگاه = منبعِ دیگرِ شارژ).
+- **پیاده‌شده:**
+  - schema (db push): `User.{walletBalance,paymentCardNumber,planExpiresAt}` + `BankCard` + `WalletTransaction`.
+  - دامنه: `lib/wallet/wallet.ts` (شناسهٔ یکتا HM-hhmmdd-xxxx، تأیید/رد/اصلاح اتمیک)، `lib/payment/cards.ts`، `lib/plans/effective.ts` (پلنِ مؤثر + lazy-downgrade)، `lib/plans/purchase.ts` (تمدید هوشمند ۳۰/۳۶۵).
+  - API کاربر: `/api/wallet/{topup,purchase,receipt}`، `/api/wallet`، `/api/account/payment-card`. API ادمین: `/api/admin/payment/{cards,cards/[id],topups,topups/[id]/{approve,reject}}`.
+  - UI: `/wallet` (موجودی/کارت/شارژ/تاریخچه/رسیدِ canvas) + nav؛ `/plans` خرید/تمدید با کیف‌پول؛ پنل `/admin/payment` + badge؛ seed کارت از env.
+  - هم‌ترازی: `getEffectivePlan` در چت/گزارش/تأمل/تیکتینگ/plans؛ اعطای دستیِ ادمین = بدون انقضا.
+- **باقی‌مانده (فاز درگاه واقعی):** درگاه به‌عنوان منبعِ دومِ شارژِ کیف‌پول؛ صورتحساب رسمی؛ برداشت/بازگشت (در صورت نیاز).
 
 ### TASK-011 | سیستم پلن‌ها — 🔄 جایگزین شده
 - **وضعیت:** این TASK به TASK-ADMIN-MVP-06/07 + TASK-PAYMENT تجزیه شد (DECISION-026)
@@ -860,4 +1053,4 @@
 
 ---
 
-*آخرین بروزرسانی: ۲۰۲۶-۰۵-۲۸ — TASK-009 + معماری AI کامل (۲۲ ساب‌تسک)*
+*آخرین بروزرسانی: ۲۰۲۶-۰۶-۰۸ — نقشه ادامه کار ۱۰‌تایی بر اساس بررسی وضعیت*

@@ -12,7 +12,17 @@ import { verifyAdminSessionToken, ADMIN_SESSION_COOKIE } from "@/lib/admin/sessi
 // نکته: "/" (صفحه اصلی/لندینگ) هم public است — هر کسی می‌تواند آن را ببیند.
 // "/share" عمومی است (DECISION-052/054): گزارشِ اشتراکی + OG image + تصویرِ
 // قابل‌دانلود، همه با گِیتِ isShared در خودِ هندلر محافظت می‌شوند (نه با auth).
-const PUBLIC_PATHS = ["/", "/login", "/plans", "/share", "/api/auth", "/api/dev"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/plans",
+  "/share",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/api/auth",
+  "/api/dev",
+];
 
 // مسیرهایی که کاملاً بیرون از middleware هستند (static, assets)
 const SKIP_PREFIXES = ["/_next/", "/favicon.ico", "/Fonts/", "/logo.png", "/landing.html"];
