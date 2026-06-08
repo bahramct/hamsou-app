@@ -3,18 +3,22 @@
 //
 // body: { email, password }
 // - اعتبارسنجیِ ایمیل + پسورد
-// - اگر ایمیل قبلاً ثبت‌نامِ تأییدشده دارد → خطا (راهنمایی به ورود)
-// - پسورد hash شده و همراهِ کد در EmailCode «معلق» ذخیره می‌شود (کاربر هنوز ساخته نمی‌شود)
-// - کد از طریق EmailAdapter ارسال می‌شود؛ در dev با devOnlyPayload به UI برمی‌گردد
+// - پسورد hash شده و همراهِ توکن در EmailCode «معلق» ذخیره می‌شود
+// - لینک تأیید از طریق EmailAdapter ارسال می‌شود؛ در dev با devOnlyPayload به UI برمی‌گردد
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { getEmailAdapter } from "@/lib/adapters";
-import { normalizeEmail, generateEmailCode, getEmailCodeExpiry } from "@/lib/auth/credentials";
+import {
+  normalizeEmail,
+  generateEmailToken,
+  getVerificationLinkExpiry,
+} from "@/lib/auth/credentials";
 import { hashPassword, validateUserPassword } from "@/lib/auth/password";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
+import { getAppBaseUrl } from "@/lib/utils/app-url";
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,35 +54,37 @@ export async function POST(req: NextRequest) {
 
     const now = getNow();
 
-    // rate limit ساده: اگر کدِ معتبرِ فعالی برای این ایمیل هست، همان را برگردان
-    const activeCode = await prisma.emailCode.findFirst({
+    // rate limit ساده: اگر توکنِ معتبرِ فعالی برای این ایمیل هست، همان را برگردان
+    const activeRecord = await prisma.emailCode.findFirst({
       where: { email, purpose: "signup", isUsed: false, expiresAt: { gt: now } },
       orderBy: { createdAt: "desc" },
     });
-    if (activeCode) {
+    if (activeRecord) {
+      const link = `${getAppBaseUrl()}/verify-email?token=${activeRecord.code}`;
       return NextResponse.json({
         ok: true,
-        ...devOnlyPayload({ devCode: activeCode.code }),
+        ...devOnlyPayload({ devToken: activeRecord.code, devLink: link }),
       });
     }
 
-    const code = generateEmailCode();
+    const token = generateEmailToken();
     await prisma.emailCode.create({
       data: {
         email,
-        code,
+        code: token,
         purpose: "signup",
         passwordHash: hashPassword(password),
-        expiresAt: getEmailCodeExpiry(),
+        expiresAt: getVerificationLinkExpiry(),
       },
     });
 
+    const link = `${getAppBaseUrl()}/verify-email?token=${token}`;
     const mailer = getEmailAdapter();
-    await mailer.sendVerificationCode(email, code);
+    await mailer.sendVerificationLink(email, link);
 
     return NextResponse.json({
       ok: true,
-      ...devOnlyPayload({ devCode: code }),
+      ...devOnlyPayload({ devToken: token, devLink: link }),
     });
   } catch (err) {
     console.error("[email/request-code]", err);

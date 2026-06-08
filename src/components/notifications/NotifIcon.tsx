@@ -36,6 +36,13 @@ export function NotifIcon({ icon, className = "" }: { icon: NotificationIcon; cl
           <path d="M5.5 6h5M5.5 8.5h5M5.5 11h3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
       );
+    case "wallet":
+      return (
+        <svg {...common}>
+          <rect x="2" y="3.5" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+          <path d="M11 8h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>

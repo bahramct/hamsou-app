@@ -18,6 +18,8 @@ export const AUDIT_CATEGORIES = {
   users: "کاربران",
   plans: "پلن‌ها و تخفیف",
   ai: "هوش مصنوعی",
+  sms: "پیامک",
+  payment: "پرداخت",
   support: "پشتیبانی",
 } as const;
 
@@ -51,9 +53,11 @@ export const AUDIT_ACTIONS: Record<string, AuditActionDef> = {
   "role.delete":         { label: "حذف نقش",                     category: "roles",  tone: "danger" },
 
   // ── کاربران ─────────────────────────────────────────────────────────────
-  "user.plan.change":    { label: "تغییر پلن کاربر",             category: "users",  tone: "update" },
-  "user.ban":            { label: "مسدودسازی کاربر",             category: "users",  tone: "danger" },
-  "user.unban":          { label: "رفع مسدودی کاربر",            category: "users",  tone: "create" },
+  "user.plan.change":       { label: "تغییر پلن کاربر",             category: "users",  tone: "update" },
+  "user.ban":               { label: "مسدودسازی کاربر",             category: "users",  tone: "danger" },
+  "user.unban":             { label: "رفع مسدودی کاربر",            category: "users",  tone: "create" },
+  "user.email.verify":      { label: "تأیید دستی ایمیل کاربر",      category: "users",  tone: "security" },
+  "user.send.password_reset": { label: "ارسال لینک بازیابی رمز",    category: "users",  tone: "security" },
 
   // ── پلن‌ها و تخفیف ──────────────────────────────────────────────────────
   "plan.update":         { label: "ویرایش پلن",                  category: "plans",  tone: "update" },
@@ -71,6 +75,21 @@ export const AUDIT_ACTIONS: Record<string, AuditActionDef> = {
   "ai.prompt.save":      { label: "ذخیرهٔ پرامپت",               category: "ai",     tone: "update" },
   "ai.prompt.activate":  { label: "فعال‌سازی نسخهٔ پرامپت",       category: "ai",     tone: "update" },
   "ai.prompt.revert":    { label: "بازگردانی پرامپت",            category: "ai",     tone: "update" },
+
+  // ── پیامک ───────────────────────────────────────────────────────────────
+  "sms.service.create":    { label: "افزودن سرویس پیامک",          category: "sms",    tone: "create" },
+  "sms.service.update":    { label: "ویرایش سرویس پیامک",          category: "sms",    tone: "update" },
+  "sms.service.delete":    { label: "حذف سرویس پیامک",             category: "sms",    tone: "danger" },
+  "sms.service.key.reveal": { label: "مشاهدهٔ کلید پیامک",         category: "sms",    tone: "security" },
+  "sms.test.send":         { label: "ارسال پیامک تستی",            category: "sms",    tone: "update" },
+
+  // ── پرداخت ──────────────────────────────────────────────────────────────
+  "payment.card.create":   { label: "افزودن کارت مرجع",            category: "payment", tone: "create" },
+  "payment.card.update":   { label: "ویرایش کارت مرجع",            category: "payment", tone: "update" },
+  "payment.card.delete":   { label: "حذف کارت مرجع",               category: "payment", tone: "danger" },
+  "wallet.topup.approve":  { label: "تأیید شارژ کیف‌پول",          category: "payment", tone: "create" },
+  "wallet.topup.reject":   { label: "رد شارژ کیف‌پول",             category: "payment", tone: "danger" },
+  "wallet.adjust":         { label: "اصلاح دستی موجودی",           category: "payment", tone: "security" },
 
   // ── پشتیبانی ────────────────────────────────────────────────────────────
   "support.reply":           { label: "پاسخ به تیکت",            category: "support", tone: "create" },

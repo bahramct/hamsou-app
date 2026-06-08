@@ -366,7 +366,7 @@ export default function HomePage() {
       ══════════════════════════════════════════════════════════════════════ */}
       <footer className="relative z-10 px-6 lg:px-10 pt-16 pb-10" style={{ borderTop: "1px solid rgba(26,26,31,0.06)" }}>
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>
               <Image src="/logo.png" alt="همسو" width={40} height={40} className="h-10 w-auto mb-4" style={{ width: "auto" }} />
               <p className="text-stone" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7, maxWidth: "280px" }}>
@@ -388,6 +388,14 @@ export default function HomePage() {
                 <li><a href="#" className="hover:text-ink transition-colors">حریم خصوصی</a></li>
                 <li><a href="#" className="hover:text-ink transition-colors">تماس آرام</a></li>
               </ul>
+            </div>
+            <div className="flex flex-col items-start">
+              <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>اعتماد</div>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=739126&Code=5EvOFay6oGCflUCFpgQlBRrBntVvjODR'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=739126&Code=5EvOFay6oGCflUCFpgQlBRrBntVvjODR' alt='' style='cursor:pointer' code='5EvOFay6oGCflUCFpgQlBRrBntVvjODR'></a>`
+                }}
+              />
             </div>
           </div>
 

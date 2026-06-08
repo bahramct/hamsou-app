@@ -15,6 +15,7 @@ import {
   type PlanKey,
 } from "@/lib/plans/features";
 import { PlansPricing, type PublicPlan, type PublicFeature } from "@/components/features/plans/PlansPricing";
+import { getEffectivePlan } from "@/lib/plans/effective";
 
 export const dynamic = "force-dynamic";
 
@@ -51,9 +52,17 @@ export default async function PlansPage() {
   const user = await getSessionUser();
 
   let currentPlan = "FREE";
+  let walletBalance = 0;
+  let planDaysLeft: number | null = null;
   if (user) {
-    const dbUser = await prisma.user.findUnique({ where: { id: user.userId }, select: { plan: true } });
-    currentPlan = dbUser?.plan ?? "FREE";
+    // پلنِ مؤثر (با انقضا — DECISION-062) + موجودی کیف‌پول برای خرید
+    const [eff, dbUser] = await Promise.all([
+      getEffectivePlan(user.userId),
+      prisma.user.findUnique({ where: { id: user.userId }, select: { walletBalance: true } }),
+    ]);
+    currentPlan = eff.plan;
+    planDaysLeft = eff.daysLeft;
+    walletBalance = dbUser?.walletBalance ?? 0;
   }
 
   const rows = await prisma.plan.findMany({
@@ -106,7 +115,13 @@ export default async function PlansPage() {
           </p>
         </div>
 
-        <PlansPricing plans={plans} isLoggedIn={Boolean(user)} />
+        <PlansPricing
+          plans={plans}
+          isLoggedIn={Boolean(user)}
+          walletBalance={walletBalance}
+          currentPlanKey={currentPlan}
+          planDaysLeft={planDaysLeft}
+        />
       </div>
     </AppShell>
   );

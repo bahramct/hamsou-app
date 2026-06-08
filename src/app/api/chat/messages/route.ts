@@ -22,6 +22,7 @@ import {
   DEFAULT_CHAT_MAX_MESSAGE_LENGTH,
 } from "@/lib/ai/admin-catalog";
 import { planQuota } from "@/lib/plans/access";
+import { getEffectivePlanKey } from "@/lib/plans/effective";
 
 const IRAN_OFFSET_MS = 3.5 * 60 * 60 * 1000;
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
@@ -63,7 +64,7 @@ export async function GET() {
     }),
   ]);
 
-  const plan = dbUser?.plan ?? "FREE";
+  const plan = await getEffectivePlanKey(user.userId); // پلنِ مؤثر با انقضا (DECISION-062)
   const [dailyLimit, maxMessageLength, companionName] = await Promise.all([
     getDailyLimitForPlan(plan),
     getAiConfigInt(AI_CONFIG_KEYS.chatMaxMessageLength, DEFAULT_CHAT_MAX_MESSAGE_LENGTH),
@@ -119,9 +120,9 @@ export async function POST(request: NextRequest) {
   // ── اطلاعات کاربر (شامل پلن برای سقف per-plan) ───────────────────────────
   const dbUser = await prisma.user.findUnique({
     where: { id: user.userId },
-    select: { companionName: true, displayName: true, plan: true },
+    select: { companionName: true, displayName: true },
   });
-  const plan = dbUser?.plan ?? "FREE";
+  const plan = await getEffectivePlanKey(user.userId); // پلنِ مؤثر با انقضا (DECISION-062)
 
   // ── Rate limit check — سقف بر اساس پلن (DECISION-037) ────────────────────
   const dailyLimit = await getDailyLimitForPlan(plan);

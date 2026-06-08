@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toFaDigits as toFa } from "@/lib/utils/digits";
 
-type BadgeKey = "tickets" | "chat";
+type BadgeKey = "tickets" | "chat" | "payments";
 
 interface NavItem {
   href: string;
@@ -29,8 +29,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/users", label: "کاربران", perm: "users.read", icon: "users", ready: true },
   { href: "/admin/plans", label: "پلن‌ها", perm: "plans.read", icon: "card", ready: true },
   { href: "/admin/ai", label: "هوش مصنوعی", perm: "ai.read", icon: "spark", ready: true },
-  { href: "/admin/sms", label: "پیامک", perm: "sms.read", icon: "message", ready: false },
-  { href: "/admin/payment", label: "پرداخت", perm: "payment.read", icon: "wallet", ready: false },
+  { href: "/admin/sms", label: "پیامک", perm: "sms.read", icon: "message", ready: true },
+  { href: "/admin/payment", label: "پرداخت", perm: "payment.read", icon: "wallet", ready: true, badge: "payments" },
   { href: "/admin/support", label: "تیکت‌ها", perm: "support.read", icon: "headset", ready: true, badge: "tickets" },
   { href: "/admin/livechat", label: "چت آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
   { href: "/admin/content", label: "محتوا", perm: "content.read", icon: "doc", ready: false },
@@ -42,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
 interface NavCounts {
   openTickets: number;
   unreadChats: number;
+  pendingPayments: number;
 }
 
 const COUNTS_POLL_MS = 20000;
@@ -60,31 +61,38 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
   const [counts, setCounts] = useState<NavCounts>(initialCounts);
   const permSet = new Set(permissions);
   const visible = NAV_ITEMS.filter((i) => permSet.has(i.perm));
-  const canSeeSupport = permSet.has("support.read");
+  const canSeeBadges = permSet.has("support.read") || permSet.has("payment.read");
 
-  // poll آرامِ شمارهٔ badgeها (تیکت باز + چت خوانده‌نشده) — فقط برای دارندگان دسترسی پشتیبانی
+  // poll آرامِ شمارهٔ badgeها (تیکت باز + چت خوانده‌نشده + شارژ در انتظار)
   const refreshCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/nav-counts", { cache: "no-store" });
       const data = await res.json();
-      if (data?.ok) setCounts({ openTickets: data.openTickets ?? 0, unreadChats: data.unreadChats ?? 0 });
+      if (data?.ok) setCounts({
+        openTickets: data.openTickets ?? 0,
+        unreadChats: data.unreadChats ?? 0,
+        pendingPayments: data.pendingPayments ?? 0,
+      });
     } catch {
       // بی‌صدا
     }
   }, []);
 
   useEffect(() => {
-    if (!canSeeSupport) return;
+    if (!canSeeBadges) return;
     const t = setInterval(() => {
       if (!document.hidden) void refreshCounts();
     }, COUNTS_POLL_MS);
     const onVisible = () => { if (!document.hidden) void refreshCounts(); };
     document.addEventListener("visibilitychange", onVisible);
     return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
-  }, [canSeeSupport, refreshCounts]);
+  }, [canSeeBadges, refreshCounts]);
 
   const badgeValue = (key?: BadgeKey): number =>
-    key === "tickets" ? counts.openTickets : key === "chat" ? counts.unreadChats : 0;
+    key === "tickets" ? counts.openTickets
+      : key === "chat" ? counts.unreadChats
+      : key === "payments" ? counts.pendingPayments
+      : 0;
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";

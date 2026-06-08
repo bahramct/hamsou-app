@@ -9,7 +9,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChatWindow } from "./ChatWindow";
 
-const PUBLIC_PATHS = ["/", "/login"];
+const PUBLIC_PATHS = ["/", "/login", "/forgot-password", "/verify-email", "/reset-password"];
 
 interface Props {
   companionName?: string | null;

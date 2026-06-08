@@ -5,15 +5,27 @@
 import { NextResponse } from "next/server";
 import { getAdminSession, can } from "@/lib/admin/auth-server";
 import { getSupportNavCounts } from "@/lib/support/nav-counts";
+import { prisma } from "@/lib/db/client";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const ctx = await getAdminSession();
   if (!ctx) return NextResponse.json({ ok: false }, { status: 401 });
-  if (!can(ctx, "support.read")) {
-    return NextResponse.json({ ok: true, openTickets: 0, unreadChats: 0 });
+
+  let openTickets = 0;
+  let unreadChats = 0;
+  if (can(ctx, "support.read")) {
+    const counts = await getSupportNavCounts();
+    openTickets = counts.openTickets;
+    unreadChats = counts.unreadChats;
   }
-  const counts = await getSupportNavCounts();
-  return NextResponse.json({ ok: true, ...counts });
+
+  // شارژهای در انتظارِ تأیید (DECISION-062) — فقط برای دارندگان payment.read
+  let pendingPayments = 0;
+  if (can(ctx, "payment.read")) {
+    pendingPayments = await prisma.walletTransaction.count({ where: { type: "topup", status: "pending" } });
+  }
+
+  return NextResponse.json({ ok: true, openTickets, unreadChats, pendingPayments });
 }

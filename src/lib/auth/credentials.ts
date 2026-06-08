@@ -13,6 +13,23 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // نام‌کاربری: ۳ تا ۲۴ کاراکتر، حروفِ کوچکِ لاتین/رقم/زیرخط، شروع با حرف
 const USERNAME_RE = /^[a-z][a-z0-9_]{2,23}$/;
 
+/** ساخت توکن امن ۳۲-بایتی برای لینک‌های تأیید و بازیابی رمز (URL-safe hex). */
+export function generateEmailToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** انقضای لینک تأیید ایمیل — ۲۴ ساعت. */
+export function getVerificationLinkExpiry(): Date {
+  return new Date(nowMs() + 24 * 60 * 60 * 1000);
+}
+
+/** انقضای لینک بازیابی رمز — ۱ ساعت. */
+export function getResetLinkExpiry(): Date {
+  return new Date(nowMs() + 60 * 60 * 1000);
+}
+
 export function normalizeEmail(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const e = raw.trim().toLowerCase();

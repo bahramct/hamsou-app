@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { getSessionUser } from "@/lib/utils/auth-server";
-import { getSMSAdapter } from "@/lib/adapters";
+import { sendVerificationSms } from "@/lib/sms/send";
 import { generateOtpCode, normalizeIranPhone, getOtpExpiry } from "@/lib/utils/otp";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
@@ -44,8 +44,7 @@ export async function POST(req: NextRequest) {
     const code = generateOtpCode();
     await prisma.otpCode.create({ data: { phone, code, expiresAt: getOtpExpiry() } });
 
-    const sms = getSMSAdapter();
-    await sms.sendOTP(phone, code);
+    await sendVerificationSms(phone, code, "otp-add-phone");
 
     return NextResponse.json({ ok: true, ...devOnlyPayload({ devCode: code }) });
   } catch (err) {

@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
-import { getSMSAdapter } from "@/lib/adapters";
+import { sendVerificationSms } from "@/lib/sms/send";
 import { generateOtpCode, normalizeIranPhone, getOtpExpiry } from "@/lib/utils/otp";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
@@ -57,9 +57,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // ارسال OTP از طریق SMSAdapter
-    const sms = getSMSAdapter();
-    await sms.sendOTP(phone, code);
+    // ارسال OTP از مسیر مرکزی (سرویس فعال DB → env → mock) + ثبت لاگ
+    await sendVerificationSms(phone, code, "otp-login");
 
     // در dev، کد را در پاسخ نیز برمی‌گردانیم تا UI آن را نمایش دهد.
     // در prod، devOnlyPayload خروجی `{}` می‌دهد و هیچ کلیدی نشت نمی‌کند.

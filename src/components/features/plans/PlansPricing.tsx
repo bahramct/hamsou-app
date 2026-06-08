@@ -8,6 +8,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
+import { toast } from "@/lib/notifications/toast";
+import { Spinner } from "@/components/ui/Spinner";
 
 export interface PublicFeature {
   text: string;
@@ -38,7 +42,17 @@ interface DiscountResult {
 
 const faNum = (n: number) => n.toLocaleString("fa-IR");
 
-export function PlansPricing({ plans, isLoggedIn }: { plans: PublicPlan[]; isLoggedIn: boolean }) {
+const PLAN_RANK: Record<string, number> = { FREE: 0, PLUS: 1, PRO: 2 };
+
+export function PlansPricing({
+  plans, isLoggedIn, walletBalance = 0, currentPlanKey = "FREE", planDaysLeft = null,
+}: {
+  plans: PublicPlan[];
+  isLoggedIn: boolean;
+  walletBalance?: number;
+  currentPlanKey?: string;
+  planDaysLeft?: number | null;
+}) {
   const [cycle, setCycle] = useState<Cycle>("monthly");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -120,13 +134,23 @@ export function PlansPricing({ plans, isLoggedIn }: { plans: PublicPlan[]; isLog
             plan={p}
             cycle={cycle}
             isLoggedIn={isLoggedIn}
+            walletBalance={walletBalance}
+            appliedCode={appliedCode}
             discount={results?.[p.key]?.ok ? results[p.key] : undefined}
+            currentPlanKey={currentPlanKey}
+            planDaysLeft={planDaysLeft}
           />
         ))}
       </div>
 
+      {isLoggedIn && (
+        <p className="text-center text-xs text-fog fa-num">
+          موجودی کیف‌پول شما: {walletBalance.toLocaleString("fa-IR")} تومان ·{" "}
+          <Link href="/settings/profile" className="text-ember hover:underline">شارژ از پروفایل</Link>
+        </p>
+      )}
       <p className="text-center text-xs text-fog/60">
-        پرداخت آنلاین در نسخه‌های بعدی همسو فعال می‌شود.
+        خرید از موجودی کیف‌پول انجام می‌شود. درگاه پرداخت آنلاین به‌زودی اضافه می‌شود.
       </p>
     </div>
   );
@@ -143,12 +167,22 @@ function CycleBtn({ active, onClick, children }: { active: boolean; onClick: () 
   );
 }
 
-function PlanCard({ plan, cycle, isLoggedIn, discount }: {
-  plan: PublicPlan; cycle: Cycle; isLoggedIn: boolean; discount?: DiscountResult;
+function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discount, currentPlanKey, planDaysLeft }: {
+  plan: PublicPlan; cycle: Cycle; isLoggedIn: boolean; walletBalance: number; appliedCode: string | null;
+  discount?: DiscountResult; currentPlanKey: string; planDaysLeft: number | null;
 }) {
+  const [showBuy, setShowBuy] = useState(false);
   const isPaid = plan.key !== "FREE";
   const basePrice = cycle === "annual" ? plan.annualPrice : plan.monthlyPrice;
   const annualMonthly = plan.annualPrice > 0 ? Math.round(plan.annualPrice / 12) : 0;
+  const finalPrice = discount?.ok && discount.finalPrice !== undefined ? discount.finalPrice : basePrice;
+  const priced = isPaid && basePrice > 0;
+
+  // آیا این پلن پایین‌تر از پلن فعال است و هنوز وقت داریم؟
+  const currentRank = PLAN_RANK[currentPlanKey] ?? 0;
+  const thisRank = PLAN_RANK[plan.key] ?? 0;
+  const currentPlanActive = planDaysLeft != null && planDaysLeft > 0;
+  const isBlockedDowngrade = isLoggedIn && currentPlanActive && thisRank < currentRank;
 
   return (
     <div className={`rounded-2xl border p-6 flex flex-col gap-5 ${
@@ -167,6 +201,15 @@ function PlanCard({ plan, cycle, isLoggedIn, discount }: {
             )}
           </div>
         </div>
+        {/* زمان باقی‌مانده — فقط برای پلن فعال */}
+        {plan.isCurrent && planDaysLeft != null && (
+          <div className={`text-[11px] flex items-center gap-1 ${planDaysLeft <= 3 ? "text-ember" : "text-stone"}`}>
+            {planDaysLeft <= 3 && (
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+            )}
+            {planDaysLeft === 0 ? "امروز منقضی می‌شود" : `${planDaysLeft.toLocaleString("fa-IR")} روز مانده`}
+          </div>
+        )}
         {plan.description && <p className="text-[11px] text-fog leading-relaxed">{plan.description}</p>}
 
         {/* قیمت */}
@@ -174,14 +217,53 @@ function PlanCard({ plan, cycle, isLoggedIn, discount }: {
       </div>
 
       {/* دکمه */}
-      {plan.isCurrent ? (
-        <div className="py-2.5 px-4 text-center text-sm text-fog border border-black/8 rounded-xl">پلن فعلی</div>
-      ) : !isLoggedIn && !isPaid ? (
-        <Link href="/login" className="py-2.5 px-4 text-center text-sm font-medium text-paper bg-ink rounded-xl hover:opacity-80 transition-opacity">
-          شروع رایگان
-        </Link>
-      ) : (
+      {!isLoggedIn ? (
+        isPaid ? (
+          <Link href="/login" className="py-2.5 px-4 text-center text-sm font-medium text-paper bg-ink rounded-xl hover:opacity-80 transition-opacity">
+            ورود برای خرید
+          </Link>
+        ) : (
+          <Link href="/login" className="py-2.5 px-4 text-center text-sm font-medium text-paper bg-ink rounded-xl hover:opacity-80 transition-opacity">
+            شروع رایگان
+          </Link>
+        )
+      ) : !isPaid ? (
+        plan.isCurrent ? (
+          <div className="py-2.5 px-4 text-center text-sm text-fog border border-black/8 rounded-xl">پلن فعلی</div>
+        ) : (
+          <div className="py-2.5 px-4 text-center text-sm text-fog border border-black/8 rounded-xl">رایگان</div>
+        )
+      ) : !priced ? (
         <div className="py-2.5 px-4 text-center text-sm text-fog/50 border border-black/5 rounded-xl cursor-default select-none">به‌زودی</div>
+      ) : isBlockedDowngrade ? (
+        <div className="space-y-1.5">
+          <div className="py-2.5 px-4 text-center text-sm text-fog/50 border border-black/5 rounded-xl cursor-not-allowed select-none">
+            پلن فعلی بالاتر است
+          </div>
+          <p className="text-[10px] text-center text-fog/60 leading-relaxed">
+            تا پایان دوره صبر کن، سپس می‌توانی این پلن را انتخاب کنی.
+          </p>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowBuy(true)}
+          className="py-2.5 px-4 text-center text-sm font-medium text-paper bg-ink rounded-xl hover:bg-charcoal transition-colors"
+        >
+          {plan.isCurrent ? "تمدید با کیف‌پول" : "خرید با کیف‌پول"}
+        </button>
+      )}
+
+      {showBuy && (
+        <PurchaseModal
+          planKey={plan.key}
+          planLabel={plan.label}
+          cycle={cycle}
+          finalPrice={finalPrice}
+          walletBalance={walletBalance}
+          appliedCode={appliedCode}
+          isRenew={plan.isCurrent}
+          onClose={() => setShowBuy(false)}
+        />
       )}
 
       <div className="h-px bg-black/6" />
@@ -265,5 +347,81 @@ function CheckIcon({ className = "" }: { className?: string }) {
         <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
+  );
+}
+
+// ─── مودال خرید پلن از کیف‌پول (DECISION-062) ─────────────────────────────────
+function PurchaseModal({
+  planKey, planLabel, cycle, finalPrice, walletBalance, appliedCode, isRenew, onClose,
+}: {
+  planKey: string; planLabel: string; cycle: Cycle; finalPrice: number;
+  walletBalance: number; appliedCode: string | null; isRenew: boolean; onClose: () => void;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const enough = walletBalance >= finalPrice;
+  const shortBy = Math.max(0, finalPrice - walletBalance);
+
+  async function buy() {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/wallet/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planKey, cycle, code: appliedCode ?? undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok) { toast.error(d.error ?? "خرید ناموفق بود."); return; }
+      toast.success(isRenew ? "پلن تمدید شد" : "پلن فعال شد");
+      router.refresh();
+      onClose();
+    } catch { toast.error("اتصال برقرار نشد."); }
+    finally { setBusy(false); }
+  }
+
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-paper rounded-2xl max-w-sm w-full p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-ink">{isRenew ? "تمدید پلن" : "خرید پلن"}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg text-stone hover:bg-black/5" aria-label="بستن">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          </button>
+        </div>
+
+        <div className="rounded-xl border border-black/8 bg-white/50 p-4 space-y-2.5 text-sm">
+          <Line label="پلن" value={`${planLabel} (${cycle === "annual" ? "سالانه" : "ماهانه"})`} />
+          <Line label="مبلغ" value={`${faNum(finalPrice)} تومان`} bold />
+          <div className="h-px bg-black/6" />
+          <Line label="موجودی کیف‌پول" value={`${faNum(walletBalance)} تومان`} />
+          {enough ? (
+            <Line label="موجودی پس از خرید" value={`${faNum(walletBalance - finalPrice)} تومان`} />
+          ) : (
+            <Line label="کسری" value={`${faNum(shortBy)} تومان`} ember />
+          )}
+        </div>
+
+        {enough ? (
+          <button onClick={buy} disabled={busy} className="w-full mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors disabled:opacity-40">
+            {busy && <Spinner size={13} />}
+            تأیید و {isRenew ? "تمدید" : "خرید"}
+          </button>
+        ) : (
+          <Link href="/settings/profile" className="w-full mt-4 inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors">
+            شارژ کیف‌پول از پروفایل
+          </Link>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function Line({ label, value, bold, ember }: { label: string; value: string; bold?: boolean; ember?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-stone text-[13px]">{label}</span>
+      <span className={`fa-num ${ember ? "text-ember" : "text-ink"} ${bold ? "font-bold" : ""}`}>{value}</span>
+    </div>
   );
 }

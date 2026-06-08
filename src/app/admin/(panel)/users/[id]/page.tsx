@@ -10,6 +10,7 @@ import { notFound } from "next/navigation";
 import { requirePermission, can } from "@/lib/admin/auth-server";
 import { prisma } from "@/lib/db/client";
 import { UserActions } from "@/components/admin/users/UserActions";
+import { EmailActions } from "@/components/admin/users/EmailActions";
 import { toFaDigits } from "@/lib/utils/digits";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { StatusBadge, CategoryLabel } from "@/components/features/support/badges";
@@ -197,13 +198,21 @@ export default async function AdminUserDetailPage({
                 value={user.phone ? toFaDigits(user.phone) : "ثبت نشده"}
                 muted={!user.phone} ltr
               />
-              <Meta
-                label="ایمیل"
-                value={user.email
-                  ? `${user.email}${user.emailVerifiedAt ? "" : " (تأییدنشده)"}`
-                  : "ثبت نشده"}
-                muted={!user.email} ltr
-              />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-fog">ایمیل</span>
+                {user.email ? (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs text-ink num-latin" dir="ltr">{user.email}</span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${
+                      user.emailVerifiedAt ? "bg-sage/15 text-sage-deep" : "bg-ember/10 text-ember"
+                    }`}>
+                      {user.emailVerifiedAt ? "تأیید‌شده" : "تأیید‌نشده"}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-fog/60">ثبت نشده</span>
+                )}
+              </div>
               <Meta
                 label="نام کاربری"
                 value={user.username ? `@${user.username}` : "ثبت نشده"}
@@ -235,6 +244,19 @@ export default async function AdminUserDetailPage({
               canBan={can(ctx, "users.ban")}
             />
           </section>
+
+          {/* اقدامات ایمیل */}
+          {user.email && (
+            <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
+              <EmailActions
+                userId={user.id}
+                email={user.email}
+                emailVerifiedAt={user.emailVerifiedAt?.toISOString() ?? null}
+                hasPassword={Boolean(user.passwordHash)}
+                canWrite={can(ctx, "users.write")}
+              />
+            </section>
+          )}
         </div>
 
         {/* ─ ستون چپ — تیکت‌ها + چت آنلاین (عریض‌تر) ─ */}

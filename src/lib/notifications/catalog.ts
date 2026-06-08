@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type NotificationTone = "info" | "success" | "neutral";
-export type NotificationIcon = "support" | "plan" | "report" | "info";
+export type NotificationIcon = "support" | "plan" | "report" | "info" | "wallet";
 
 export interface NotificationDescriptor {
   title: string;
@@ -62,6 +62,63 @@ const CATALOG: Record<string, CatalogEntry> = {
       return {
         title: "پلن حساب شما تغییر کرد",
         body: label ? `پلن فعلی شما: «${label}».` : "پلن حساب شما به‌روزرسانی شد.",
+        link: "/plans",
+      };
+    },
+  },
+
+  // شارژ کیف‌پول تأیید شد (producer: admin approve topup) — DECISION-062
+  "wallet.topup.approved": {
+    tone: "success",
+    icon: "wallet",
+    describe: (d) => {
+      const amount = typeof d.amount === "number" ? d.amount : Number(str(d.amount) ?? 0);
+      return {
+        title: "کیف‌پول شارژ شد",
+        body: amount > 0 ? `${amount.toLocaleString("fa-IR")} تومان به کیف‌پول شما اضافه شد.` : "کیف‌پول شما شارژ شد.",
+        link: "/wallet",
+      };
+    },
+  },
+
+  // شارژ کیف‌پول رد شد (producer: admin reject topup) — DECISION-062
+  "wallet.topup.rejected": {
+    tone: "neutral",
+    icon: "wallet",
+    describe: (d) => {
+      const reason = str(d.reason);
+      return {
+        title: "شارژ کیف‌پول تأیید نشد",
+        body: reason ? `دلیل: ${reason}` : "درخواست شارژ شما تأیید نشد. با پشتیبانی در تماس باش.",
+        link: "/wallet",
+      };
+    },
+  },
+
+  // انقضای پلن — بازگشت خودکار به رایگان (producer: getEffectivePlan) — DECISION-062
+  "plan.expired": {
+    tone: "neutral",
+    icon: "plan",
+    describe: () => ({
+      title: "پلن شما به پایان رسید",
+      body: "حساب شما به پلن رایگان بازگشت. برای تمدید، از کیف‌پول پلن دلخواه را بخر.",
+      link: "/plans",
+    }),
+  },
+
+  // هشدار ۳ روز مانده به انقضای پلن (producer: getEffectivePlan) — DECISION-062
+  "plan.expiring_soon": {
+    tone: "neutral",
+    icon: "plan",
+    describe: (d) => {
+      const daysLeft = typeof d.daysLeft === "number" ? d.daysLeft : null;
+      const label = str(d.planLabel) ?? str(d.plan);
+      return {
+        title: "پلن شما به‌زودی تمام می‌شود",
+        body:
+          daysLeft != null && label
+            ? `${daysLeft.toLocaleString("fa-IR")} روز تا پایان پلن «${label}». برای تمدید اقدام کن.`
+            : "پلن شما به‌زودی منقضی می‌شود. برای تمدید اقدام کن.",
         link: "/plans",
       };
     },

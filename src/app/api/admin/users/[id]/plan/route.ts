@@ -34,11 +34,17 @@ export async function POST(
   }
 
   // planPaidSince: ارتقا از FREE → تنظیم؛ تنزل به FREE → پاک کردن؛ بین پلن‌های پولی → دست نزن
-  const planPaidUpdate: { planPaidSince?: Date | null } = {};
+  const planPaidUpdate: { planPaidSince?: Date | null; planExpiresAt?: Date | null } = {};
   if (user.plan === "FREE" && plan !== "FREE") {
     planPaidUpdate.planPaidSince = getNow();
   } else if (plan === "FREE") {
     planPaidUpdate.planPaidSince = null;
+  }
+  // اعطای دستیِ ادمین = بدون انقضا (permanent)؛ تنزل به FREE → پاک‌کردن انقضا (DECISION-062 — parity)
+  if (plan !== "FREE") {
+    planPaidUpdate.planExpiresAt = null; // اعطای دستی منقضی نمی‌شود
+  } else {
+    planPaidUpdate.planExpiresAt = null;
   }
 
   await prisma.user.update({ where: { id }, data: { plan, ...planPaidUpdate } });

@@ -34,6 +34,7 @@ export const ADMIN_PERMISSIONS = [
   { key: "dashboard.view", label: "مشاهده داشبورد", group: "dashboard" },
 
   { key: "users.read", label: "مشاهده کاربران", group: "users" },
+  { key: "users.write", label: "ویرایش حساب کاربران (ایمیل، رمز)", group: "users" },
   { key: "users.plan.write", label: "تغییر پلن کاربر", group: "users" },
   { key: "users.ban", label: "مسدودسازی کاربر", group: "users" },
 

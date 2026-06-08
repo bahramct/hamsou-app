@@ -8,6 +8,7 @@
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
 import { planAllows } from "@/lib/plans/access";
+import { getEffectivePlanKey } from "@/lib/plans/effective";
 import { TICKETING_FEATURE_KEY } from "./tickets";
 
 export interface TicketingContext {
@@ -21,11 +22,7 @@ export interface TicketingContext {
 export async function getTicketingContext(): Promise<TicketingContext | null> {
   const session = await getSessionUser();
   if (!session) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { plan: true },
-  });
-  const plan = user?.plan ?? "FREE";
+  const plan = await getEffectivePlanKey(session.userId); // پلنِ مؤثر با انقضا (DECISION-062)
   const allowed = await planAllows(plan, TICKETING_FEATURE_KEY);
   return { userId: session.userId, plan, allowed };
 }

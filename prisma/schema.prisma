@@ -79,7 +79,11 @@ model User {
   chatClearedAt DateTime?
   birthDate     DateTime? // تاریخ تولد اختیاری — برای پیامک تبریک و کد تخفیف روز میلاد
   planPaidSince DateTime? // زمان آخرین ارتقا به پلن پولی — برای gate تب تأمل/اشتراک‌گذاری گزارش
-  createdAt     DateTime @default(now())
+  planExpiresAt DateTime? // انقضای پلن مدت‌دار (DECISION-062)؛ null = بدون انقضا (FREE یا اعطای دستی ادمین)
+  walletBalance      Int      @default(0) // موجودی کیف‌پول به تومان (DECISION-062) — همیشه صحیح، ≥۰
+  paymentCardNumber  String? // کارت اول برای واریز — برای صحت‌سنجیِ شارژ توسط ادمین (DECISION-062)
+  paymentCardNumber2 String? // کارت دوم اختیاری (حداکثر ۲ کارت) — DECISION-062
+  createdAt          DateTime @default(now())
 
   entries       DailyEntry[]
   gaps          GapRecord[]
@@ -409,6 +413,104 @@ model AiService {
   updatedAt    DateTime @updatedAt
 
   @@index([region, kind, isActive])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SmsService — سرویس پیامک قابل‌تنظیم از پنل (DECISION-061)
+// آینهٔ AiService برای کانال پیامک: owner می‌تواند چند سرویس بسازد و یکی را پیش‌فرض کند.
+// provider: "smsir" (sms.ir، endpoint کد تأیید) | "mock" (آزمایشی، فقط log).
+// sandbox و production یک endpoint دارند؛ فقط apiKey فرق می‌کند (DECISION-060) →
+// isSandbox صرفاً برچسب نمایشی است. apiKey فقط Owner مشاهده/ویرایش می‌کند.
+// templateId/paramName مخصوص smsir (قالب «کد تأیید» و نام placeholder داخل آن).
+// ─────────────────────────────────────────────────────────────────────────────
+model SmsService {
+  id          String   @id @default(cuid())
+  label       String // برچسب انسانی، مثل «sms.ir (سندباکس)»
+  provider    String   @default("smsir") // "smsir" | "mock"
+  apiKey      String? // کلید — فقط Owner مشاهده/ویرایش می‌کند
+  templateId  Int? // شناسهٔ قالب کد تأیید (فقط smsir)
+  paramName   String?  @default("Code") // نام پارامتر داخل قالب (placeholder)
+  baseURL     String? // پیش‌فرض https://api.sms.ir/v1 (در adapter)
+  isSandbox   Boolean  @default(true) // فقط برچسب نمایشی
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false) // سرویس پیش‌فرض — حداکثر یکی فعال
+  sortOrder   Int      @default(0)
+  note        String?
+  createdById String? // AdminUser.id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, isDefault])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SmsLog — رکورد هر ارسال پیامک برای observability/اطمینان (DECISION-061)
+// مالک از این لاگ مطمئن می‌شود ورود کاربر از کدام مسیر (smsir sandbox یا mock) رفته.
+// حریم خصوصی: کد OTP هرگز ذخیره نمی‌شود؛ شماره ماسک می‌شود (0935***3500).
+// ─────────────────────────────────────────────────────────────────────────────
+model SmsLog {
+  id          String   @id @default(cuid())
+  provider    String // "smsir" | "mock"
+  serviceId   String? // SmsService.id (در صورت resolve از DB)
+  purpose     String // "otp-login" | "otp-add-phone" | "test"
+  phoneMasked String // 0935***3500
+  success     Boolean
+  status      Int? // status برگشتی sms.ir (1=موفق، 10=کلید نامعتبر، …)
+  messageId   String? // شناسهٔ پیام sms.ir
+  error       String? // پیام خطا (در صورت ناموفق)
+  isSandbox   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BankCard — کارت مرجعِ دریافت پرداخت، مدیریت از پنل (DECISION-062؛ آینهٔ SmsService)
+// کاربر برای شارژ کیف‌پول به این کارت کارت‌به‌کارت می‌کند. حداکثر یکی پیش‌فرض/فعال.
+// ─────────────────────────────────────────────────────────────────────────────
+model BankCard {
+  id          String   @id @default(cuid())
+  holderName  String // نام صاحب کارت
+  cardNumber  String // ۱۶ رقم (بدون فاصله)
+  bankName    String // نام بانک
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false) // کارت پیش‌فرضِ نمایش — حداکثر یکی
+  sortOrder   Int      @default(0)
+  note        String?
+  createdById String? // AdminUser.id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, isDefault])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WalletTransaction — دفترِ کلِ کیف‌پول (DECISION-062): هر تغییر موجودی یک ردیف.
+// type: "topup" (شارژ، +) | "purchase" (خرید پلن، −) | "adjust" (اصلاح دستیِ ادمین، ±)
+// status: topup → pending→approved/rejected؛ purchase/adjust → completed.
+// مبلغ علامت‌دار است؛ balanceAfter فقط هنگام نهایی‌شدن ثبت می‌شود. تغییر موجودی فقط اتمیک.
+// بدون relation پریزما (مثل SmsLog) — userId رشتهٔ ساده، کوئری دستی.
+// ─────────────────────────────────────────────────────────────────────────────
+model WalletTransaction {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String // "topup" | "purchase" | "adjust"
+  amount            Int // علامت‌دار: شارژ +، خرید −
+  balanceAfter      Int? // موجودی پس از اعمال (فقط approved/completed)
+  status            String   @default("pending") // pending | approved | rejected | completed
+  refCode           String   @unique // topup: "HM-hhmmdd-xxxx"
+  payerCardSnapshot String? // کارتِ کاربر در لحظهٔ درخواست (برای تطبیق ادمین)
+  bankCardId        String? // BankCard.id که نمایش داده شد
+  planKey           String? // برای purchase
+  cycle             String? // "monthly" | "annual" (برای purchase)
+  adminNote         String? // دلیل رد / یادداشت
+  reviewedByAdminId String? // AdminUser.id
+  reviewedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, type])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

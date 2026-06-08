@@ -9,6 +9,7 @@
 // اجرا:  npm run seed   یا   npx prisma db seed
 // ─────────────────────────────────────────────────────────────────────────────
 
+import "./load-env"; // باید اولین import باشد — قبل از new PrismaClient، تا .env.local لود شود
 import { PrismaClient } from "@prisma/client";
 import {
   ADMIN_PERMISSIONS,
@@ -109,6 +110,61 @@ async function main() {
     console.log(`  ✓ سرویس‌های پیش‌فرض: IR=${irProvider}, INTL=${intlProvider}`);
   } else {
     console.log(`  ✓ ${serviceCount} سرویس AI از قبل موجود است — دست‌نخورده ماند.`);
+  }
+
+  // ۴.۵ سرویس پیامک پیش‌فرض (DECISION-061) — فقط اگر هیچ سرویسی وجود ندارد.
+  // رفتار فعلی env (SMS_PROVIDER) را به مدل سرویس‌محور منتقل می‌کند (انتقال خودکار env→DB).
+  const smsCount = await prisma.smsService.count();
+  if (smsCount === 0) {
+    const provider = (process.env.SMS_PROVIDER ?? "mock").trim();
+    if (provider === "smsir") {
+      const tid = process.env.SMSIR_TEMPLATE_ID;
+      await prisma.smsService.create({
+        data: {
+          label: "sms.ir (سندباکس)",
+          provider: "smsir",
+          apiKey: process.env.SMSIR_API_KEY ?? null,
+          templateId: tid ? parseInt(tid, 10) : null,
+          paramName: process.env.SMSIR_PARAM_NAME ?? "Code",
+          baseURL: process.env.SMSIR_BASE_URL ?? null,
+          isSandbox: true,
+          isActive: true,
+          isDefault: true,
+        },
+      });
+      console.log("  ✓ سرویس پیامک پیش‌فرض از env ساخته شد: smsir (sandbox)");
+    } else {
+      await prisma.smsService.create({
+        data: {
+          label: "سرویس آزمایشی (Mock)",
+          provider: "mock",
+          isSandbox: false,
+          isActive: true,
+          isDefault: true,
+        },
+      });
+      console.log("  ✓ سرویس پیامک پیش‌فرض ساخته شد: mock");
+    }
+  } else {
+    console.log(`  ✓ ${smsCount} سرویس پیامک از قبل موجود است — دست‌نخورده ماند.`);
+  }
+
+  // ۴.۶ کارتِ مرجعِ دریافت پرداخت (DECISION-062) — فقط اگر هیچ کارتی وجود ندارد.
+  const cardCount = await prisma.bankCard.count();
+  if (cardCount === 0) {
+    const number = (process.env.PAYMENT_CARD_NUMBER ?? "").replace(/\D/g, "");
+    const holder = (process.env.PAYMENT_CARD_HOLDER ?? "").trim();
+    const bank = (process.env.PAYMENT_CARD_BANK ?? "").trim();
+    if (number.length === 16 && holder && bank) {
+      await prisma.bankCard.create({
+        data: { cardNumber: number, holderName: holder, bankName: bank, isActive: true, isDefault: true },
+      });
+      console.log(`  ✓ کارت مرجعِ پرداخت از env ساخته شد: ${bank} / ${holder}`);
+    } else {
+      console.log("  ⚠ کارت مرجعِ پرداخت در env کامل نیست — از پنل ادمین اضافه کن.");
+    }
+  } else {
+    console.log(`  ✓ ${cardCount} کارت مرجع از قبل موجود است — دست‌نخورده ماند.`);
   }
 
   // ۵. پلن‌ها + ماتریس امکانات (DECISION-040) — فقط اگر هیچ پلنی وجود ندارد.

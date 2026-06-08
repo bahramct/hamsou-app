@@ -3,10 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { DevOnly } from "@/components/dev/DevOnly";
 import { DevOtpPanel } from "@/components/dev/DevOtpPanel";
 import { AmbientField } from "@/components/layout/AmbientField";
 import { toFaDigits } from "@/lib/utils/digits";
+import { Spinner } from "@/components/ui/Spinner";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // صفحهٔ ورود همسو (DECISION-058) — دو روش:
@@ -177,9 +179,10 @@ function MobileFlow() {
         {error && <p className="text-xs text-ember text-center animate-fade-in">{error}</p>}
         <button
           type="submit" disabled={loading || !phone.trim()}
-          className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {loading ? "در حال ارسال…" : "دریافت کد"}
+          {loading && <Spinner size={14} className="text-paper" />}
+          دریافت کد
         </button>
       </form>
     );
@@ -216,9 +219,10 @@ function MobileFlow() {
 
       <button
         type="submit" disabled={loading || otp.join("").length < 6}
-        className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {loading ? "در حال بررسی…" : "ورود"}
+        {loading && <Spinner size={14} className="text-paper" />}
+        ورود
       </button>
 
       <button
@@ -295,28 +299,34 @@ function EmailLogin() {
       {error && <p className="text-xs text-ember text-center animate-fade-in">{error}</p>}
       <button
         type="submit" disabled={loading || !identifier.trim() || !password}
-        className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
-        {loading ? "در حال بررسی…" : "ورود"}
+        {loading && <Spinner size={14} className="text-paper" />}
+        ورود
       </button>
+      <div className="text-center">
+        <Link
+          href="/forgot-password"
+          className="text-xs text-stone hover:text-ink transition-colors"
+        >
+          رمز عبور را فراموش کردم
+        </Link>
+      </div>
     </form>
   );
 }
 
-type SignupStep = "form" | "code";
+type SignupStep = "form" | "waiting";
 
 function EmailSignup() {
-  const router = useRouter();
   const [step, setStep] = useState<SignupStep>("form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [devCode, setDevCode] = useState<string | null>(null);
-  const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [devLink, setDevLink] = useState<string | null>(null);
 
-  async function requestCode(e: React.FormEvent) {
+  async function requestLink(e: React.FormEvent) {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
@@ -327,58 +337,31 @@ function EmailSignup() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
-      if (typeof data.devCode === "string") setDevCode(data.devCode);
-      setStep("code");
-      setTimeout(() => codeRefs.current[0]?.focus(), 100);
+      if (typeof data.devLink === "string") setDevLink(data.devLink);
+      setStep("waiting");
     } catch {
       setError("اتصال به سرور برقرار نشد.");
     } finally { setLoading(false); }
   }
 
-  function fillCode(c: string) {
-    const digits = c.slice(0, 6).split("");
-    const next = ["", "", "", "", "", ""];
-    digits.forEach((d, i) => { next[i] = d; });
-    setCode(next);
-    setError("");
-    codeRefs.current[Math.min(digits.length, 5)]?.focus();
-  }
-
-  function codeInput(i: number, value: string) {
-    const digit = value.replace(/[^۰-۹0-9]/g, "").slice(-1);
-    const latin = digit.replace(/[۰-۹]/g, (d) => String(d.codePointAt(0)! - 0x06f0));
-    const next = [...code];
-    next[i] = latin;
-    setCode(next);
-    if (latin && i < 5) codeRefs.current[i + 1]?.focus();
-  }
-
-  function codeKeyDown(i: number, e: React.KeyboardEvent) {
-    if (e.key === "Backspace" && !code[i] && i > 0) codeRefs.current[i - 1]?.focus();
-  }
-
-  async function verify(e: React.FormEvent) {
-    e.preventDefault();
-    const c = code.join("");
-    if (c.length < 6) { setError("کد ۶ رقمی را وارد کن."); return; }
+  async function resend() {
     setError(""); setLoading(true);
     try {
-      const res = await fetch("/api/auth/email/verify", {
+      const res = await fetch("/api/auth/email/request-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code: c }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
-      router.push("/dashboard");
+      if (typeof data.devLink === "string") setDevLink(data.devLink);
     } catch {
-      setError("اتصال به سرور برقرار نشد.");
+      setError("ارسال مجدد ناموفق بود.");
     } finally { setLoading(false); }
   }
 
   if (step === "form") {
     return (
-      <form onSubmit={requestCode} className="flex flex-col gap-4">
+      <form onSubmit={requestLink} className="flex flex-col gap-4">
         <Labeled label="ایمیل">
           <input
             type="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(""); }}
@@ -395,54 +378,65 @@ function EmailSignup() {
         {error && <p className="text-xs text-ember text-center animate-fade-in">{error}</p>}
         <button
           type="submit" disabled={loading || !email.trim() || password.length < 8}
-          className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {loading ? "در حال ارسال…" : "ارسال کد تأیید"}
+          {loading && <Spinner size={14} className="text-paper" />}
+          ارسال لینک تأیید
         </button>
       </form>
     );
   }
 
+  // مرحلهٔ دوم — صفحهٔ انتظار (لینک به ایمیل ارسال شد)
   return (
-    <form onSubmit={verify} className="flex flex-col gap-6">
-      <p className="text-xs text-center text-stone -mt-1">
-        کد ارسال‌شده به{" "}
-        <span
-          className="font-medium text-ink cursor-pointer num-latin" dir="ltr"
-          onClick={() => { setStep("form"); setError(""); setCode(["","","","","",""]); }}
-          title="تغییر ایمیل"
-        >
-          {email}
-        </span>
-      </p>
-
-      <div className="flex gap-2 justify-center" dir="ltr">
-        {code.map((digit, i) => (
-          <input
-            key={i}
-            ref={(el) => { codeRefs.current[i] = el; }}
-            type="text" inputMode="numeric" maxLength={1} value={digit}
-            onChange={(e) => codeInput(i, e.target.value)}
-            onKeyDown={(e) => codeKeyDown(i, e)}
-            disabled={loading}
-            className="w-10 h-12 text-center text-xl font-semibold rounded-xl bg-white/60 border border-bone text-ink focus:outline-none focus:border-sage focus:ring-2 focus:ring-sage/20 transition-all duration-200 disabled:opacity-50"
-          />
-        ))}
+    <div className="flex flex-col gap-5 text-center">
+      <div className="w-14 h-14 rounded-full bg-sage/15 flex items-center justify-center mx-auto">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-sage-deep">
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+        </svg>
       </div>
 
-      {error && <p className="text-xs text-ember text-center animate-fade-in">{error}</p>}
+      <div className="space-y-1.5">
+        <p className="text-sm font-medium text-ink">لینک تأیید ارسال شد</p>
+        <p className="text-xs text-stone leading-relaxed">
+          ایمیلی به{" "}
+          <span className="font-medium text-ink num-latin" dir="ltr">{email}</span>{" "}
+          فرستادیم. روی لینک داخل آن کلیک کن تا حسابت تأیید شود.
+        </p>
+      </div>
 
-      <button
-        type="submit" disabled={loading || code.join("").length < 6}
-        className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed"
-      >
-        {loading ? "در حال بررسی…" : "تأیید و ورود"}
-      </button>
+      {error && <p className="text-xs text-ember animate-fade-in">{error}</p>}
 
       <DevOnly>
-        <DevOtpPanel code={devCode} onFill={fillCode} />
+        {devLink && (
+          <a
+            href={devLink}
+            className="text-xs px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors block text-center"
+          >
+            [DEV] باز کردن لینک تأیید
+          </a>
+        )}
       </DevOnly>
-    </form>
+
+      <div className="flex items-center justify-center gap-3 text-xs">
+        <button
+          type="button" onClick={resend} disabled={loading}
+          className="flex items-center gap-1.5 text-stone hover:text-sage-deep transition-colors disabled:opacity-50"
+        >
+          {loading && <Spinner size={12} className="text-stone" />}
+          ارسال مجدد
+        </button>
+        <span className="text-fog">·</span>
+        <button
+          type="button"
+          onClick={() => { setStep("form"); setError(""); setDevLink(null); }}
+          className="text-stone hover:text-ink transition-colors"
+        >
+          تغییر ایمیل
+        </button>
+      </div>
+    </div>
   );
 }
 

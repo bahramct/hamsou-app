@@ -18,6 +18,7 @@ import type { AIAdapter } from "@/lib/adapters/ai.adapter";
 import type { SMSAdapter } from "@/lib/adapters/sms.adapter";
 import type { EmailAdapter } from "@/lib/adapters/email.adapter";
 import type { ResolvedAiService } from "@/lib/ai/services";
+import type { ResolvedSmsService } from "@/lib/sms/services";
 
 // ─── AI Adapter — by-name factory ───────────────────────────────────────────
 
@@ -140,29 +141,40 @@ export async function getAIAdapterForService(svc: ResolvedAiService): Promise<AI
   return adapter;
 }
 
-// ─── SMS Adapter (بدون تغییر — single instance) ─────────────────────────────
+// ─── SMS Adapter از روی یک SmsService (DECISION-061) ─────────────────────────
+// منبع‌حقیقتِ provider/کلید/قالب حالا ردیف SmsService است (نه فقط env).
+// smsir → SmsIrAdapter؛ mock → MockSMSAdapter.
+// cache بر اساس امضای (id|provider|apiKey|templateId|paramName) تا با تغییر هرکدام بازساخته شود.
 
-let _smsAdapter: SMSAdapter | null = null;
+const resolvedSmsAdapterCache = new Map<string, SMSAdapter>();
 
-export function getSMSAdapter(): SMSAdapter {
-  if (_smsAdapter) return _smsAdapter;
+export function getSmsAdapterForService(svc: ResolvedSmsService): SMSAdapter {
+  const sig = `${svc.id}|${svc.provider}|${svc.apiKey ?? ""}|${svc.templateId ?? ""}|${svc.paramName ?? ""}|${svc.baseURL ?? ""}`;
+  const cached = resolvedSmsAdapterCache.get(sig);
+  if (cached) return cached;
 
-  const provider = process.env.SMS_PROVIDER ?? "mock";
-
-  switch (provider) {
-    case "mock": {
-      const { MockSMSAdapter } = require("@/lib/adapters/mock-sms.adapter");
-      _smsAdapter = new MockSMSAdapter() as SMSAdapter;
-      break;
-    }
-    // فاز ۲: case "kavenegar": ...
-    default:
+  let adapter: SMSAdapter;
+  if (svc.provider === "smsir") {
+    if (!svc.apiKey || !svc.templateId) {
       throw new Error(
-        `[SMSAdapter] provider نامعتبر: "${provider}". مقادیر مجاز: mock`
+        `[SMSAdapter] سرویس «${svc.label}» کلید یا شناسهٔ قالب ندارد — در پنل ادمین تنظیمش کن.`
       );
+    }
+    const { SmsIrAdapter } = require("@/lib/adapters/smsir-sms.adapter");
+    adapter = new SmsIrAdapter({
+      apiKey: svc.apiKey,
+      templateId: svc.templateId,
+      paramName: svc.paramName ?? undefined,
+      baseURL: svc.baseURL ?? undefined,
+    }) as SMSAdapter;
+  } else {
+    // mock یا ناشناخته → آداپتر آزمایشی (هرگز ارسال واقعی)
+    const { MockSMSAdapter } = require("@/lib/adapters/mock-sms.adapter");
+    adapter = new MockSMSAdapter() as SMSAdapter;
   }
 
-  return _smsAdapter;
+  resolvedSmsAdapterCache.set(sig, adapter);
+  return adapter;
 }
 
 // ─── Email Adapter (single instance — DECISION-058) ──────────────────────────

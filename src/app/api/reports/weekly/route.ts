@@ -24,6 +24,7 @@ import {
 } from "@/lib/utils/date";
 import { invokeAI } from "@/lib/ai/orchestrator";
 import { planAllows } from "@/lib/plans/access";
+import { getEffectivePlanKey } from "@/lib/plans/effective";
 import { getCountryFromHeaders } from "@/lib/utils/geo";
 import {
   buildWeekSkeleton,
@@ -120,12 +121,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, created: false, report: serializeReport(existing, range) });
   }
 
-  // پلن کاربر — دسترسی به تأمل (نقش weekly-reflection)
-  const fullUser = await prisma.user.findUnique({
-    where: { id: user.userId },
-    select: { plan: true },
-  });
-  const userPlan = fullUser?.plan ?? "FREE";
+  // پلن کاربر — دسترسی به تأمل (نقش weekly-reflection). پلنِ مؤثر (با انقضا، DECISION-062)
+  const userPlan = await getEffectivePlanKey(user.userId);
   const includeCoaching = await planAllows(userPlan, "weekly.reflection");
 
   // ① تعهدهای هفته

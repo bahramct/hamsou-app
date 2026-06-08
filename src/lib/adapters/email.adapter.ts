@@ -9,10 +9,17 @@ import type { SendEmailResult } from "@/types/email";
 
 export interface EmailAdapter {
   /**
-   * ارسال کدِ تأیید به ایمیل
-   * @param email آدرس ایمیلِ مقصد
-   * @param code کدِ تأییدِ تولیدشده
-   * @returns نتیجهٔ ارسال
+   * ارسال کدِ تأیید به ایمیل (فقط برای جریان add-email — کاربر لاگین است)
    */
   sendVerificationCode(email: string, code: string): Promise<SendEmailResult>;
+
+  /**
+   * ارسال لینک تأیید ثبت‌نام — توکن ۳۲-بایتی، منقضی‌شدنی ۲۴ ساعته
+   */
+  sendVerificationLink(email: string, link: string): Promise<SendEmailResult>;
+
+  /**
+   * ارسال لینک بازیابی رمز — توکن ۳۲-بایتی، منقضی‌شدنی ۱ ساعته
+   */
+  sendPasswordResetLink(email: string, link: string): Promise<SendEmailResult>;
 }
