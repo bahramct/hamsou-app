@@ -15,6 +15,7 @@ export const PERMISSION_GROUPS = {
   plans: "پلن‌ها",
   ai: "هوش مصنوعی",
   sms: "پیامک",
+  email: "ایمیل",
   payment: "پرداخت",
   support: "پشتیبانی",
   content: "محتوا",
@@ -47,6 +48,10 @@ export const ADMIN_PERMISSIONS = [
   { key: "sms.read", label: "مشاهده پنل پیامک", group: "sms" },
   { key: "sms.send", label: "ارسال پیامک", group: "sms" },
   { key: "sms.manage", label: "مدیریت پنل پیامک", group: "sms" },
+
+  { key: "email.read", label: "مشاهده پنل ایمیل", group: "email" },
+  { key: "email.send", label: "ارسال ایمیل تستی", group: "email" },
+  { key: "email.manage", label: "مدیریت سرویس‌های ایمیل", group: "email" },
 
   { key: "payment.read", label: "مشاهده پرداخت‌ها", group: "payment" },
   { key: "payment.manage", label: "مدیریت درگاه پرداخت", group: "payment" },

@@ -19,6 +19,7 @@ import type { SMSAdapter } from "@/lib/adapters/sms.adapter";
 import type { EmailAdapter } from "@/lib/adapters/email.adapter";
 import type { ResolvedAiService } from "@/lib/ai/services";
 import type { ResolvedSmsService } from "@/lib/sms/services";
+import type { ResolvedEmailService } from "@/lib/email/services";
 
 // ─── AI Adapter — by-name factory ───────────────────────────────────────────
 
@@ -177,27 +178,43 @@ export function getSmsAdapterForService(svc: ResolvedSmsService): SMSAdapter {
   return adapter;
 }
 
-// ─── Email Adapter (single instance — DECISION-058) ──────────────────────────
+// ─── Email Adapter از روی یک EmailService (DECISION-064) ──────────────────────
+// آینهٔ SMS Adapter: منبع‌حقیقت provider/apiKey/fromAddress ردیف EmailService است.
+// resend → ResendEmailAdapter؛ mock یا ناشناخته → MockEmailAdapter.
+// cache بر اساس امضای (id|provider|apiKey|fromAddress) تا با تغییر هرکدام بازساخته شود.
 
-let _emailAdapter: EmailAdapter | null = null;
+const resolvedEmailAdapterCache = new Map<string, EmailAdapter>();
 
-export function getEmailAdapter(): EmailAdapter {
-  if (_emailAdapter) return _emailAdapter;
+export function getEmailAdapterForService(svc: ResolvedEmailService): EmailAdapter {
+  const sig = `${svc.id}|${svc.provider}|${svc.apiKey ?? ""}|${svc.fromAddress}|${svc.fromName}`;
+  const cached = resolvedEmailAdapterCache.get(sig);
+  if (cached) return cached;
 
-  const provider = process.env.EMAIL_PROVIDER ?? "mock";
-
-  switch (provider) {
-    case "mock": {
-      const { MockEmailAdapter } = require("@/lib/adapters/mock-email.adapter");
-      _emailAdapter = new MockEmailAdapter() as EmailAdapter;
-      break;
-    }
-    // فاز ۲: case "smtp" | "resend": ...
-    default:
+  let adapter: EmailAdapter;
+  if (svc.provider === "resend") {
+    if (!svc.apiKey) {
       throw new Error(
-        `[EmailAdapter] provider نامعتبر: "${provider}". مقادیر مجاز: mock`
+        `[EmailAdapter] سرویس «${svc.label}» کلید API ندارد — در پنل ادمین تنظیمش کن.`
       );
+    }
+    const { ResendEmailAdapter } = require("@/lib/adapters/resend-email.adapter");
+    adapter = new ResendEmailAdapter({
+      apiKey: svc.apiKey,
+      fromAddress: svc.fromAddress,
+      fromName: svc.fromName,
+    }) as EmailAdapter;
+  } else {
+    // mock یا ناشناخته → آداپتر آزمایشی
+    const { MockEmailAdapter } = require("@/lib/adapters/mock-email.adapter");
+    adapter = new MockEmailAdapter() as EmailAdapter;
   }
 
-  return _emailAdapter;
+  resolvedEmailAdapterCache.set(sig, adapter);
+  return adapter;
+}
+
+// legacy — برای سازگاری با کدهای قدیمی که هنوز migrate نشده‌اند
+export function getEmailAdapter(): EmailAdapter {
+  const { MockEmailAdapter } = require("@/lib/adapters/mock-email.adapter");
+  return new MockEmailAdapter() as EmailAdapter;
 }

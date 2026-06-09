@@ -465,6 +465,50 @@ model SmsLog {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EmailService — سرویس ایمیل قابل‌تنظیم از پنل (DECISION-064؛ آینهٔ SmsService)
+// provider: "resend" (API-based) | "smtp" (آینده) | "mock" (آزمایشی، فقط log).
+// apiKey فقط Owner مشاهده/ویرایش می‌کند.
+// fromAddress + fromName آدرس و نام فرستنده هستند.
+// ─────────────────────────────────────────────────────────────────────────────
+model EmailService {
+  id          String   @id @default(cuid())
+  label       String // برچسب انسانی، مثل «Resend (production)»
+  provider    String   @default("resend") // "resend" | "smtp" | "mock"
+  apiKey      String? // کلید Resend — فقط Owner مشاهده/ویرایش می‌کند
+  fromAddress String   @default("noreply@hamsoo.app") // آدرس فرستنده
+  fromName    String   @default("همسو") // نام فرستنده
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false) // سرویس پیش‌فرض — حداکثر یکی فعال
+  sortOrder   Int      @default(0)
+  note        String?
+  createdById String? // AdminUser.id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, isDefault])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EmailLog — رکورد هر ارسال ایمیل برای observability (DECISION-064؛ آینهٔ SmsLog)
+// حریم خصوصی: آدرس ایمیل ماسک می‌شود (u***@example.com).
+// purpose: "signup" | "add-email" | "password-reset" | "test"
+// ─────────────────────────────────────────────────────────────────────────────
+model EmailLog {
+  id          String   @id @default(cuid())
+  provider    String // "resend" | "smtp" | "mock"
+  serviceId   String? // EmailService.id (در صورت resolve از DB)
+  purpose     String // "signup" | "add-email" | "password-reset" | "test"
+  emailMasked String // u***@example.com
+  subject     String
+  success     Boolean
+  messageId   String? // شناسهٔ پیام Provider (مثل Resend message ID)
+  error       String? // پیام خطا (در صورت ناموفق)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // BankCard — کارت مرجعِ دریافت پرداخت، مدیریت از پنل (DECISION-062؛ آینهٔ SmsService)
 // کاربر برای شارژ کیف‌پول به این کارت کارت‌به‌کارت می‌کند. حداکثر یکی پیش‌فرض/فعال.
 // ─────────────────────────────────────────────────────────────────────────────

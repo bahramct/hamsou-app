@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { getSessionUser } from "@/lib/utils/auth-server";
-import { getEmailAdapter } from "@/lib/adapters";
+import { sendVerificationCodeEmail } from "@/lib/email/send";
 import { generateEmailCode, getEmailCodeExpiry } from "@/lib/auth/credentials";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
@@ -56,8 +56,7 @@ export async function POST() {
       },
     });
 
-    const mailer = getEmailAdapter();
-    await mailer.sendVerificationCode(user.email, code);
+    await sendVerificationCodeEmail(user.email, code, "password-reset");
 
     return NextResponse.json({ ok: true, ...devOnlyPayload({ devCode: code }) });
   } catch (err) {

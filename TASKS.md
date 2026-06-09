@@ -22,7 +22,7 @@
 |---|-----|-----|--------|--------|---------|
 | ۰ | TASK-UI-FIXES-063 | اصلاح باگ | ✅ | ✅ تمام | مسیریابی + کارت کیف‌پول + سال شمسی + کارت پشتیبانی + رسید — ۲۰۲۶-۰۶-۰۸ |
 | ۱ | TASK-AUTH-RECOVERY | رفع گپ حیاتی | 🔴 Critical | ✅ تمام | تأیید ایمیل با لینک + بازیابی رمز — ۲۰۲۶-۰۶-۰۸ |
-| ۲ | TASK-EMAIL-PROVIDER | زیرساخت | 🔴 Critical | ⏳ شروع نشده | mock فعلی؛ Resend/SendGrid با Adapter Pattern |
+| ۲ | TASK-EMAIL-PROVIDER | زیرساخت | 🔴 Critical | ✅ تمام | Resend + DB-driven service management + /admin/email + 5 route migration — ۲۰۲۶-۰۶-۰۹ |
 | ۳ | TASK-GATEWAY | فیچر برنامه‌ریزی‌شده | 🔴 Critical | ⏳ تصمیم لازم | کیف‌پول آماده؛ درگاه = منبع دوم شارژ |
 | ۴ | TASK-ONBOARDING | فیچر جدید ✨ | 🟠 High | ⏳ شروع نشده | ۳ مرحله ساده؛ تأییدشده |
 | ۵ | TASK-PWA | فیچر برنامه‌ریزی‌شده | 🟠 High | ⏳ شروع نشده | بازار موبایل ایران؛ manifest + SW + آیکون |
@@ -46,18 +46,21 @@
 
 ---
 
-### TASK-EMAIL-PROVIDER | Email Provider واقعی — ⏳ شروع نشده
+### TASK-EMAIL-PROVIDER | Email Provider واقعی — ✅ تمام (۲۰۲۶-۰۶-۰۹)
 
-- **اولویت:** 🔴 Critical — هم برای OTP ایمیل، هم برای بازیابی رمز
-- **وابستگی:** TASK-AUTH-MULTI ✅ (EmailAdapter interface آماده)
-- **پیشنهاد:** Resend (ساده‌ترین API؛ free tier کافی؛ SMTP نیاز ندارد) یا Mailgun
-- **معماری:** مثل SMS — `ResendEmailAdapter` پشت Interface؛ مدیریت از پنل `/admin/email`
+- **Provider:** Resend — کلید در `.env.local`، فرستنده `noreply@hamsoo.app`
+- **معماری:** آینهٔ دقیق SMS (DECISION-061) — ساختار، cache، factory، golden rule همه یکسان
 - **ساب‌تسک‌ها:**
-  - [ ] `src/lib/adapters/resend-email.adapter.ts`
-  - [ ] `getSMTPAdapter()` factory → `case "resend"`
-  - [ ] مدل `EmailService`/`EmailLog` (db push، مثل SmsService)
-  - [ ] `/admin/email` — بنر سرویس فعال + CRUD + ارسال تستی + تاریخچه
-  - [ ] وصل به `EmailAdapter` در `api/auth/email/*`
+  - [x] `src/lib/adapters/resend-email.adapter.ts` — `ResendEmailAdapter` با HTML templates
+  - [x] `getEmailAdapterForService()` factory در `src/lib/adapters/index.ts`
+  - [x] `EmailService`/`EmailLog` در `prisma/schema.prisma` — `db push` ✅
+  - [x] `src/lib/email/services.ts` — resolver با TTL 10s
+  - [x] `src/lib/email/send.ts` — تنها نقطهٔ ارسال (golden rule)
+  - [x] `/admin/email` — بنر سرویس فعال + CRUD + ارسال تستی + تاریخچه
+  - [x] ۵ API route مهاجرت‌یافته به `email/send.ts`
+  - [x] RBAC: `email.read` / `email.send` / `email.manage` (seed idempotent)
+  - [x] بازیابی رمز فقط با ایمیل (حذف شاخهٔ username)
+- `tsc` ✅ · `db push` ✅ · `seed` ✅
 
 ---
 

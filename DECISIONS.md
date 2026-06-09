@@ -1253,4 +1253,45 @@
 
 ---
 
+---
+
+### DECISION-064 ✅ | Email Provider واقعی — Resend با DB-driven Adapter Pattern
+- **تاریخ:** ۲۰۲۶-۰۶-۰۹
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **زمینه:** MockEmailAdapter برای محیط production کافی نبود؛ نیاز به ارسال واقعی ایمیل (تأیید حساب، بازیابی رمز، ارسال تستی ادمین).
+- **تصمیم‌ها:**
+
+  **۱. Provider انتخابی: Resend**
+  دلیل: API ساده (یک endpoint)، بدون SMTP، free tier کافی، SDK رسمی npm. کلید از `resend.com`؛ دامنهٔ فرستنده `noreply@hamsoo.app`.
+
+  **۲. معماری آینه‌وارِ SMS (DECISION-061)**
+  - `EmailService` + `EmailLog` در Prisma (آینهٔ `SmsService`/`SmsLog`) — `db push` بدون migration.
+  - `src/lib/email/services.ts` — resolver با TTL cache 10s (آینهٔ `sms/services.ts`).
+  - `src/lib/email/send.ts` — تنها نقطهٔ ارسال (Golden Rule — آینهٔ `sms/send.ts`).
+  - `src/lib/adapters/resend-email.adapter.ts` — `ResendEmailAdapter` پشت `EmailAdapter` interface.
+  - `getEmailAdapterForService()` در `src/lib/adapters/index.ts` — factory by service record.
+
+  **۳. قانون طلایی ایمیل**
+  هیچ کد فیچری مستقیماً `EmailAdapter` را صدا نمی‌زند؛ همیشه از `sendPasswordResetEmail / sendVerificationCodeEmail / sendVerificationLinkEmail` در `@/lib/email/send`.
+
+  **۴. مسیرهای مهاجرت‌یافته (۵ route)**
+  - `api/auth/email/request-code` → `sendVerificationLinkEmail`
+  - `api/account/email/request-code` → `sendVerificationCodeEmail`
+  - `api/account/reset-password/request` → `sendVerificationCodeEmail(..., "password-reset")`
+  - `api/auth/forgot-password` → `sendPasswordResetEmail` (+ حذف شاخهٔ username)
+  - `api/admin/users/[id]/send-password-reset` → `sendPasswordResetEmail`
+
+  **۵. پنل ادمین `/admin/email`**
+  بنر سرویس فعال (provider + fromAddress + وضعیت آماده) + CRUD سرویس‌ها (کلید API فقط Owner) + ارسال تستی + تاریخچهٔ ارسال (EmailLog). مجوزهای RBAC: `email.read` / `email.send` / `email.manage`.
+
+  **۶. seed idempotent**
+  اگر `EMAIL_RESEND_API_KEY` در env باشد → `EmailService` با provider `resend` ساخته می‌شود؛ در غیر این صورت `mock`. ۳ permission جدید (`email.*`) به catalog افزوده شد (بدون migration).
+
+  **۷. بازیابی رمز — فقط ایمیل**
+  `/forgot-password` فقط ایمیل می‌پذیرد (شاخهٔ username کاملاً حذف شد). `DECISION-064a`.
+
+- **اعتبارسنجی:** `tsc` ✅ · `db push` ✅ · `seed` ✅ (24 permissions + EmailService Resend).
+
+---
+
 *هر تصمیم جدید باید به این فایل اضافه شود — نه به TASKS.md یا CLAUDE.md*

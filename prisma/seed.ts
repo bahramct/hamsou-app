@@ -149,6 +149,41 @@ async function main() {
     console.log(`  ✓ ${smsCount} سرویس پیامک از قبل موجود است — دست‌نخورده ماند.`);
   }
 
+  // ۴.۷ سرویس ایمیل پیش‌فرض (DECISION-064) — فقط اگر هیچ سرویسی وجود ندارد.
+  // کلید Resend از env EMAIL_RESEND_API_KEY خوانده می‌شود؛ نبود کلید → Mock.
+  const emailCount = await prisma.emailService.count();
+  if (emailCount === 0) {
+    const resendKey = (process.env.EMAIL_RESEND_API_KEY ?? "").trim();
+    if (resendKey) {
+      await prisma.emailService.create({
+        data: {
+          label: "Resend (production)",
+          provider: "resend",
+          apiKey: resendKey,
+          fromAddress: process.env.EMAIL_FROM_ADDRESS ?? "noreply@hamsoo.app",
+          fromName: process.env.EMAIL_FROM_NAME ?? "همسو",
+          isActive: true,
+          isDefault: true,
+        },
+      });
+      console.log("  ✓ سرویس ایمیل پیش‌فرض از env ساخته شد: Resend");
+    } else {
+      await prisma.emailService.create({
+        data: {
+          label: "سرویس آزمایشی (Mock)",
+          provider: "mock",
+          fromAddress: "noreply@hamsoo.app",
+          fromName: "همسو",
+          isActive: true,
+          isDefault: true,
+        },
+      });
+      console.log("  ✓ سرویس ایمیل پیش‌فرض ساخته شد: mock (EMAIL_RESEND_API_KEY تنظیم نشده)");
+    }
+  } else {
+    console.log(`  ✓ ${emailCount} سرویس ایمیل از قبل موجود است — دست‌نخورده ماند.`);
+  }
+
   // ۴.۶ کارتِ مرجعِ دریافت پرداخت (DECISION-062) — فقط اگر هیچ کارتی وجود ندارد.
   const cardCount = await prisma.bankCard.count();
   if (cardCount === 0) {

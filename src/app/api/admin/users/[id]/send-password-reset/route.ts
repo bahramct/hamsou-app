@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { requirePermission } from "@/lib/admin/auth-server";
 import { logAdminAction } from "@/lib/admin/audit";
-import { getEmailAdapter } from "@/lib/adapters";
+import { sendPasswordResetEmail } from "@/lib/email/send";
 import { generateEmailToken, getResetLinkExpiry } from "@/lib/auth/credentials";
 import { getAppBaseUrl } from "@/lib/utils/app-url";
 import { getNow } from "@/lib/dev/time";
@@ -52,8 +52,7 @@ export async function POST(
     },
   });
 
-  const mailer = getEmailAdapter();
-  await mailer.sendPasswordResetLink(user.email, link);
+  await sendPasswordResetEmail(user.email, link);
 
   await logAdminAction({
     actorId: ctx.admin.id,

@@ -1,55 +1,46 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/auth/forgot-password — درخواست بازیابی رمز عبور
 //
-// body: { identifier } — ایمیل یا نام‌کاربری
-// - کاربر را پیدا می‌کند (email یا username)
-// - اگر پیدا شد و ایمیل دارد → توکن ۳۲-بایتی می‌سازد و لینک می‌فرستد
+// body: { email } — ایمیل کاربر
+// - کاربر را از روی ایمیل پیدا می‌کند
+// - اگر پیدا شد و رمز دارد → توکن ۳۲-بایتی می‌سازد و لینک می‌فرستد
 // - پاسخ همیشه ۲۰۰ است (security: نمی‌گوییم آیا حساب وجود دارد یا نه)
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
-import { getEmailAdapter } from "@/lib/adapters";
-import { normalizeEmail, normalizeUsername, generateEmailToken, getResetLinkExpiry } from "@/lib/auth/credentials";
+import { sendPasswordResetEmail } from "@/lib/email/send";
+import { normalizeEmail, generateEmailToken, getResetLinkExpiry } from "@/lib/auth/credentials";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
 import { getAppBaseUrl } from "@/lib/utils/app-url";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json().catch(() => null)) as { identifier?: unknown } | null;
+    const body = (await req.json().catch(() => null)) as { email?: unknown } | null;
     if (!body) {
       return NextResponse.json({ error: "درخواست نامعتبر." }, { status: 400 });
     }
 
-    const raw = typeof body.identifier === "string" ? body.identifier.trim() : "";
+    const raw = typeof body.email === "string" ? body.email.trim() : "";
     if (!raw) {
-      return NextResponse.json({ error: "ایمیل یا نام کاربری الزامی است." }, { status: 400 });
+      return NextResponse.json({ error: "ایمیل الزامی است." }, { status: 400 });
     }
 
-    // شناسایی نوع ورودی: ایمیل یا نام‌کاربری
     const asEmail = normalizeEmail(raw);
-    const asUsername = normalizeUsername(raw.toLowerCase());
+    if (!asEmail) {
+      return NextResponse.json({ error: "فرمت ایمیل معتبر نیست." }, { status: 400 });
+    }
 
     let userEmail: string | null = null;
 
-    if (asEmail) {
-      const user = await prisma.user.findUnique({
-        where: { email: asEmail },
-        select: { email: true, passwordHash: true },
-      });
-      // فقط کاربرانی که رمز دارند (ایمیل/یوزرنیم ثبت کردند، نه OTP)
-      if (user?.email && user.passwordHash) {
-        userEmail = user.email;
-      }
-    } else if (asUsername) {
-      const user = await prisma.user.findUnique({
-        where: { username: asUsername },
-        select: { email: true, passwordHash: true },
-      });
-      if (user?.email && user.passwordHash) {
-        userEmail = user.email;
-      }
+    const user = await prisma.user.findUnique({
+      where: { email: asEmail },
+      select: { email: true, passwordHash: true },
+    });
+    // فقط کاربرانی که رمز دارند (مسیر ایمیل/پسورد، نه OTP)
+    if (user?.email && user.passwordHash) {
+      userEmail = user.email;
     }
 
     // پاسخ همیشه ۲۰۰ (جلوگیری از user enumeration)
@@ -81,8 +72,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const mailer = getEmailAdapter();
-    await mailer.sendPasswordResetLink(userEmail, link);
+    await sendPasswordResetEmail(userEmail, link);
 
     return NextResponse.json({
       ok: true,

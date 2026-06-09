@@ -6,6 +6,18 @@
 
 ## آخرین تغییرات
 
+### TASK-EMAIL-PROVIDER — Email Provider واقعی (Resend) + /admin/email (۲۰۲۶-۰۶-۰۹) — DECISION-064
+- **ResendEmailAdapter:** `src/lib/adapters/resend-email.adapter.ts` — سه متد (`sendVerificationCode` / `sendVerificationLink` / `sendPasswordResetLink`) با HTML templates فارسی. پشت `EmailAdapter` interface.
+- **DB-driven resolver:** مدل‌های `EmailService` / `EmailLog` در Prisma (آینهٔ `SmsService`/`SmsLog`) — `db push` بدون migration. Resolver `src/lib/email/services.ts` با TTL cache 10s (آینهٔ `sms/services.ts`).
+- **Golden Rule ایمیل:** `src/lib/email/send.ts` — تنها نقطهٔ ارسال. هیچ کدی مستقیماً Adapter صدا نمی‌زند.
+- **مهاجرت ۵ route:** `auth/email/request-code` · `account/email/request-code` · `account/reset-password/request` · `auth/forgot-password` · `admin/users/[id]/send-password-reset` — همه به `email/send.ts` وصل شدند.
+- **بازیابی رمز فقط با ایمیل:** شاخهٔ username از `/forgot-password` (UI + API) کاملاً حذف شد — کاربر فقط ایمیل وارد می‌کند.
+- **پنل ادمین `/admin/email`:** بنر سرویس فعال (provider + fromAddress + وضعیت آماده) + CRUD سرویس‌ها (کلید فقط Owner) + ارسال تستی + تاریخچهٔ EmailLog. nav sidebar فعال شد.
+- **RBAC:** `email.read` / `email.send` / `email.manage` — ۳ permission جدید به catalog افزوده شد (seed idempotent، بدون migration). جمع: ۲۴ permission.
+- **seed:** `prisma/seed.ts` — اگر `EMAIL_RESEND_API_KEY` در env باشد → `EmailService` Resend ساخته می‌شود؛ در غیر این صورت Mock. **.env.local** با کلید Resend و آدرس `noreply@hamsoo.app` به‌روز شد.
+- **هم‌ترازی (Admin/Project Parity):** ادمین می‌تواند سرویس‌های ایمیل را مدیریت کند؛ همهٔ جریان‌های کاربر (ثبت‌نام/افزودن ایمیل/بازیابی رمز/ارسال ادمین) از همان سرویس DB-driven استفاده می‌کنند.
+- `tsc` ✅ · `db push` ✅ · `seed` ✅
+
 ### اصلاحات UI — DECISION-063 (۲۰۲۶-۰۶-۰۸)
 - **مسیریابی:** `/forgot-password`، `/reset-password`، `/verify-email` به `PUBLIC_PATHS` در `src/proxy.ts` افزوده شدند — کاربر ناشناس دیگر به login ریدایرکت نمی‌شود.
 - **افزودن اولین کارت کیف‌پول:** دکمهٔ دَش‌دار «+ افزودن کارت بانکی» در `ProfileWalletSection` برای کاربری که هنوز کارتی ثبت نکرده نمایش داده می‌شود.

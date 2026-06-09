@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // /forgot-password — فراموشی رمز عبور
 //
-// کاربر ایمیل یا نام‌کاربری وارد می‌کند → لینک بازیابی به ایمیل ثبت‌شده ارسال می‌شود.
+// کاربر ایمیل وارد می‌کند → لینک بازیابی به ایمیل ثبت‌شده ارسال می‌شود.
 // پاسخ همیشه موفق (security: user enumeration جلوگیری می‌شود).
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -18,7 +18,7 @@ type Step = "form" | "sent";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("form");
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [devLink, setDevLink] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
@@ -56,19 +56,20 @@ export default function ForgotPasswordPage() {
               <div className="space-y-1.5 text-center">
                 <h1 className="text-base font-semibold text-ink">بازیابی رمز عبور</h1>
                 <p className="text-xs text-stone leading-relaxed">
-                  ایمیل یا نام کاربری حسابت را وارد کن. لینک بازیابی برایت ارسال می‌شود.
+                  ایمیل حسابت را وارد کن. لینک بازیابی برایت ارسال می‌شود.
                 </p>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-stone">ایمیل یا نام کاربری</label>
+                <label className="text-xs font-medium text-stone">ایمیل</label>
                 <input
-                  value={identifier}
-                  onChange={(e) => { setIdentifier(e.target.value); setError(""); }}
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   disabled={loading}
                   dir="ltr"
                   autoCapitalize="none"
-                  placeholder="you@example.com یا username"
+                  placeholder="you@example.com"
                   className="w-full rounded-xl px-4 py-3 text-sm bg-white/60 border border-bone text-ink placeholder:text-fog focus:outline-none focus:border-sage focus:ring-2 focus:ring-sage/20 transition-all duration-350 disabled:opacity-50"
                 />
               </div>
@@ -77,7 +78,7 @@ export default function ForgotPasswordPage() {
 
               <button
                 type="submit"
-                disabled={loading || !identifier.trim()}
+                disabled={loading || !email.trim()}
                 className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading && <Spinner size={14} className="text-paper" />}

@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
-import { getEmailAdapter } from "@/lib/adapters";
+import { sendVerificationLinkEmail } from "@/lib/email/send";
 import {
   normalizeEmail,
   generateEmailToken,
@@ -79,8 +79,7 @@ export async function POST(req: NextRequest) {
     });
 
     const link = `${getAppBaseUrl()}/verify-email?token=${token}`;
-    const mailer = getEmailAdapter();
-    await mailer.sendVerificationLink(email, link);
+    await sendVerificationLinkEmail(email, link);
 
     return NextResponse.json({
       ok: true,

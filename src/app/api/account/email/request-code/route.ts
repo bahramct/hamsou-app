@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { getSessionUser } from "@/lib/utils/auth-server";
-import { getEmailAdapter } from "@/lib/adapters";
+import { sendVerificationCodeEmail } from "@/lib/email/send";
 import { normalizeEmail, generateEmailCode, getEmailCodeExpiry } from "@/lib/auth/credentials";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
@@ -52,8 +52,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const mailer = getEmailAdapter();
-    await mailer.sendVerificationCode(email, code);
+    await sendVerificationCodeEmail(email, code);
 
     return NextResponse.json({ ok: true, ...devOnlyPayload({ devCode: code }) });
   } catch (err) {
