@@ -4,9 +4,11 @@
 // افکت‌های JS (scroll reveal + parallax) در LandingEffects (client component)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { LandingEffects } from "@/components/features/landing/LandingEffects";
+import { LandingNav } from "@/components/layout/LandingNav";
+import { LandingFooter } from "@/components/layout/LandingFooter";
 import Image from "next/image";
 import Link from "next/link";
-import { LandingEffects } from "@/components/features/landing/LandingEffects";
 
 export default function HomePage() {
   return (
@@ -25,19 +27,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════════════
           NAV
       ══════════════════════════════════════════════════════════════════════ */}
-      <nav className="glass-nav fixed top-0 inset-x-0 z-50 anim-fade-in">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="همسو" width={40} height={40} className="h-9 w-auto" style={{ width: "auto" }} priority />
-          </Link>
-          <div className="nav-links flex items-center gap-1">
-            <a href="#solution" className="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">چطور کار می‌کند</a>
-            <a href="#difference" className="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">آنچه نیست</a>
-            <a href="#testimonial" className="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">از کاربران</a>
-          </div>
-          <Link href="/login" className="btn btn-primary" style={{ padding: ".65rem 1.25rem", fontSize: "14px" }}>شروع کن</Link>
-        </div>
-      </nav>
+      <LandingNav landing />
 
       {/* ══════════════════════════════════════════════════════════════════════
           HERO
@@ -364,48 +354,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════════════
           FOOTER
       ══════════════════════════════════════════════════════════════════════ */}
-      <footer className="relative z-10 px-6 lg:px-10 pt-16 pb-10" style={{ borderTop: "1px solid rgba(26,26,31,0.06)" }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div>
-              <Image src="/logo.png" alt="همسو" width={40} height={40} className="h-10 w-auto mb-4" style={{ width: "auto" }} />
-              <p className="text-stone" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7, maxWidth: "280px" }}>
-                آینه‌ای آرام برای کلماتت. برای واقعی‌تر زندگی کردن.
-              </p>
-            </div>
-            <div>
-              <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>محصول</div>
-              <ul className="space-y-3 text-stone text-sm" style={{ fontWeight: 300 }}>
-                <li><a href="#solution" className="hover:text-ink transition-colors">چطور کار می‌کند</a></li>
-                <li><a href="#difference" className="hover:text-ink transition-colors">آنچه همسو نیست</a></li>
-                <li><a href="#" className="hover:text-ink transition-colors">سوالات رایج</a></li>
-              </ul>
-            </div>
-            <div>
-              <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>برند</div>
-              <ul className="space-y-3 text-stone text-sm" style={{ fontWeight: 300 }}>
-                <li><a href="#" className="hover:text-ink transition-colors">درباره ما</a></li>
-                <li><a href="#" className="hover:text-ink transition-colors">حریم خصوصی</a></li>
-                <li><a href="#" className="hover:text-ink transition-colors">تماس آرام</a></li>
-              </ul>
-            </div>
-            <div className="flex flex-col items-start">
-              <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>اعتماد</div>
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=739126&Code=5EvOFay6oGCflUCFpgQlBRrBntVvjODR'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=739126&Code=5EvOFay6oGCflUCFpgQlBRrBntVvjODR' alt='' style='cursor:pointer' code='5EvOFay6oGCflUCFpgQlBRrBntVvjODR'></a>`
-                }}
-              />
-            </div>
-          </div>
-
-          <hr className="hr-line mb-6" />
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-fog text-xs fa-num" style={{ fontWeight: 300 }}>© ۱۴۰۵ همسو · کلیه حقوق محفوظ است.</p>
-            <p className="text-fog text-xs" style={{ fontWeight: 300, fontStyle: "italic" }}>«آنچه می‌گویی، همان شو.»</p>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </main>
   );
 }

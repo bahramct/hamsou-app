@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession, can } from "@/lib/admin/auth-server";
 import { getSupportNavCounts } from "@/lib/support/nav-counts";
+import { getPendingCommentsCount } from "@/lib/blog/nav-counts";
 import { prisma } from "@/lib/db/client";
 
 export const dynamic = "force-dynamic";
@@ -27,5 +28,11 @@ export async function GET() {
     pendingPayments = await prisma.walletTransaction.count({ where: { type: "topup", status: "pending" } });
   }
 
-  return NextResponse.json({ ok: true, openTickets, unreadChats, pendingPayments });
+  // کامنت‌های بلاگ در انتظارِ تأیید (DECISION-065) — فقط برای دارندگان blog.moderate
+  let pendingComments = 0;
+  if (can(ctx, "blog.moderate")) {
+    pendingComments = await getPendingCommentsCount();
+  }
+
+  return NextResponse.json({ ok: true, openTickets, unreadChats, pendingPayments, pendingComments });
 }

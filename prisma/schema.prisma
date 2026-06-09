@@ -688,3 +688,122 @@ model TicketMessage {
 
   @@index([ticketId, createdAt])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// بلاگ همسو (DECISION-065) — اولین ماژول CMS از پنل ادمین.
+// محتوای مقاله Markdown است (renderer امنِ سروری در src/lib/blog/markdown.ts).
+// کامنت‌ها از عموم (حتی غیرکاربر) با name+email؛ فقط پس از تأیید ادمین نمایش.
+// لایک با fingerprint (hash IP+UA) چون کاربر لاگین نیست. بازدید با شمارندهٔ ساده.
+// لینک کوتاه = shortCode یکتا (مسیر /b/<code> → redirect به /blog/<slug>).
+// ─────────────────────────────────────────────────────────────────────────────
+
+// BlogCategory — دستهٔ ثابت برای گروه‌بندی مقالات (مدیریت از پنل).
+model BlogCategory {
+  id          String   @id @default(cuid())
+  slug        String   @unique // لاتین — برای URL و فیلتر
+  name        String   // فارسی — نمایشی
+  description String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  posts BlogPost[]
+
+  @@index([isActive, order])
+}
+
+// BlogTag — برچسب آزاد چندتایی روی مقالات.
+model BlogTag {
+  id        String        @id @default(cuid())
+  slug      String        @unique
+  name      String
+  createdAt DateTime      @default(now())
+  posts     BlogPostTag[]
+}
+
+// BlogPostTag — رابطهٔ many-to-many مقاله ↔ برچسب.
+model BlogPostTag {
+  postId String
+  tagId  String
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+// BlogPost — مقالهٔ بلاگ.
+// status: "draft" (پیش‌نویس) | "published" (منتشر) | "archived" (بایگانی).
+// coverImage: base64 فشرده (مثل avatarImage کاربر) یا URL.
+// readingMinutes: محاسبه‌شده از تعداد کلمات هنگام ذخیره.
+model BlogPost {
+  id             String    @id @default(cuid())
+  slug           String    @unique // برای URL: /blog/<slug>
+  shortCode      String    @unique // لینک کوتاه: /b/<code>
+  title          String
+  excerpt        String? // خلاصه برای کارت فهرست
+  content        String // متن کامل (Markdown)
+  coverImage     String? // base64 یا URL
+  categoryId     String?
+  authorName     String    @default("تیم همسو")
+  status         String    @default("draft")
+  readingMinutes Int       @default(1)
+  viewCount      Int       @default(0)
+  likeCount      Int       @default(0)
+  commentCount   Int       @default(0) // فقط تأییدشده‌ها — برای نمایش سریع
+  isFeatured     Boolean   @default(false) // مقالهٔ شاخص بالای فهرست
+  metaTitle      String? // override عنوان متا (SEO)
+  metaDescription String? // override توضیح متا
+  publishedAt    DateTime?
+  createdById    String? // AdminUser.id
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  category BlogCategory? @relation(fields: [categoryId], references: [id])
+  tags     BlogPostTag[]
+  comments BlogComment[]
+  likes    BlogLike[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId, status])
+}
+
+// BlogComment — کامنت با پاسخِ تودرتو (یک‌سطح) + تأیید ادمین (DECISION-065).
+// status: "pending" (در انتظار) | "approved" (تأیید) | "rejected" (رد).
+// authorEmail خصوصی است — هرگز در سایت نمایش داده نمی‌شود.
+// isAdminReply: پاسخِ رسمی «همسو» (نمایش متمایز، بدون نیاز به تأیید).
+model BlogComment {
+  id           String    @id @default(cuid())
+  postId       String
+  parentId     String? // پاسخ به کامنت دیگر — null = ریشه
+  authorName   String
+  authorEmail  String // خصوصی — فقط برای ادمین
+  body         String
+  status       String    @default("pending")
+  isAdminReply Boolean   @default(false)
+  authorAdminId String? // اگر پاسخ ادمین باشد
+  createdAt    DateTime  @default(now())
+  reviewedAt   DateTime?
+  reviewedById String? // AdminUser.id
+
+  post    BlogPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  BlogComment?  @relation("BlogCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies BlogComment[] @relation("BlogCommentReplies")
+
+  @@index([postId, status])
+  @@index([status, createdAt])
+}
+
+// BlogLike — لایک یکتا per (post, fingerprint). کاربر لاگین نیست → fingerprint = hash(IP+UA).
+model BlogLike {
+  id          String   @id @default(cuid())
+  postId      String
+  fingerprint String // hash(IP + User-Agent) — جلوگیری از لایک تکراری
+  createdAt   DateTime @default(now())
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, fingerprint])
+  @@index([postId])
+}

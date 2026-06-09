@@ -19,6 +19,7 @@ export const PERMISSION_GROUPS = {
   payment: "پرداخت",
   support: "پشتیبانی",
   content: "محتوا",
+  blog: "بلاگ",
   system: "سیستم",
 } as const;
 
@@ -62,6 +63,10 @@ export const ADMIN_PERMISSIONS = [
   { key: "content.read", label: "مشاهده محتوا", group: "content" },
   { key: "content.write", label: "ویرایش محتوا و اعلان‌ها", group: "content" },
 
+  { key: "blog.read", label: "مشاهده بلاگ", group: "blog" },
+  { key: "blog.write", label: "نوشتن و ویرایش مقالات", group: "blog" },
+  { key: "blog.moderate", label: "مدیریت کامنت‌ها", group: "blog" },
+
   { key: "admins.manage", label: "مدیریت ادمین‌ها", group: "system" },
   { key: "roles.manage", label: "مدیریت نقش‌ها و دسترسی‌ها", group: "system" },
   { key: "audit.read", label: "مشاهده لاگ ممیزی", group: "system" },
@@ -101,8 +106,15 @@ export const SYSTEM_ROLES: SystemRoleDef[] = [
   {
     key: "content",
     label: "تولیدکننده محتوا",
-    description: "مدیریت محتوا و اعلان‌ها.",
-    permissions: ["dashboard.view", "content.read", "content.write"],
+    description: "مدیریت محتوا، بلاگ و اعلان‌ها.",
+    permissions: [
+      "dashboard.view",
+      "content.read",
+      "content.write",
+      "blog.read",
+      "blog.write",
+      "blog.moderate",
+    ],
   },
   {
     key: "support",

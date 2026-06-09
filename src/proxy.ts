@@ -15,6 +15,12 @@ import { verifyAdminSessionToken, ADMIN_SESSION_COOKIE } from "@/lib/admin/sessi
 const PUBLIC_PATHS = [
   "/",
   "/login",
+  "/about",
+  "/contact",
+  "/privacy",
+  "/story",
+  "/blog",
+  "/b",
   "/plans",
   "/share",
   "/forgot-password",
@@ -22,6 +28,7 @@ const PUBLIC_PATHS = [
   "/verify-email",
   "/api/auth",
   "/api/dev",
+  "/api/blog",
 ];
 
 // مسیرهایی که کاملاً بیرون از middleware هستند (static, assets)

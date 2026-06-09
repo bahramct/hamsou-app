@@ -1294,4 +1294,41 @@
 
 ---
 
+### DECISION-065 ✅ | بلاگ همسو — اولین ماژولِ CMS از پنل ادمین
+- **تاریخ:** ۲۰۲۶-۰۶-۱۰
+- **وضعیت:** ✅ پیاده‌سازی شد (فاز ۱ از CMS؛ فاز ۲ = Override محتوای سکشن‌های صفحات)
+- **زمینه:** مالک خواست یک بلاگ حرفه‌ای و کلاس‌جهانی (web-first، دیزاین‌سیستم همسو) که از پنل ادمین کنترل شود؛ کامنت‌گذاری برای عموم (حتی غیرکاربر) با تأیید ادمین؛ و در گامِ بعد، کنترلِ سکشن‌های همهٔ صفحات. این تصمیم فقط **بلاگ** را پوشش می‌دهد (فازبندیِ توافق‌شده: اول بلاگ، بعد CMS سکشن‌ها).
+- **تصمیم‌های معماری (با تأیید بصریِ مالک):**
+
+  **۱. مدلِ Override، نه Page-Builder (برای فاز بعد)**
+  سکشن‌های صفحات با مدلِ «کد=طراحی+پیش‌فرض، DB=override» مدیریت می‌شوند (هم‌راستا با `AiPromptOverride`/`AppSetting`) — نه بازنویسیِ صفحات به رندرِ جنریک. این تصمیم زیربنای فاز ۲ است؛ بلاگ خودش داده‌محورِ کامل است.
+
+  **۲. مدل داده (۶ مدل، `db push` بدون migration history — پروژه dev با db push کار می‌کند)**
+  `BlogPost` (slug + shortCode یکتا، status draft/published/archived، viewCount/likeCount/commentCount، isFeatured، meta SEO)، `BlogCategory`، `BlogTag` + `BlogPostTag` (m2m)، `BlogComment` (پاسخِ تودرتوی یک‌سطح با self-relation، status pending/approved/rejected، authorEmail خصوصی، isAdminReply)، `BlogLike` (یکتا per post+fingerprint).
+
+  **۳. محتوا = Markdown با rendererِ امنِ خودنوشت**
+  `src/lib/blog/markdown.ts` — صفر وابستگی، escape کامل (دفاع در عمق)، فقط URLهای امن. خروجی در `.prose-article` (globals.css). کامنت‌ها همیشه plain-text (نه markdown).
+
+  **۴. لایک/بازدید بدونِ لاگین**
+  لایک: `fingerprint = sha256(IP+UA)` با toggleِ اتمیک. بازدید: beaconِ کلاینت (`ViewBeacon`) یک‌بار per session تا با caching/پری‌فچ تداخل نکند.
+
+  **۵. لینک کوتاه**
+  `shortCode` ۷ نویسه‌ای یکتا → مسیر `/b/<code>` با redirect 308 به `/blog/<slug>`.
+
+  **۶. کامنت‌ها — تأیید ادمین + پاسخِ تودرتو + «اعلان پنل»**
+  ثبت با `status="pending"`؛ فقط approvedها در سایت. honeypot ضدِ ربات. «اعلان پنل» = badgeِ `pendingComments` در سایدبار (افزوده به `nav-counts` + `AdminShell` + layout — الگوی badgeهای تیکت/چت/پرداخت). پاسخِ ادمین = `BlogComment` با `isAdminReply` و تأییدِ خودکار. `commentCount` فقط با approvedها اتمیک نگه داشته می‌شود.
+
+  **۷. RBAC — ۳ permission جدید**
+  `blog.read` / `blog.write` / `blog.moderate` (گروهِ جدید `blog`)؛ به نقشِ «تولیدکننده محتوا» + owner/admin افزوده شد. seed اجرا شد → 27 permission.
+
+  **۸. پنلِ `/admin/blog`**
+  تب‌ها: مقالات (لیست + فیلترِ وضعیت + toggleِ سریعِ انتشار/شاخص از endpointِ سبکِ `flags`) · ویرایشگرِ مقاله (Markdown + پیش‌نمایشِ زنده + کاورِ canvas→base64 + برچسب‌چیپ + دسته + SEO) · دسته‌ها و برچسب‌ها · کامنت‌ها (تأیید/رد/حذف/پاسخ).
+
+  **۹. هم‌ترازی (سایت ↔ پنل)**
+  آیتمِ navِ «محتوا» (ready:false) دست‌نخورده برای فاز ۲ ماند؛ «بلاگ» آیتمِ جدید و فعال است. مسیرهای عمومی (`/blog`, `/b`, `/api/blog`) به `PUBLIC_PATHS` پروکسی افزوده شدند. لینکِ «بلاگ» در `LandingNav` + `LandingFooter`.
+
+- **اعتبارسنجی:** `tsc` ✅ · `db push` ✅ · `seed` ✅ (27 permissions) · `build` ✅.
+
+---
+
 *هر تصمیم جدید باید به این فایل اضافه شود — نه به TASKS.md یا CLAUDE.md*

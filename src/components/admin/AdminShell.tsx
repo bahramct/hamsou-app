@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toFaDigits as toFa } from "@/lib/utils/digits";
 
-type BadgeKey = "tickets" | "chat" | "payments";
+type BadgeKey = "tickets" | "chat" | "payments" | "comments";
 
 interface NavItem {
   href: string;
@@ -34,6 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/payment", label: "پرداخت", perm: "payment.read", icon: "wallet", ready: true, badge: "payments" },
   { href: "/admin/support", label: "تیکت‌ها", perm: "support.read", icon: "headset", ready: true, badge: "tickets" },
   { href: "/admin/livechat", label: "چت آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
+  { href: "/admin/blog", label: "بلاگ", perm: "blog.read", icon: "book", ready: true, badge: "comments" },
   { href: "/admin/content", label: "محتوا", perm: "content.read", icon: "doc", ready: false },
   { href: "/admin/admins", label: "ادمین‌ها", perm: "admins.manage", icon: "shield", ready: true },
   { href: "/admin/roles", label: "نقش‌ها و دسترسی‌ها", perm: "roles.manage", icon: "key", ready: true },
@@ -44,6 +45,7 @@ interface NavCounts {
   openTickets: number;
   unreadChats: number;
   pendingPayments: number;
+  pendingComments: number;
 }
 
 const COUNTS_POLL_MS = 20000;
@@ -62,7 +64,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
   const [counts, setCounts] = useState<NavCounts>(initialCounts);
   const permSet = new Set(permissions);
   const visible = NAV_ITEMS.filter((i) => permSet.has(i.perm));
-  const canSeeBadges = permSet.has("support.read") || permSet.has("payment.read");
+  const canSeeBadges = permSet.has("support.read") || permSet.has("payment.read") || permSet.has("blog.moderate");
 
   // poll آرامِ شمارهٔ badgeها (تیکت باز + چت خوانده‌نشده + شارژ در انتظار)
   const refreshCounts = useCallback(async () => {
@@ -73,6 +75,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
         openTickets: data.openTickets ?? 0,
         unreadChats: data.unreadChats ?? 0,
         pendingPayments: data.pendingPayments ?? 0,
+        pendingComments: data.pendingComments ?? 0,
       });
     } catch {
       // بی‌صدا
@@ -93,6 +96,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
     key === "tickets" ? counts.openTickets
       : key === "chat" ? counts.unreadChats
       : key === "payments" ? counts.pendingPayments
+      : key === "comments" ? counts.pendingComments
       : 0;
 
   function isActive(href: string) {
@@ -266,6 +270,7 @@ const ICONS = {
   headset: <><path d="M4 13v-1a8 8 0 0 1 16 0v1" {...S} /><rect x="3" y="13" width="4" height="6" rx="1.5" {...S} /><rect x="17" y="13" width="4" height="6" rx="1.5" {...S} /></>,
   chat: <><path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-4.4A8 8 0 1 1 21 11.5z" {...S} /><path d="M8.5 11h7M8.5 14h4" {...S} /></>,
   doc: <><path d="M6 3h8l5 5v13a0 0 0 0 1 0 0H6a0 0 0 0 1 0 0z" {...S} /><path d="M14 3v5h5" {...S} /></>,
+  book: <><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z" {...S} /><path d="M19 17H6a2 2 0 0 0-2 2" {...S} /><path d="M9 7h6M9 10h6" {...S} /></>,
   shield: <><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" {...S} /></>,
   key: <><circle cx="8" cy="8" r="4" {...S} /><path d="M11 11l8 8M16 16l2-2M18 18l2-2" {...S} /></>,
   list: <><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" {...S} /></>,

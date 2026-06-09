@@ -365,3 +365,162 @@ input, textarea, select { font-feature-settings: "ss01" on; }
   .sharem-close:hover, .sharem-tile:hover { transform: none; }
   .sharem-preview:hover .sharem-preview-img::after { transform: translateX(-120%); }
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   صفحات اطلاعاتی (درباره ما / حریم خصوصی / تماس)
+   ─────────────────────────────────────────────────────────────────────────── */
+.prose-hamsoo p {
+  color: var(--color-stone);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.95;
+  margin-bottom: 1rem;
+}
+.prose-hamsoo ul {
+  list-style: none;
+  padding-right: 0;
+  margin: .75rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.prose-hamsoo ul li {
+  display: flex;
+  align-items: flex-start;
+  gap: .625rem;
+  color: var(--color-stone);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.prose-hamsoo ul li::before {
+  content: "";
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--color-sage);
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+.prose-hamsoo strong { font-weight: 500; color: var(--color-ink); }
+.prose-hamsoo a { color: var(--color-sage-deep); text-decoration: none; }
+.prose-hamsoo a:hover { text-decoration: underline; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   متنِ مقالهٔ بلاگ — long-form reading (DECISION-065)
+   ─────────────────────────────────────────────────────────────────────────── */
+.prose-article {
+  font-size: 17px;
+  line-height: 2.05;
+  color: var(--color-stone);
+}
+.prose-article p {
+  font-weight: 300;
+  margin: 0 0 1.5rem;
+}
+.prose-article h2 {
+  font-weight: 300;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+  margin: 3rem 0 1.25rem;
+}
+.prose-article h3 {
+  font-weight: 400;
+  font-size: clamp(20px, 2.4vw, 24px);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  margin: 2.5rem 0 1rem;
+}
+.prose-article h4 {
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--color-ink);
+  margin: 2rem 0 .75rem;
+}
+.prose-article strong { font-weight: 500; color: var(--color-ink); }
+.prose-article em { font-style: italic; }
+.prose-article a {
+  color: var(--color-sage-deep);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(92,101,85,0.3);
+  transition: border-color .2s;
+}
+.prose-article a:hover { border-color: var(--color-sage-deep); }
+.prose-article ul,
+.prose-article ol {
+  margin: 0 0 1.5rem;
+  padding-right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .6rem;
+}
+.prose-article ul { list-style: none; padding-right: 0; }
+.prose-article ul li {
+  position: relative;
+  padding-right: 1.5rem;
+  font-weight: 300;
+  line-height: 1.9;
+}
+.prose-article ul li::before {
+  content: "";
+  position: absolute;
+  right: 0; top: 14px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--color-sage);
+}
+.prose-article ol { list-style: decimal; }
+.prose-article ol li { font-weight: 300; line-height: 1.9; padding-right: .4rem; }
+.prose-article ol li::marker { color: var(--color-sage-deep); font-weight: 500; }
+.prose-article blockquote {
+  margin: 2rem 0;
+  padding: .5rem 1.5rem;
+  border-right: 3px solid var(--color-sage);
+  font-weight: 300;
+  font-size: clamp(19px, 2.4vw, 24px);
+  line-height: 1.7;
+  color: var(--color-ink);
+  font-style: italic;
+}
+.prose-article img {
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  margin: 2rem 0;
+  box-shadow: 0 12px 40px rgba(46,44,40,0.10);
+}
+.prose-article code {
+  font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: rgba(26,26,31,0.05);
+  border: 1px solid rgba(26,26,31,0.07);
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+.prose-article pre {
+  background: var(--color-ink);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  margin: 2rem 0;
+  direction: ltr;
+}
+.prose-article pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #E7E3DA;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.prose-article .prose-hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(to left, transparent, rgba(26,26,31,0.12), transparent);
+  margin: 3rem auto;
+  width: 60%;
+}

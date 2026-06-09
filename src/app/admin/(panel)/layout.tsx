@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth-server";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { getSupportNavCounts } from "@/lib/support/nav-counts";
+import { getPendingCommentsCount } from "@/lib/blog/nav-counts";
 import { prisma } from "@/lib/db/client";
 
 export default async function PanelLayout({
@@ -27,7 +28,10 @@ export default async function PanelLayout({
   const pendingPayments = ctx.permissions.has("payment.read")
     ? await prisma.walletTransaction.count({ where: { type: "topup", status: "pending" } })
     : 0;
-  const initialCounts = { ...support, pendingPayments };
+  const pendingComments = ctx.permissions.has("blog.moderate")
+    ? await getPendingCommentsCount()
+    : 0;
+  const initialCounts = { ...support, pendingPayments, pendingComments };
 
   return (
     <AdminShell
