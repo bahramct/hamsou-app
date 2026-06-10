@@ -6,6 +6,13 @@
 
 ## آخرین تغییرات
 
+### ری‌دیزاین UI بزرگ — دارک مود + تایپوگرافی + بلاگ + ادیتور (۲۰۲۶-۰۶-۱۰) — DECISION-067/068/069/070
+- **دارک مود سراسری «شبِ گرم» (DECISION-067):** سایت + اپ + پنل ادمین. فلیپ توکن‌ها زیر `[data-theme="dark"]` (شامل `--color-white/black` تیلویند → پوشش خودکار پنل) + توکن‌های RGB معنایی (`--rgb-card/line/paper/bone`) برای رنگ‌های inline (۲۲ فایل). `ThemeScript` ضدفلش + `ThemeToggle` ۳حالته (سیستم/روشن/تاریک) در LandingNav/AppNav/AdminShell. گذار نرم `theme-anim`. خروجی‌های تصویر (share/receipt/QR) عمداً همیشه روشن.
+- **ری‌دیزاین تایپوگرافی استاتیک (DECISION-070):** مقیاس ~۳۵٪ آرام‌تر در هر ۵ صفحهٔ CMS — هیرو ۹۲→۵۶px، سکشن ۵۰→۳۶px، بدنه ۱۹→۱۶px، پدینگ‌ها py-32→py-20؛ تزئینات (ribbon/step-num/qmark/btn-lg) کوچک‌تر. **توجه:** override فونتِ ذخیره‌شده در CMS مقدم است؛ در صورت نیاز «بازگردانی به طراحی کد».
+- **ری‌دیزاین بلاگ (DECISION-068):** لیست با سایدبار شیشه‌ای چسبان (جستجوی سروری `?q=` + دسته‌ها + خواندنی‌ترین‌ها + ابر برچسب `?tag=`) + بنر فیلتر فعال. مقاله با TOC چسبان scroll-spy (`ArticleToc`؛ idهای فارسی یکتا در `renderMarkdown`/`extractHeadings`) + نوار پیشرفت مطالعه (`ReadingProgress`). کوئری‌های جدید: q/tagSlug در `getPublishedPosts`، `getPopularPosts`، `getPopularTags`.
+- **ادیتور حرفه‌ای مقاله (DECISION-069):** Tiptap v3 WYSIWYG با خروجی Markdown — `RichMarkdownEditor` (تولبار کامل + لینک‌پاپ‌آور + درج تصویر base64 فشرده + حالت Markdown خام) + سریالایزر خودنوشت `tiptap-markdown.ts` (تست roundtrip ✅). DB و رندر سایت دست‌نخورده. `compressImage` مشترک شد. `safeImgUrl` فقط data:image base64 را مجاز کرد.
+- `build` ✅ (۷۷ مسیر) · smoke-test زنده (لندینگ/بلاگ/مقاله/جستجو) ✅
+
 ### TASK-EMAIL-PROVIDER — Email Provider واقعی (Resend) + /admin/email (۲۰۲۶-۰۶-۰۹) — DECISION-064
 - **ResendEmailAdapter:** `src/lib/adapters/resend-email.adapter.ts` — سه متد (`sendVerificationCode` / `sendVerificationLink` / `sendPasswordResetLink`) با HTML templates فارسی. پشت `EmailAdapter` interface.
 - **DB-driven resolver:** مدل‌های `EmailService` / `EmailLog` در Prisma (آینهٔ `SmsService`/`SmsLog`) — `db push` بدون migration. Resolver `src/lib/email/services.ts` با TTL cache 10s (آینهٔ `sms/services.ts`).

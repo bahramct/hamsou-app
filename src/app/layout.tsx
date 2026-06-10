@@ -5,6 +5,7 @@ import { DevResetPanel } from "@/components/dev/DevResetPanel";
 import { DevDataPanel } from "@/components/dev/DevDataPanel";
 import { ChatFAB } from "@/components/features/chat/ChatFAB";
 import { DisableAutofill } from "@/components/system/DisableAutofill";
+import { ThemeScript } from "@/components/theme/ThemeScript";
 import { ToastHost } from "@/components/notifications/ToastHost";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
@@ -40,8 +41,10 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="fa" dir="rtl" className="h-full">
+    <html lang="fa" dir="rtl" className="h-full" suppressHydrationWarning>
       <body className="min-h-full font-pelak antialiased">
+        {/* تمِ روشن/تاریک — قبل از paint روی <html> می‌نشیند (بدون فلش، DECISION-067) */}
+        <ThemeScript />
         {/* قانون سراسری: بدون حباب پیشنهاد/autofill در هیچ ورودی (سایت + پنل) */}
         <DisableAutofill />
         {children}

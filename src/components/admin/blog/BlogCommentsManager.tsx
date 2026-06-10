@@ -135,7 +135,7 @@ export function BlogCommentsManager({
                   className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm"
                   style={c.isAdminReply
                     ? { background: "var(--color-sage)", color: "var(--color-paper)", fontWeight: 600 }
-                    : { background: "rgba(26,26,31,0.06)", color: "var(--color-stone)", fontWeight: 500 }}
+                    : { background: "rgba(var(--rgb-line),0.06)", color: "var(--color-stone)", fontWeight: 500 }}
                 >
                   {c.isAdminReply ? "ه" : c.authorName.slice(0, 1)}
                 </div>

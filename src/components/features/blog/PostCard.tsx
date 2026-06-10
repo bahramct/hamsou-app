@@ -10,8 +10,8 @@ export function PostCard({ post, featured = false }: { post: PostCardView; featu
       href={`/blog/${post.slug}`}
       className={`group block rounded-3xl overflow-hidden hover-rise ${featured ? "md:flex" : ""}`}
       style={{
-        background: "rgba(255,255,255,0.5)",
-        border: "1px solid rgba(26,26,31,0.07)",
+        background: "rgba(var(--rgb-card),0.5)",
+        border: "1px solid rgba(var(--rgb-line),0.07)",
         boxShadow: "0 4px 24px rgba(46,44,40,0.05)",
       }}
     >
@@ -36,7 +36,7 @@ export function PostCard({ post, featured = false }: { post: PostCardView; featu
         {post.categoryName && (
           <span
             className="absolute top-3 right-3 text-xs rounded-full px-2.5 py-1 backdrop-blur-sm"
-            style={{ background: "rgba(245,242,235,0.85)", color: "var(--color-sage-deep)", fontWeight: 500 }}
+            style={{ background: "rgba(var(--rgb-paper),0.85)", color: "var(--color-sage-deep)", fontWeight: 500 }}
           >
             {post.categoryName}
           </span>

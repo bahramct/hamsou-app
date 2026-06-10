@@ -10,6 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "داشبورد" },
@@ -111,6 +112,9 @@ export function AppNav() {
 
         {/* سمت چپ: ناقوس + پروفایل + خروج (دسکتاپ) و همبرگر (موبایل) */}
         <div className="flex items-center gap-1 shrink-0">
+          {/* تم روشن/تاریک */}
+          <ThemeToggle className="ml-1" />
+
           {/* ناقوس اعلان — همیشه نمایان (دسکتاپ + موبایل) */}
           <NotificationBell />
 

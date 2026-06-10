@@ -270,7 +270,7 @@ export function SupportChatWindow({ isOpen, onClose, onSeen }: Props) {
                    flex flex-col overflow-hidden
                    rounded-t-3xl sm:rounded-3xl
                    bg-paper border border-black/6
-                   shadow-[0_-8px_40px_rgba(46,44,40,0.14),0_0_0_1px_rgba(255,255,255,0.6)_inset]"
+                   shadow-[0_-8px_40px_rgba(46,44,40,0.14),0_0_0_1px_rgba(var(--rgb-card),0.6)_inset]"
         style={{
           transform: isOpen ? "translateY(0)" : "translateY(calc(100% + 24px))",
           opacity: isOpen ? 1 : 0,

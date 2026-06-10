@@ -5,7 +5,7 @@ export function LandingFooter() {
   return (
     <footer
       className="relative z-10 px-6 lg:px-10 pt-16 pb-10"
-      style={{ borderTop: "1px solid rgba(26,26,31,0.06)" }}
+      style={{ borderTop: "1px solid rgba(var(--rgb-line),0.06)" }}
     >
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">

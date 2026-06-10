@@ -76,7 +76,7 @@ export function ShareBar({
           title={s.label}
           aria-label={s.label}
           className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:-translate-y-0.5"
-          style={{ background: "rgba(26,26,31,0.04)", border: "1px solid rgba(26,26,31,0.08)" }}
+          style={{ background: "rgba(var(--rgb-line),0.04)", border: "1px solid rgba(var(--rgb-line),0.08)" }}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--color-stone)" aria-hidden>
             {s.icon}
@@ -90,8 +90,8 @@ export function ShareBar({
         title="کپیِ لینکِ کوتاه"
         className="inline-flex items-center gap-2 h-9 rounded-full px-3.5 transition-all hover:-translate-y-0.5"
         style={{
-          background: copied ? "rgba(122,132,113,0.10)" : "rgba(26,26,31,0.04)",
-          border: `1px solid ${copied ? "rgba(122,132,113,0.22)" : "rgba(26,26,31,0.08)"}`,
+          background: copied ? "rgba(122,132,113,0.10)" : "rgba(var(--rgb-line),0.04)",
+          border: `1px solid ${copied ? "rgba(122,132,113,0.22)" : "rgba(var(--rgb-line),0.08)"}`,
           color: copied ? "var(--color-sage-deep)" : "var(--color-stone)",
         }}
       >

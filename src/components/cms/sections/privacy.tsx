@@ -16,9 +16,9 @@ function splitRow(s: string): { label: string; value: string } {
 
 function DataTable({ items }: { items: { label: string; value: string }[] }) {
   return (
-    <div className="rounded-2xl overflow-hidden my-5" style={{ border: "1px solid rgba(26,26,31,0.08)" }}>
+    <div className="rounded-2xl overflow-hidden my-5" style={{ border: "1px solid rgba(var(--rgb-line),0.08)" }}>
       {items.map((item, i) => (
-        <div key={i} className="flex flex-col sm:flex-row gap-1 sm:gap-4 px-5 py-3.5" style={{ borderTop: i > 0 ? "1px solid rgba(26,26,31,0.06)" : undefined, background: i % 2 === 0 ? "rgba(255,255,255,0.55)" : "rgba(245,242,235,0.5)" }}>
+        <div key={i} className="flex flex-col sm:flex-row gap-1 sm:gap-4 px-5 py-3.5" style={{ borderTop: i > 0 ? "1px solid rgba(var(--rgb-line),0.06)" : undefined, background: i % 2 === 0 ? "rgba(var(--rgb-card),0.55)" : "rgba(var(--rgb-paper),0.5)" }}>
           <span className="shrink-0" style={{ fontWeight: 400, fontSize: "14px", color: "var(--color-ink)", minWidth: "140px" }}>{item.label}</span>
           <span style={{ fontWeight: 300, fontSize: "14px", color: "var(--color-stone)", lineHeight: 1.6 }}>{item.value}</span>
         </div>
@@ -41,14 +41,14 @@ function Note({ children }: { children: React.ReactNode }) {
 // ═══ HERO (تمام‌عرض، توسط PrivacyBody بالای دو ستون رندر می‌شود) ═══
 function PrivacyHero({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 pt-36 pb-16 px-6 lg:px-10">
+    <section className="relative z-10 pt-28 pb-12 px-6 lg:px-10">
       <div className="max-w-3xl mx-auto">
-        <div className="anim-fade-up d-1 mb-8 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
+        <div className="anim-fade-up d-1 mb-6 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
           <a href="/" className="text-fog hover:text-stone transition-colors">همسو</a>
           <span className="text-fog" style={{ opacity: 0.5 }}>›</span>
           <span className="text-stone">حریم خصوصی</span>
         </div>
-        <div className="anim-fade-up d-2 mb-8">
+        <div className="anim-fade-up d-2 mb-6">
           <span className="pill"><span className="pill-dot" />{c.text("pill")}</span>
         </div>
         <h1 className="anim-fade-up d-3" style={{ fontWeight: 100, fontSize: c.fontSize("title"), lineHeight: 1.1, letterSpacing: "-0.025em", color: "var(--color-ink)" }}>
@@ -66,16 +66,16 @@ const privacyHero: SectionDef = {
   type: "privacy-hero", label: "حریم — سرتیتر", pages: ["privacy"],
   fields: [
     { key: "pill", label: "برچسب (آخرین به‌روزرسانی)", type: "text" },
-    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(38px, 5.5vw, 68px)" },
+    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(28px, 4vw, 42px)" },
     { key: "titleEmphasis", label: "عنوان — بخش تأکید", type: "text" },
-    { key: "subtitle", label: "زیرعنوان", type: "textarea", defaultFontSize: "18px" },
+    { key: "subtitle", label: "زیرعنوان", type: "textarea", defaultFontSize: "16px" },
   ],
   defaults: {
     pill: "آخرین به‌روزرسانی: ۲۰ خرداد ۱۴۰۵",
     titleLead: "حریم خصوصی", titleEmphasis: "شما مهم است.",
     subtitle: "داده‌هایی که با همسو به اشتراک می‌گذارید — تعهداتت، بازخوردهایت — شخصی‌ترین بخش‌های زندگی توست. ما این را می‌دانیم.",
   },
-  defaultStyles: { title: { fontSize: "clamp(38px, 5.5vw, 68px)" }, subtitle: { fontSize: "18px" } },
+  defaultStyles: { title: { fontSize: "clamp(28px, 4vw, 42px)" }, subtitle: { fontSize: "16px" } },
   Component: PrivacyHero,
 };
 
@@ -163,7 +163,7 @@ const privacy4: SectionDef = {
   type: "privacy-data-sharing", label: "حریم — ۴. اشتراک‌گذاری", pages: ["privacy"],
   fields: [
     { key: "navTitle", label: "عنوانِ بخش", type: "text" },
-    { key: "highlight", label: "جملهٔ تأکیدی (سبز)", type: "textarea", defaultFontSize: "18px" },
+    { key: "highlight", label: "جملهٔ تأکیدی (سبز)", type: "textarea", defaultFontSize: "16px" },
     { key: "listIntro", label: "مقدمهٔ فهرست", type: "text" },
     { key: "items", label: "استثناها (برچسب — توضیح)", type: "list", itemLabel: "مورد" },
     { key: "outro", label: "پاراگراف پایانی", type: "textarea" },

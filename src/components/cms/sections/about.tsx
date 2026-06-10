@@ -24,15 +24,15 @@ function Arrow() {
 function AboutHero({ c }: SectionRenderProps) {
   return (
     <>
-      <section className="relative z-10 pt-36 pb-20 px-6 lg:px-10">
+      <section className="relative z-10 pt-28 pb-12 px-6 lg:px-10">
         <div className="max-w-4xl mx-auto">
-          <div className="anim-fade-up d-1 mb-8 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
+          <div className="anim-fade-up d-1 mb-6 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
             <Link href="/" className="text-fog hover:text-stone transition-colors">همسو</Link>
             <span className="text-fog" style={{ opacity: 0.5 }}>›</span>
             <span className="text-stone">درباره ما</span>
           </div>
 
-          <div className="anim-fade-up d-2 mb-8">
+          <div className="anim-fade-up d-2 mb-6">
             <span className="pill"><span className="pill-dot" />{c.text("pill")}</span>
           </div>
 
@@ -65,9 +65,9 @@ const aboutHero: SectionDef = {
   pages: ["about"],
   fields: [
     { key: "pill", label: "برچسب بالا", type: "text" },
-    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(40px, 6vw, 80px)" },
+    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(30px, 4.4vw, 48px)" },
     { key: "titleEmphasis", label: "عنوان — بخش تأکید (سبز/مورب)", type: "text" },
-    { key: "subtitle", label: "زیرعنوان", type: "textarea", defaultFontSize: "20px" },
+    { key: "subtitle", label: "زیرعنوان", type: "textarea", defaultFontSize: "17px" },
   ],
   defaults: {
     pill: "ماهیت",
@@ -75,7 +75,7 @@ const aboutHero: SectionDef = {
     titleEmphasis: "ساخته شد.",
     subtitle: "چرا فاصله‌ای بین آنچه می‌گوییم و آنچه می‌کنیم هست؟",
   },
-  defaultStyles: { title: { fontSize: "clamp(40px, 6vw, 80px)" }, subtitle: { fontSize: "20px" } },
+  defaultStyles: { title: { fontSize: "clamp(30px, 4.4vw, 48px)" }, subtitle: { fontSize: "17px" } },
   Component: AboutHero,
 };
 
@@ -128,14 +128,14 @@ const aboutStoryTeaser: SectionDef = {
 // ═══════════════════════ ۳) چرا همسو ═══════════════════════
 function AboutWhy({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 py-24 px-6 lg:px-10">
+    <section className="relative z-10 py-16 px-6 lg:px-10">
       <div className="max-w-3xl mx-auto">
-        <div className="reveal mb-12">
+        <div className="reveal mb-8">
           <div className="text-fog text-xs uppercase tracking-[0.18em] mb-6" style={{ fontWeight: 600 }}>
             {c.text("eyebrow")}
           </div>
         </div>
-        <div className="space-y-8 reveal">
+        <div className="space-y-6 reveal">
           <p style={{ fontWeight: 100, fontSize: c.fontSize("statement"), lineHeight: 1.7, color: "var(--color-ink)", letterSpacing: "-0.01em", whiteSpace: "pre-line" }}>
             {c.text("statement")}
           </p>
@@ -160,9 +160,9 @@ const aboutWhy: SectionDef = {
   pages: ["about"],
   fields: [
     { key: "eyebrow", label: "تیترِ کوچک بالا", type: "text" },
-    { key: "statement", label: "جملهٔ بزرگ (با Enter چندخطی)", type: "textarea", defaultFontSize: "clamp(22px, 2.8vw, 32px)" },
-    { key: "para1", label: "پاراگراف اول", type: "textarea", defaultFontSize: "18px" },
-    { key: "para2", label: "پاراگراف دوم", type: "textarea", defaultFontSize: "18px" },
+    { key: "statement", label: "جملهٔ بزرگ (با Enter چندخطی)", type: "textarea", defaultFontSize: "clamp(19px, 2.2vw, 26px)" },
+    { key: "para1", label: "پاراگراف اول", type: "textarea", defaultFontSize: "16px" },
+    { key: "para2", label: "پاراگراف دوم", type: "textarea", defaultFontSize: "16px" },
     { key: "highlight", label: "جملهٔ تأکیدی (نقل‌قول سبز)", type: "textarea", defaultFontSize: "22px" },
   ],
   defaults: {
@@ -183,9 +183,9 @@ function AboutPrinciples({ c }: SectionRenderProps) {
     { t: "card3Title", b: "card3Body", icon: <><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" /><line x1="16" y1="8" x2="2" y2="22" /><line x1="17.5" y1="15" x2="9" y2="15" /></>, bg: "rgba(193,154,74,0.08)", bd: "rgba(193,154,74,0.20)", st: "var(--color-gold)" },
   ];
   return (
-    <section className="relative z-10 py-24 px-6 lg:px-10" style={{ background: "rgba(234,228,214,0.28)" }}>
+    <section className="relative z-10 py-16 px-6 lg:px-10" style={{ background: "rgba(var(--rgb-bone),0.28)" }}>
       <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16 reveal">
+        <div className="text-center mb-12 reveal">
           <div className="text-fog text-xs uppercase tracking-[0.18em] mb-5" style={{ fontWeight: 600 }}>
             {c.text("eyebrow")}
           </div>
@@ -195,13 +195,13 @@ function AboutPrinciples({ c }: SectionRenderProps) {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {cards.map((card) => (
-            <div key={card.t} className="glass-strong rounded-3xl p-8 reveal hover-rise">
+            <div key={card.t} className="glass-strong rounded-3xl p-7 reveal hover-rise">
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: card.bg, border: `1px solid ${card.bd}` }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={card.st} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   {card.icon}
                 </svg>
               </div>
-              <h3 className="mb-3" style={{ fontWeight: 400, fontSize: "18px", color: "var(--color-ink)" }}>
+              <h3 className="mb-3" style={{ fontWeight: 400, fontSize: "16px", color: "var(--color-ink)" }}>
                 {c.text(card.t)}
               </h3>
               <p className="text-stone" style={{ fontWeight: 300, fontSize: "15px", lineHeight: 1.9 }}>
@@ -221,7 +221,7 @@ const aboutPrinciples: SectionDef = {
   pages: ["about"],
   fields: [
     { key: "eyebrow", label: "تیترِ کوچک بالا", type: "text" },
-    { key: "heading", label: "عنوان", type: "text", defaultFontSize: "clamp(28px, 3.5vw, 52px)" },
+    { key: "heading", label: "عنوان", type: "text", defaultFontSize: "clamp(23px, 2.8vw, 33px)" },
     { key: "card1Title", label: "کارت ۱ — عنوان", type: "text" },
     { key: "card1Body", label: "کارت ۱ — متن", type: "textarea" },
     { key: "card2Title", label: "کارت ۲ — عنوان", type: "text" },
@@ -239,7 +239,7 @@ const aboutPrinciples: SectionDef = {
     card3Title: "سادگی واقعی",
     card3Body: "یک تعهد. یک پرسش. یک گزارش. هرچیزی که انرژی‌ات را بگیرد به جای اینکه بدهد، در همسو نیست.",
   },
-  defaultStyles: { heading: { fontSize: "clamp(28px, 3.5vw, 52px)" } },
+  defaultStyles: { heading: { fontSize: "clamp(23px, 2.8vw, 33px)" } },
   Component: AboutPrinciples,
 };
 
@@ -247,9 +247,9 @@ const aboutPrinciples: SectionDef = {
 function AboutNotList({ c }: SectionRenderProps) {
   const items = c.list("items");
   return (
-    <section className="relative z-10 py-24 px-6 lg:px-10">
+    <section className="relative z-10 py-16 px-6 lg:px-10">
       <div className="max-w-3xl mx-auto">
-        <div className="reveal mb-14">
+        <div className="reveal mb-10">
           <div className="text-fog text-xs uppercase tracking-[0.18em] mb-5" style={{ fontWeight: 600 }}>
             {c.text("eyebrow")}
           </div>
@@ -284,7 +284,7 @@ const aboutNotList: SectionDef = {
   pages: ["about"],
   fields: [
     { key: "eyebrow", label: "تیترِ کوچک بالا", type: "text" },
-    { key: "heading", label: "عنوان", type: "text", defaultFontSize: "clamp(28px, 3.5vw, 52px)" },
+    { key: "heading", label: "عنوان", type: "text", defaultFontSize: "clamp(23px, 2.8vw, 33px)" },
     { key: "items", label: "موارد (هر خط یک مورد)", type: "list", itemLabel: "مورد", defaultFontSize: "16px" },
   ],
   defaults: {
@@ -298,17 +298,17 @@ const aboutNotList: SectionDef = {
       "محیطی که کاربر را به خودش وابسته کند",
     ],
   },
-  defaultStyles: { heading: { fontSize: "clamp(28px, 3.5vw, 52px)" }, items: { fontSize: "16px" } },
+  defaultStyles: { heading: { fontSize: "clamp(23px, 2.8vw, 33px)" }, items: { fontSize: "16px" } },
   Component: AboutNotList,
 };
 
 // ═══════════════════════ ۶) مانیفست ═══════════════════════
 function AboutManifesto({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 py-28 px-6 lg:px-10 overflow-hidden" style={{ background: "rgba(92,101,85,0.04)" }}>
+    <section className="relative z-10 py-20 px-6 lg:px-10 overflow-hidden" style={{ background: "rgba(92,101,85,0.04)" }}>
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(122,132,113,0.06), transparent)" }} />
       <div className="relative max-w-3xl mx-auto text-center reveal">
-        <div className="text-fog text-xs uppercase tracking-[0.22em] mb-12" style={{ fontWeight: 600 }}>
+        <div className="text-fog text-xs uppercase tracking-[0.22em] mb-8" style={{ fontWeight: 600 }}>
           {c.text("eyebrow")}
         </div>
         <blockquote style={{ fontWeight: 100, fontSize: c.fontSize("quote"), lineHeight: 1.2, letterSpacing: "-0.025em", color: "var(--color-ink)", fontStyle: "italic" }}>
@@ -316,7 +316,7 @@ function AboutManifesto({ c }: SectionRenderProps) {
           <br />
           <span style={{ color: "var(--color-sage-deep)", fontWeight: 300 }}>{c.text("quoteEmphasis")}»</span>
         </blockquote>
-        <p className="mt-10 text-stone" style={{ fontWeight: 300, fontSize: "16px", lineHeight: 1.9 }}>
+        <p className="mt-6 text-stone" style={{ fontWeight: 300, fontSize: "16px", lineHeight: 1.9 }}>
           {c.text("caption")}
         </p>
       </div>
@@ -330,7 +330,7 @@ const aboutManifesto: SectionDef = {
   pages: ["about"],
   fields: [
     { key: "eyebrow", label: "تیترِ کوچک بالا", type: "text" },
-    { key: "quoteLead", label: "نقل‌قول — بخش اول", type: "text", defaultFontSize: "clamp(36px, 5.5vw, 72px)" },
+    { key: "quoteLead", label: "نقل‌قول — بخش اول", type: "text", defaultFontSize: "clamp(27px, 4vw, 44px)" },
     { key: "quoteEmphasis", label: "نقل‌قول — بخش تأکید (سبز)", type: "text" },
     { key: "caption", label: "زیرنویس", type: "textarea" },
   ],
@@ -340,19 +340,19 @@ const aboutManifesto: SectionDef = {
     quoteEmphasis: "همان شو.",
     caption: "این جمله، جوهر همسو است. نه بیشتر. نه کمتر.",
   },
-  defaultStyles: { quote: { fontSize: "clamp(36px, 5.5vw, 72px)" } },
+  defaultStyles: { quote: { fontSize: "clamp(27px, 4vw, 44px)" } },
   Component: AboutManifesto,
 };
 
 // ═══════════════════════ ۷) CTA ═══════════════════════
 function AboutCta({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 py-24 px-6 lg:px-10">
+    <section className="relative z-10 py-16 px-6 lg:px-10">
       <div className="max-w-2xl mx-auto text-center reveal">
         <h2 className="mb-4" style={{ fontWeight: 100, fontSize: c.fontSize("heading"), letterSpacing: "-0.02em", color: "var(--color-ink)" }}>
           {c.text("heading")}
         </h2>
-        <p className="text-stone mb-10" style={{ fontWeight: 300, fontSize: c.fontSize("text"), lineHeight: 1.8 }}>
+        <p className="text-stone mb-8" style={{ fontWeight: 300, fontSize: c.fontSize("text"), lineHeight: 1.8 }}>
           {c.text("text")}
         </p>
         <Link href="/login" className="btn btn-primary btn-lg">
@@ -369,8 +369,8 @@ const aboutCta: SectionDef = {
   label: "درباره — دعوت به اقدام (CTA)",
   pages: ["about"],
   fields: [
-    { key: "heading", label: "عنوان", type: "text", defaultFontSize: "clamp(26px, 3.5vw, 44px)" },
-    { key: "text", label: "متن", type: "textarea", defaultFontSize: "17px" },
+    { key: "heading", label: "عنوان", type: "text", defaultFontSize: "clamp(21px, 2.6vw, 30px)" },
+    { key: "text", label: "متن", type: "textarea", defaultFontSize: "16px" },
     { key: "ctaLabel", label: "متنِ دکمه", type: "text" },
   ],
   defaults: {
@@ -378,7 +378,7 @@ const aboutCta: SectionDef = {
     text: "شروع رایگان است. بدون تعهد. بدون کارت بانکی.",
     ctaLabel: "شروع کن — رایگان",
   },
-  defaultStyles: { heading: { fontSize: "clamp(26px, 3.5vw, 44px)" }, text: { fontSize: "17px" } },
+  defaultStyles: { heading: { fontSize: "clamp(21px, 2.6vw, 30px)" }, text: { fontSize: "16px" } },
   Component: AboutCta,
 };
 

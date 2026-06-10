@@ -64,8 +64,8 @@ export function LikeButton({
       className="inline-flex items-center gap-2 rounded-full transition-all"
       style={{
         padding: "0.5rem 1rem",
-        background: liked ? "rgba(199,93,60,0.08)" : "rgba(26,26,31,0.04)",
-        border: `1px solid ${liked ? "rgba(199,93,60,0.25)" : "rgba(26,26,31,0.08)"}`,
+        background: liked ? "rgba(199,93,60,0.08)" : "rgba(var(--rgb-line),0.04)",
+        border: `1px solid ${liked ? "rgba(199,93,60,0.25)" : "rgba(var(--rgb-line),0.08)"}`,
         color: liked ? "var(--color-ember)" : "var(--color-stone)",
       }}
     >

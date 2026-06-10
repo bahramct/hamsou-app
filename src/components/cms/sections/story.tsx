@@ -11,9 +11,9 @@ import type { SectionDef, SectionRenderProps } from "@/lib/cms/types";
 function StoryHero({ c }: SectionRenderProps) {
   return (
     <>
-      <section className="relative z-10 pt-36 pb-16 px-6 lg:px-10">
+      <section className="relative z-10 pt-28 pb-12 px-6 lg:px-10">
         <div className="max-w-2xl mx-auto">
-          <div className="anim-fade-up d-1 mb-8 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
+          <div className="anim-fade-up d-1 mb-6 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
             <Link href="/" className="text-fog hover:text-stone transition-colors">همسو</Link>
             <span className="text-fog" style={{ opacity: 0.5 }}>›</span>
             <span className="text-stone">داستان</span>
@@ -40,7 +40,7 @@ const storyHero: SectionDef = {
   type: "story-hero", label: "داستان — سرتیتر", pages: ["story"],
   fields: [
     { key: "pill", label: "برچسب بالا", type: "text" },
-    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(42px, 6vw, 80px)" },
+    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(30px, 4.4vw, 48px)" },
     { key: "titleEmphasis", label: "عنوان — بخش تأکید", type: "text" },
     { key: "date", label: "تاریخ", type: "text" },
     { key: "readTime", label: "زمان مطالعه", type: "text" },
@@ -49,14 +49,14 @@ const storyHero: SectionDef = {
     pill: "ریشه", titleLead: "داستانِ", titleEmphasis: "همسو",
     date: "خرداد ۱۴۰۳", readTime: "حدود ۷ دقیقه مطالعه",
   },
-  defaultStyles: { title: { fontSize: "clamp(42px, 6vw, 80px)" } },
+  defaultStyles: { title: { fontSize: "clamp(30px, 4.4vw, 48px)" } },
   Component: StoryHero,
 };
 
 // ═══ LEDE ═══
 function StoryLede({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 py-20 px-6 lg:px-10">
+    <section className="relative z-10 py-14 px-6 lg:px-10">
       <div className="max-w-2xl mx-auto reveal">
         <p style={{ fontWeight: 100, fontSize: c.fontSize("line1"), lineHeight: 1.8, color: "var(--color-ink)", letterSpacing: "-0.015em" }}>
           {c.text("line1a")}
@@ -73,7 +73,7 @@ function StoryLede({ c }: SectionRenderProps) {
 const storyLede: SectionDef = {
   type: "story-lede", label: "داستان — جملهٔ آغازین", pages: ["story"],
   fields: [
-    { key: "line1a", label: "خط اول — قبل", type: "text", defaultFontSize: "clamp(22px, 2.8vw, 36px)" },
+    { key: "line1a", label: "خط اول — قبل", type: "text", defaultFontSize: "clamp(19px, 2.2vw, 27px)" },
     { key: "line1em", label: "خط اول — تأکید", type: "text" },
     { key: "line1b", label: "خط اول — بعد", type: "text" },
     { key: "line2", label: "خط دوم", type: "textarea" },
@@ -82,7 +82,7 @@ const storyLede: SectionDef = {
     line1a: "سال‌هاست آدم‌ها", line1em: "به من می‌گویند", line1b: "که قرار است چیزی را شروع کنند.",
     line2: "و سال‌هاست که می‌بینم نمی‌شود.",
   },
-  defaultStyles: { line1: { fontSize: "clamp(22px, 2.8vw, 36px)" } },
+  defaultStyles: { line1: { fontSize: "clamp(19px, 2.2vw, 27px)" } },
   Component: StoryLede,
 };
 
@@ -132,11 +132,11 @@ function makeQuote(type: string, label: string, opts: { lead: string; emphasis: 
   return {
     type, label, pages: ["story"],
     fields: [
-      { key: "lead", label: "نقل‌قول — بخش اول", type: "textarea", defaultFontSize: opts.centered ? "clamp(20px, 2.4vw, 32px)" : "clamp(22px, 2.8vw, 36px)" },
+      { key: "lead", label: "نقل‌قول — بخش اول", type: "textarea", defaultFontSize: opts.centered ? "clamp(18px, 2.1vw, 25px)" : "clamp(19px, 2.2vw, 27px)" },
       { key: "emphasis", label: "نقل‌قول — بخش تأکید", type: "textarea" },
     ],
     defaults: { lead: opts.lead, emphasis: opts.emphasis },
-    defaultStyles: { quote: { fontSize: opts.centered ? "clamp(20px, 2.4vw, 32px)" : "clamp(22px, 2.8vw, 36px)" } },
+    defaultStyles: { quote: { fontSize: opts.centered ? "clamp(18px, 2.1vw, 25px)" : "clamp(19px, 2.2vw, 27px)" } },
     Component: Quote,
   };
 }
@@ -161,7 +161,7 @@ function StoryClosing({ c }: SectionRenderProps) {
   return (
     <section className="relative z-10 px-6 lg:px-10 pt-8">
       <div className="max-w-2xl mx-auto">
-        <div className="reveal mt-8 p-8 md:p-12 rounded-3xl text-center" style={{ background: "rgba(122,132,113,0.06)", border: "1px solid rgba(122,132,113,0.12)" }}>
+        <div className="reveal mt-6 p-7 md:p-10 rounded-3xl text-center" style={{ background: "rgba(122,132,113,0.06)", border: "1px solid rgba(122,132,113,0.12)" }}>
           <p style={{ fontWeight: 100, fontSize: c.fontSize("quote"), lineHeight: 1.4, letterSpacing: "-0.025em", color: "var(--color-ink)", fontStyle: "italic" }}>
             {c.text("lead")}
             <br />
@@ -175,22 +175,22 @@ function StoryClosing({ c }: SectionRenderProps) {
 const storyClosing: SectionDef = {
   type: "story-closing", label: "داستان — جملهٔ پایانی", pages: ["story"],
   fields: [
-    { key: "lead", label: "نقل‌قول — بخش اول", type: "text", defaultFontSize: "clamp(26px, 3.5vw, 48px)" },
+    { key: "lead", label: "نقل‌قول — بخش اول", type: "text", defaultFontSize: "clamp(22px, 2.8vw, 32px)" },
     { key: "emphasis", label: "نقل‌قول — بخش تأکید", type: "text" },
   ],
   defaults: { lead: "«آنچه می‌گویی،", emphasis: "همان شو.»" },
-  defaultStyles: { quote: { fontSize: "clamp(26px, 3.5vw, 48px)" } },
+  defaultStyles: { quote: { fontSize: "clamp(22px, 2.8vw, 32px)" } },
   Component: StoryClosing,
 };
 
 // ═══ CTA ═══
 function StoryCta({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 py-20 px-6 lg:px-10">
+    <section className="relative z-10 py-14 px-6 lg:px-10">
       <div className="max-w-2xl mx-auto reveal">
-        <div className="glass-strong rounded-3xl p-8 md:p-10 flex flex-col sm:flex-row items-center justify-between gap-6" style={{ boxShadow: "0 24px 64px rgba(46,44,40,0.08), inset 0 1px 0 rgba(255,255,255,0.7)" }}>
+        <div className="glass-strong rounded-3xl p-7 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-6" style={{ boxShadow: "0 24px 64px rgba(46,44,40,0.08), inset 0 1px 0 rgba(var(--rgb-card),0.7)" }}>
           <div>
-            <p style={{ fontWeight: 300, fontSize: "20px", color: "var(--color-ink)", marginBottom: "6px" }}>{c.text("title")}</p>
+            <p style={{ fontWeight: 300, fontSize: "17px", color: "var(--color-ink)", marginBottom: "6px" }}>{c.text("title")}</p>
             <p className="text-stone" style={{ fontWeight: 300, fontSize: "15px" }}>{c.text("subtitle")}</p>
           </div>
           <Link href="/login" className="btn btn-primary shrink-0">

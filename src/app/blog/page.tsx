@@ -4,10 +4,13 @@ import { LandingEffects } from "@/components/features/landing/LandingEffects";
 import { LandingNav } from "@/components/layout/LandingNav";
 import { LandingFooter } from "@/components/layout/LandingFooter";
 import { PostCard } from "@/components/features/blog/PostCard";
+import { BlogSidebar } from "@/components/features/blog/BlogSidebar";
 import {
   getPublishedPosts,
   getFeaturedPost,
   getCategoriesWithCount,
+  getPopularPosts,
+  getPopularTags,
 } from "@/lib/blog/queries";
 import { toFaDigits } from "@/lib/utils/digits";
 
@@ -20,22 +23,41 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 interface Props {
-  searchParams: Promise<{ page?: string; cat?: string }>;
+  searchParams: Promise<{ page?: string; cat?: string; tag?: string; q?: string }>;
 }
 
 export default async function BlogPage({ searchParams }: Props) {
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10) || 1);
   const cat = sp.cat ?? null;
+  const tag = sp.tag ?? null;
+  const q = sp.q?.trim() || null;
+  const filtered = Boolean(cat || tag || q);
 
-  const [{ posts, pageCount }, categories, featured] = await Promise.all([
-    getPublishedPosts({ page, categorySlug: cat }),
+  const [{ posts, pageCount, total }, categories, popular, tags, featured] = await Promise.all([
+    getPublishedPosts({ page, categorySlug: cat, tagSlug: tag, q }),
     getCategoriesWithCount(),
-    page === 1 && !cat ? getFeaturedPost() : Promise.resolve(null),
+    getPopularPosts(4),
+    getPopularTags(12),
+    page === 1 && !filtered ? getFeaturedPost() : Promise.resolve(null),
   ]);
 
   // مقالهٔ شاخص از گریدِ صفحهٔ اول حذف می‌شود تا تکراری نباشد
   const gridPosts = featured ? posts.filter((p) => p.slug !== featured.slug) : posts;
+
+  // ساختِ querystring صفحه‌بندی با حفظِ فیلترهای فعال
+  const pageHref = (n: number) => {
+    const params = new URLSearchParams();
+    if (cat) params.set("cat", cat);
+    if (tag) params.set("tag", tag);
+    if (q) params.set("q", q);
+    if (n > 1) params.set("page", String(n));
+    const s = params.toString();
+    return s ? `/blog?${s}` : "/blog";
+  };
+
+  const activeCatName = cat ? categories.find((c) => c.slug === cat)?.name ?? cat : null;
+  const activeTagName = tag ? tags.find((t) => t.slug === tag)?.name ?? tag : null;
 
   return (
     <main className="grain">
@@ -49,22 +71,18 @@ export default async function BlogPage({ searchParams }: Props) {
 
       <LandingNav />
 
-      {/* HERO */}
-      <section className="relative z-10 pt-36 pb-12 px-6 lg:px-10">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="anim-fade-up d-1 mb-6 flex items-center justify-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
+      {/* HERO — جمع‌وجور */}
+      <section className="relative z-10 pt-28 pb-10 px-6 lg:px-10">
+        <div className="max-w-6xl mx-auto">
+          <div className="anim-fade-up d-1 mb-5 flex items-center gap-2" style={{ fontWeight: 300, fontSize: "13px" }}>
             <Link href="/" className="text-fog hover:text-stone transition-colors">همسو</Link>
             <span className="text-fog" style={{ opacity: 0.5 }}>›</span>
             <span className="text-stone">بلاگ</span>
           </div>
 
-          <div className="anim-fade-up d-2 mb-6 flex justify-center">
-            <span className="pill"><span className="pill-dot" />نوشته‌ها</span>
-          </div>
-
           <h1
-            className="anim-fade-up d-3"
-            style={{ fontWeight: 100, fontSize: "clamp(38px, 5.5vw, 68px)", lineHeight: 1.1, letterSpacing: "-0.025em", color: "var(--color-ink)" }}
+            className="anim-fade-up d-2"
+            style={{ fontWeight: 100, fontSize: "clamp(28px, 3.8vw, 44px)", lineHeight: 1.15, letterSpacing: "-0.02em", color: "var(--color-ink)" }}
           >
             یادداشت‌هایی برای{" "}
             <em style={{ fontStyle: "italic", fontWeight: 300, color: "var(--color-sage-deep)" }}>
@@ -72,107 +90,105 @@ export default async function BlogPage({ searchParams }: Props) {
             </em>
           </h1>
 
-          <p className="anim-fade-up d-4 mt-5 text-stone" style={{ fontWeight: 300, fontSize: "17px", lineHeight: 1.8 }}>
+          <p className="anim-fade-up d-3 mt-3 text-stone" style={{ fontWeight: 300, fontSize: "15px", lineHeight: 1.8 }}>
             دربارهٔ فاصلهٔ میان حرف و عمل، خودآگاهی، و مسیر.
           </p>
         </div>
       </section>
 
-      {/* فیلترِ دسته */}
-      {categories.length > 0 && (
-        <section className="relative z-10 px-6 lg:px-10 pb-10">
-          <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-center gap-2.5">
-            <CategoryChip label="همه" href="/blog" active={!cat} />
-            {categories.map((c) => (
-              <CategoryChip
-                key={c.slug}
-                label={`${c.name}`}
-                count={c.count}
-                href={`/blog?cat=${encodeURIComponent(c.slug)}`}
-                active={cat === c.slug}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* محتوا */}
+      {/* محتوا: ستونِ اصلی + سایدبار */}
       <section className="relative z-10 px-6 lg:px-10 pb-20">
-        <div className="max-w-5xl mx-auto">
-          {posts.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-fog" style={{ fontWeight: 300, fontSize: "17px" }}>
-                هنوز نوشته‌ای اینجا نیست.
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* شاخص */}
-              {featured && (
-                <div className="reveal mb-8">
-                  <PostCard post={featured} featured />
-                </div>
-              )}
-
-              {/* گرید */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {gridPosts.map((p) => (
-                  <div key={p.slug} className="reveal">
-                    <PostCard post={p} />
-                  </div>
-                ))}
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_290px] gap-8 lg:gap-10 items-start">
+          {/* ─── ستونِ اصلی ─── */}
+          <div className="min-w-0">
+            {/* وضعیتِ فیلتر/جستجو */}
+            {filtered && (
+              <div
+                className="anim-fade-in mb-6 flex flex-wrap items-center gap-3 rounded-2xl px-4 py-3"
+                style={{ background: "rgba(var(--rgb-card),0.45)", border: "1px solid rgba(var(--rgb-line),0.08)" }}
+              >
+                <span className="text-sm text-stone" style={{ fontWeight: 300 }}>
+                  {q && <>نتایج برای «<span style={{ fontWeight: 500, color: "var(--color-ink)" }}>{q}</span>»</>}
+                  {activeCatName && <>دستهٔ «<span style={{ fontWeight: 500, color: "var(--color-ink)" }}>{activeCatName}</span>»</>}
+                  {activeTagName && <>برچسبِ «<span style={{ fontWeight: 500, color: "var(--color-ink)" }}>#{activeTagName}</span>»</>}
+                  <span className="fa-num mr-2" style={{ opacity: 0.6 }}>({toFaDigits(total)} نوشته)</span>
+                </span>
+                <Link
+                  href="/blog"
+                  className="mr-auto text-xs rounded-full px-3 py-1.5 text-stone hover:text-ink transition-colors"
+                  style={{ background: "rgba(var(--rgb-line),0.05)", border: "1px solid rgba(var(--rgb-line),0.08)", fontWeight: 400 }}
+                >
+                  پاک کردن ✕
+                </Link>
               </div>
+            )}
 
-              {/* صفحه‌بندی */}
-              {pageCount > 1 && (
-                <div className="mt-14 flex items-center justify-center gap-2">
-                  {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => {
-                    const href = `/blog?${cat ? `cat=${encodeURIComponent(cat)}&` : ""}page=${n}`;
-                    const isActive = n === page;
-                    return (
-                      <Link
-                        key={n}
-                        href={href}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm fa-num transition-all"
-                        style={
-                          isActive
-                            ? { background: "var(--color-ink)", color: "var(--color-paper)", fontWeight: 500 }
-                            : { background: "rgba(26,26,31,0.04)", color: "var(--color-stone)", fontWeight: 300, border: "1px solid rgba(26,26,31,0.08)" }
-                        }
-                      >
-                        {toFaDigits(n)}
-                      </Link>
-                    );
-                  })}
+            {posts.length === 0 ? (
+              <div
+                className="text-center py-20 rounded-3xl"
+                style={{ background: "rgba(var(--rgb-card),0.35)", border: "1px solid rgba(var(--rgb-line),0.07)" }}
+              >
+                <p className="text-fog" style={{ fontWeight: 300, fontSize: "16px" }}>
+                  {q ? "چیزی با این جستجو پیدا نشد." : "هنوز نوشته‌ای اینجا نیست."}
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* شاخص */}
+                {featured && (
+                  <div className="reveal mb-7">
+                    <PostCard post={featured} featured />
+                  </div>
+                )}
+
+                {/* گرید — دو ستونه داخل ستونِ اصلی */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {gridPosts.map((p, i) => (
+                    <div key={p.slug} className="reveal" style={i % 2 === 1 ? { transitionDelay: "70ms" } : undefined}>
+                      <PostCard post={p} />
+                    </div>
+                  ))}
                 </div>
-              )}
-            </>
-          )}
+
+                {/* صفحه‌بندی */}
+                {pageCount > 1 && (
+                  <div className="mt-12 flex items-center justify-center gap-2">
+                    {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => {
+                      const isActive = n === page;
+                      return (
+                        <Link
+                          key={n}
+                          href={pageHref(n)}
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-sm fa-num transition-all"
+                          style={
+                            isActive
+                              ? { background: "var(--color-ink)", color: "var(--color-paper)", fontWeight: 500 }
+                              : { background: "rgba(var(--rgb-line),0.04)", color: "var(--color-stone)", fontWeight: 300, border: "1px solid rgba(var(--rgb-line),0.08)" }
+                          }
+                        >
+                          {toFaDigits(n)}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* ─── سایدبار ─── */}
+          <BlogSidebar
+            categories={categories}
+            popular={popular}
+            tags={tags}
+            activeCat={cat}
+            activeTag={tag}
+            q={q}
+          />
         </div>
       </section>
 
       <LandingFooter />
     </main>
-  );
-}
-
-function CategoryChip({ label, href, active, count }: { label: string; href: string; active: boolean; count?: number }) {
-  return (
-    <Link
-      href={href}
-      className="text-sm rounded-full px-4 py-2 transition-all"
-      style={
-        active
-          ? { background: "var(--color-sage)", color: "var(--color-paper)", fontWeight: 500 }
-          : { background: "rgba(255,255,255,0.55)", color: "var(--color-stone)", fontWeight: 300, border: "1px solid rgba(26,26,31,0.08)" }
-      }
-    >
-      {label}
-      {typeof count === "number" && count > 0 && (
-        <span className="fa-num mr-1.5" style={{ opacity: active ? 0.8 : 0.5, fontSize: "11px" }}>
-          {toFaDigits(count)}
-        </span>
-      )}
-    </Link>
   );
 }

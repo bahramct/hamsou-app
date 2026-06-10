@@ -85,15 +85,28 @@ function toCard(p: CardRow): PostCardView {
   };
 }
 
-/** فهرستِ مقالاتِ منتشرشده با صفحه‌بندی و فیلترِ دستهٔ اختیاری. */
+/** فهرستِ مقالاتِ منتشرشده با صفحه‌بندی، فیلترِ دسته و جستجوی اختیاری. */
 export async function getPublishedPosts(opts: {
   page?: number;
   categorySlug?: string | null;
+  q?: string | null;
+  tagSlug?: string | null;
 }): Promise<{ posts: PostCardView[]; total: number; page: number; pageCount: number }> {
   const page = Math.max(1, opts.page ?? 1);
+  const q = opts.q?.trim() || null;
   const where = {
     status: "published",
     ...(opts.categorySlug ? { category: { slug: opts.categorySlug } } : {}),
+    ...(opts.tagSlug ? { tags: { some: { tag: { slug: opts.tagSlug } } } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { title: { contains: q } },
+            { excerpt: { contains: q } },
+            { content: { contains: q } },
+          ],
+        }
+      : {}),
   };
 
   const [rows, total] = await Promise.all([
@@ -183,6 +196,39 @@ export async function getCategoriesWithCount(): Promise<CategoryView[]> {
     },
   });
   return cats.map((c) => ({ slug: c.slug, name: c.name, count: c._count.posts }));
+}
+
+/** محبوب‌ترین مقالات (بیشترین بازدید) — برای سایدبارِ بلاگ. */
+export async function getPopularPosts(limit = 4): Promise<PostCardView[]> {
+  const rows = await prisma.blogPost.findMany({
+    where: { status: "published" },
+    select: CARD_SELECT,
+    orderBy: [{ viewCount: "desc" }, { publishedAt: "desc" }],
+    take: limit,
+  });
+  return rows.map(toCard);
+}
+
+export interface TagView {
+  slug: string;
+  name: string;
+  count: number;
+}
+
+/** برچسب‌های پراستفاده (روی مقالاتِ منتشرشده) — برای ابرِ برچسبِ سایدبار. */
+export async function getPopularTags(limit = 12): Promise<TagView[]> {
+  const tags = await prisma.blogTag.findMany({
+    select: {
+      slug: true,
+      name: true,
+      _count: { select: { posts: { where: { post: { status: "published" } } } } },
+    },
+  });
+  return tags
+    .map((t) => ({ slug: t.slug, name: t.name, count: t._count.posts }))
+    .filter((t) => t.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 }
 
 export interface CommentView {

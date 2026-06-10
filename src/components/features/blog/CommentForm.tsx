@@ -59,8 +59,8 @@ export function CommentForm({
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "rgba(255,255,255,0.6)",
-    border: "1px solid rgba(26,26,31,0.10)",
+    background: "rgba(var(--rgb-card),0.6)",
+    border: "1px solid rgba(var(--rgb-line),0.10)",
     borderRadius: "12px",
     padding: "0.7rem 0.9rem",
     fontSize: "14px",

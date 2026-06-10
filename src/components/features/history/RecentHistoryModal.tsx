@@ -109,7 +109,7 @@ function HistoryModal({
                      rounded-3xl border border-black/8
                      shadow-[0_20px_60px_rgba(26,26,31,0.18),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
           style={{
-            background: "rgba(245,242,235,0.92)",
+            background: "rgba(var(--rgb-paper),0.92)",
             backdropFilter: "blur(24px) saturate(140%)",
             opacity: visible ? 1 : 0,
             transform: visible ? "scale(1)" : "scale(0.94)",

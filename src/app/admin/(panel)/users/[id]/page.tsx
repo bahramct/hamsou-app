@@ -112,8 +112,8 @@ export default async function AdminUserDetailPage({
       <div
         className="relative overflow-hidden rounded-3xl p-6 sm:p-7"
         style={{
-          background: `linear-gradient(135deg, ${ac.bg}24 0%, rgba(255,255,255,0.68) 58%)`,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.07), inset 0 0 0 1px rgba(255,255,255,0.7), 0 0 0 1px rgba(0,0,0,0.05)",
+          background: `linear-gradient(135deg, ${ac.bg}24 0%, rgba(var(--rgb-card),0.68) 58%)`,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.07), inset 0 0 0 1px rgba(var(--rgb-card),0.7), 0 0 0 1px rgba(0,0,0,0.05)",
         }}
       >
         {/* هاله تزئینی */}

@@ -22,8 +22,8 @@ export function CopyEmailButton({ email }: { email: string }) {
       onClick={handleCopy}
       title="کپی ایمیل"
       style={{
-        background: copied ? "rgba(122,132,113,0.12)" : "rgba(26,26,31,0.05)",
-        border: "1px solid rgba(26,26,31,0.08)",
+        background: copied ? "rgba(122,132,113,0.12)" : "rgba(var(--rgb-line),0.05)",
+        border: "1px solid rgba(var(--rgb-line),0.08)",
         borderRadius: "8px",
         padding: "6px 10px",
         cursor: "pointer",

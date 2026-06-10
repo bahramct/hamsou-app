@@ -107,7 +107,7 @@ export default async function ProfileSettingsPage() {
         {/* ───── Hero ───── */}
         <div
           className="relative overflow-hidden glass-strong rounded-3xl p-6 sm:p-8 animate-fade-up"
-          style={{ background: `linear-gradient(135deg, ${color.bg}28 0%, rgba(255,255,255,0.60) 55%)` }}
+          style={{ background: `linear-gradient(135deg, ${color.bg}28 0%, rgba(var(--rgb-card),0.60) 55%)` }}
         >
           <div
             className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full"

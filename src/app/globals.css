@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   Dark mode variant — منبع حقیقت: اتریبیوت data-theme روی <html>
+   (توسط ThemeScript قبل از paint ست می‌شود — بدون فلش)
+   ─────────────────────────────────────────────────────────────────────────── */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ─────────────────────────────────────────────────────────────────────────────
    فونت PelakFA — از public/Fonts/
    ─────────────────────────────────────────────────────────────────────────── */
 @font-face { font-family:"PelakFA"; src:url("/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Thin.woff2") format("woff2"); font-weight:100; font-style:normal; font-display:swap; }
@@ -41,6 +47,55 @@
   /* موشن */
   --ease-calm: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   توکن‌های معنایی RGB — برای رنگ‌های inline که آلفا دارند: rgba(var(--rgb-*), a)
+   در دارک مود فقط همین مقادیر عوض می‌شوند و همهٔ سطح‌ها/خط‌ها فلیپ می‌شوند.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --rgb-card:  255,255,255;  /* سطحِ کارت/شیشه */
+  --rgb-line:  26,26,31;     /* خطوط، بوردرها، پرشدگیِ ملایم */
+  --rgb-paper: 245,242,235;  /* همان paper برای veil/چیپ */
+  --rgb-bone:  234,228,214;  /* تینتِ بخش‌ها */
+  color-scheme: light;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   🌙 دارک مود «شبِ گرم» — ادامهٔ طبیعیِ Warm Paper در شب (نه خاکستری سرد)
+   اصول: هرگز مشکی خالص؛ متن استخوانیِ نرم نه سفید؛ اکسنت‌ها روشن‌تر و
+   کم‌اشباع‌تر؛ سایه‌ها عمیق‌تر؛ حسِ کتاب‌خانه در شب — آرام، نه غمگین.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* رنگ‌های برند — معکوسِ گرم */
+  --color-ink:       #EDE7DA;  /* متن اصلی — استخوانیِ نرم */
+  --color-charcoal:  #D8D0BF;
+  --color-stone:     #A89F8D;  /* متن ثانویه */
+  --color-fog:       #7B7263;  /* متن کم‌رنگ */
+  --color-bone:      #262119;  /* سطح برجسته */
+  --color-paper:     #161310;  /* پس‌زمینه — زغالیِ گرم */
+  --color-sage:      #97A28A;  /* روشن‌تر و کم‌اشباع‌تر */
+  --color-sage-deep: #ACB89C;  /* در دارک باید روشن‌تر از sage باشد (برای متن) */
+  --color-ember:     #D08A68;
+  --color-mist:      #A7BDCE;
+  --color-gold:      #CFAE63;
+
+  /* فلیپِ white/black تیلویند — bg-white/40 و border-black/6 خودکار دارک می‌شوند */
+  --color-white:     #211D18;
+  --color-black:     #EDE7DA;
+
+  /* سایه‌های شب — عمیق‌تر */
+  --shadow-paper-sm: 0 1px 2px rgba(0,0,0,0.30), 0 1px 1px rgba(0,0,0,0.20);
+  --shadow-paper:    0 4px 16px rgba(0,0,0,0.36), 0 1px 2px rgba(0,0,0,0.24);
+  --shadow-paper-md: 0 8px 28px rgba(0,0,0,0.44), 0 2px 4px rgba(0,0,0,0.28);
+
+  /* توکن‌های RGB */
+  --rgb-card:  41,36,30;
+  --rgb-line:  237,231,218;
+  --rgb-paper: 24,21,17;
+  --rgb-bone:  46,40,33;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -225,7 +280,7 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 .btn-ghost:hover { background: rgba(26,26,31,0.04); border-color: rgba(26,26,31,0.22); }
 .btn-glass { background: rgba(255,255,255,0.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(26,26,31,0.08); color: var(--color-ink); }
 .btn-glass:hover { background: rgba(255,255,255,0.88); border-color: rgba(26,26,31,0.14); }
-.btn-lg { padding: 1.125rem 2.25rem; font-size: 16px; }
+.btn-lg { padding: 1rem 1.85rem; font-size: 15px; }
 
 /* Hairline */
 .hr-line { height: 1px; background: rgba(26,26,31,0.08); border: none; display: block; }
@@ -235,14 +290,14 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-sage); flex-shrink: 0; }
 
 /* Step number badge */
-.step-num { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(234,228,214,0.5)); border: 1px solid rgba(26,26,31,0.08); font-weight: 300; font-size: 22px; color: var(--color-sage-deep); }
+.step-num { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(234,228,214,0.5)); border: 1px solid rgba(26,26,31,0.08); font-weight: 300; font-size: 18px; color: var(--color-sage-deep); }
 
 /* Difference table */
 .diff-not { border-right: 3px solid var(--color-ember); padding-right: 1.25rem; }
 .diff-yes { border-right: 3px solid var(--color-sage); padding-right: 1.25rem; }
 
 /* Quote decoration */
-.qmark::before { content: "\201C"; font-size: 96px; font-weight: 300; color: var(--color-fog); line-height: 0; vertical-align: -18px; margin-left: 8px; opacity: 0.6; }
+.qmark::before { content: "\201C"; font-size: 64px; font-weight: 300; color: var(--color-fog); line-height: 0; vertical-align: -14px; margin-left: 8px; opacity: 0.6; }
 
 /* Floating card (hero)
    نکته: position:relative حذف شد — Tailwind v4 utilities در لایه پایین‌تر از CSS custom قرار دارند،
@@ -251,7 +306,7 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 .float-card { padding: 24px; border-radius: 24px; background: rgba(255,255,255,0.72); backdrop-filter: blur(28px) saturate(130%); -webkit-backdrop-filter: blur(28px) saturate(130%); border: 1px solid rgba(26,26,31,0.06); box-shadow: 0 30px 70px rgba(46,44,40,0.12), inset 0 1px 0 rgba(255,255,255,0.6); }
 
 /* Ribbon number */
-.ribbon-num { font-weight: 100; color: var(--color-fog); font-size: 120px; line-height: 1; letter-spacing: -0.04em; }
+.ribbon-num { font-weight: 100; color: var(--color-fog); font-size: 76px; line-height: 1; letter-spacing: -0.04em; }
 
 /* Responsive */
 @media (max-width: 900px) {
@@ -523,4 +578,187 @@ input, textarea, select { font-feature-settings: "ss01" on; }
   background: linear-gradient(to left, transparent, rgba(26,26,31,0.12), transparent);
   margin: 3rem auto;
   width: 60%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ادیتورِ بصری مقاله (Tiptap → Markdown، DECISION-069) — پنل ادمین
+   محتوای ادیتور با همان .prose-article رندر می‌شود تا WYSIWYG واقعی باشد.
+   ─────────────────────────────────────────────────────────────────────────── */
+.tiptap-content {
+  min-height: 340px;
+  outline: none;
+  padding: 0.75rem 0.25rem 1.25rem;
+  caret-color: var(--color-sage-deep);
+}
+.tiptap-content > :first-child { margin-top: 0 !important; }
+/* placeholder — پاراگرافِ خالیِ اول */
+.tiptap-content p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-fog);
+  float: right;
+  height: 0;
+  pointer-events: none;
+}
+/* انتخابِ نود (تصویر و …) */
+.tiptap-content .ProseMirror-selectednode {
+  outline: 2px solid var(--color-sage);
+  outline-offset: 2px;
+  border-radius: 18px;
+}
+/* تصویر داخل ادیتور — هم‌اندازهٔ رندر سایت اما margin جمع‌تر */
+.tiptap-content img { margin: 1.25rem 0; }
+/* عنوان‌ها در ادیتور فاصلهٔ جمع‌تری دارند (سندِ در حالِ نوشتن) */
+.tiptap-content h2 { margin: 1.75rem 0 0.9rem; }
+.tiptap-content h3 { margin: 1.4rem 0 0.7rem; }
+.tiptap-content h4 { margin: 1.2rem 0 0.6rem; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   🌙 دارک مود — override کلاس‌های کامپوننتیِ بالا (شبِ گرم)
+   هر کلاس با رنگ literal روشن، اینجا نسخهٔ شب می‌گیرد. توکن‌های var() خودکارند.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* شیشه‌ها — در شب: سطحِ زغالیِ نیمه‌شفاف + لبهٔ مهتابیِ بسیار ملایم */
+[data-theme="dark"] .glass {
+  background: rgba(41,36,30,0.55);
+  border-color: rgba(237,231,218,0.08);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(237,231,218,0.06);
+}
+[data-theme="dark"] .glass-strong {
+  background: rgba(41,36,30,0.78);
+  border-color: rgba(237,231,218,0.09);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(237,231,218,0.06);
+}
+[data-theme="dark"] .glass-tinted {
+  background: linear-gradient(135deg, rgba(122,132,113,0.13), rgba(155,180,199,0.05));
+  border-color: rgba(151,162,138,0.16);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.42), inset 0 1px 0 rgba(237,231,218,0.05);
+}
+[data-theme="dark"] .glass-nav {
+  background: rgba(22,19,16,0.74);
+  border-bottom-color: rgba(237,231,218,0.07);
+}
+
+/* grain — multiply روی شب گِل می‌شود؛ screen با شدتِ کم = دانهٔ فیلمِ شب */
+[data-theme="dark"] .grain::after {
+  mix-blend-mode: screen;
+  opacity: 0.3;
+}
+
+/* blob ها — در شب باید نورِ محیطیِ کم‌رمق باشند، نه لکهٔ رنگ */
+[data-theme="dark"] .blob { opacity: 0.55; }
+[data-theme="dark"] .app-blob { opacity: 0.6; }
+[data-theme="dark"] .app-vignette {
+  background: radial-gradient(120% 80% at 50% 0%, rgba(237,231,218,0.045), transparent 55%);
+}
+
+/* دکمه‌ها */
+[data-theme="dark"] .btn-primary {
+  color: #14110E; /* متنِ تیره روی sage روشن‌شده — کنتراست درست */
+  box-shadow: 0 10px 28px rgba(122,132,113,0.20);
+}
+[data-theme="dark"] .btn-primary:hover {
+  background: #A4AF96;
+  box-shadow: 0 14px 38px rgba(122,132,113,0.28);
+}
+[data-theme="dark"] .btn-ghost { border-color: rgba(237,231,218,0.16); }
+[data-theme="dark"] .btn-ghost:hover {
+  background: rgba(237,231,218,0.05);
+  border-color: rgba(237,231,218,0.26);
+}
+[data-theme="dark"] .btn-glass {
+  background: rgba(41,36,30,0.72);
+  border-color: rgba(237,231,218,0.10);
+}
+[data-theme="dark"] .btn-glass:hover {
+  background: rgba(48,42,35,0.9);
+  border-color: rgba(237,231,218,0.16);
+}
+
+[data-theme="dark"] .hr-line { background: rgba(237,231,218,0.09); }
+[data-theme="dark"] .pill {
+  background: rgba(41,36,30,0.6);
+  border-color: rgba(237,231,218,0.08);
+}
+[data-theme="dark"] .step-num {
+  background: linear-gradient(135deg, rgba(54,47,39,0.85), rgba(38,33,27,0.6));
+  border-color: rgba(237,231,218,0.09);
+}
+[data-theme="dark"] .float-card {
+  background: rgba(41,36,30,0.72);
+  border-color: rgba(237,231,218,0.08);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(237,231,218,0.06);
+}
+[data-theme="dark"] .hover-rise:hover { box-shadow: 0 26px 60px rgba(0,0,0,0.5); }
+
+/* Share modal */
+[data-theme="dark"] .sharem-overlay { background: rgba(8,7,6,0.8); }
+[data-theme="dark"] .sharem-panel {
+  background: #1D1915;
+  border-color: rgba(237,231,218,0.10);
+  box-shadow: 0 32px 72px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .sharem-close {
+  background: rgba(41,36,30,0.7);
+  border-color: rgba(237,231,218,0.10);
+  box-shadow: inset 0 1px 0 rgba(237,231,218,0.05);
+}
+[data-theme="dark"] .sharem-close:hover { background: rgba(54,47,39,0.9); }
+[data-theme="dark"] .sharem-preview {
+  background: rgba(41,36,30,0.5);
+  border-color: rgba(237,231,218,0.09);
+  box-shadow: inset 0 1px 0 rgba(237,231,218,0.05);
+}
+[data-theme="dark"] .sharem-preview-img::after {
+  background: linear-gradient(105deg, transparent 30%, rgba(237,231,218,0.10) 50%, transparent 70%);
+}
+[data-theme="dark"] .sharem-seg {
+  background: rgba(237,231,218,0.06);
+  border-color: rgba(237,231,218,0.07);
+}
+[data-theme="dark"] .sharem-seg button.active {
+  background: rgba(54,47,39,0.95);
+  color: var(--color-ink);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .sharem-field {
+  background: rgba(41,36,30,0.6);
+  border-color: rgba(237,231,218,0.09);
+}
+[data-theme="dark"] .sharem-tile {
+  background: rgba(41,36,30,0.7);
+  border-color: rgba(237,231,218,0.10);
+  box-shadow: inset 0 1px 0 rgba(237,231,218,0.05);
+}
+[data-theme="dark"] .sharem-tile:hover {
+  background: rgba(54,47,39,0.9);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(237,231,218,0.05);
+}
+/* .sharem-qr عمداً سفید می‌ماند — QR باید قابل اسکن باشد */
+
+/* متنِ مقاله و prose در شب */
+[data-theme="dark"] .prose-article code {
+  background: rgba(237,231,218,0.07);
+  border-color: rgba(237,231,218,0.10);
+}
+[data-theme="dark"] .prose-article pre { background: #0E0C0A; }
+[data-theme="dark"] .prose-article img { box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+[data-theme="dark"] .prose-article .prose-hr {
+  background: linear-gradient(to left, transparent, rgba(237,231,218,0.14), transparent);
+}
+[data-theme="dark"] .prose-article a { border-bottom-color: rgba(172,184,156,0.35); }
+
+/* گذارِ نرمِ تعویض تم — کلاسِ گذرا که ThemeToggle برای ~۵۰۰ms روی <html> می‌گذارد */
+html.theme-anim,
+html.theme-anim *,
+html.theme-anim *::before,
+html.theme-anim *::after {
+  transition:
+    background-color 420ms var(--ease-calm),
+    border-color 420ms var(--ease-calm),
+    color 300ms var(--ease-calm),
+    fill 300ms var(--ease-calm),
+    box-shadow 420ms var(--ease-calm) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.theme-anim, html.theme-anim * { transition: none !important; }
 }

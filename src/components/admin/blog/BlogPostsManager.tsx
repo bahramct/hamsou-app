@@ -31,7 +31,7 @@ export interface PostRow {
 const STATUS_STYLE: Record<string, { bg: string; fg: string }> = {
   published: { bg: "rgba(122,132,113,0.14)", fg: "#5C6555" },
   draft: { bg: "rgba(193,154,74,0.14)", fg: "#9A7B2E" },
-  archived: { bg: "rgba(26,26,31,0.07)", fg: "#6B6657" },
+  archived: { bg: "rgba(var(--rgb-line),0.07)", fg: "#6B6657" },
 };
 
 export function BlogPostsManager({ posts, canWrite }: { posts: PostRow[]; canWrite: boolean }) {

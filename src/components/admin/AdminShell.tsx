@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toFaDigits as toFa } from "@/lib/utils/digits";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 type BadgeKey = "tickets" | "chat" | "payments" | "comments";
 
@@ -156,10 +157,11 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-l border-black/6 bg-white/40 backdrop-blur-sm sticky top-0 h-dvh">
         <div className="px-5 h-16 flex items-center gap-2.5 border-b border-black/6">
           <div className="w-7 h-7 rounded-lg bg-ink text-paper flex items-center justify-center text-xs">ه</div>
-          <div className="flex flex-col leading-tight">
+          <div className="flex flex-col leading-tight flex-1">
             <span className="text-sm font-semibold text-ink">همسو</span>
             <span className="text-[10px] text-fog">پنل مدیریت</span>
           </div>
+          <ThemeToggle />
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-4">{nav}</div>
         <AdminUserCard admin={admin} role={role} />
@@ -173,13 +175,16 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
             <div className="w-6 h-6 rounded-md bg-ink text-paper flex items-center justify-center text-[10px]">ه</div>
             <span className="text-sm font-semibold text-ink">پنل مدیریت</span>
           </div>
-          <button
-            onClick={() => setMobileOpen((v) => !v)}
-            aria-label="منو"
-            className="p-2 rounded-lg hover:bg-black/5 text-stone"
-          >
-            <Icon name={mobileOpen ? "close" : "menu"} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileOpen((v) => !v)}
+              aria-label="منو"
+              className="p-2 rounded-lg hover:bg-black/5 text-stone"
+            >
+              <Icon name={mobileOpen ? "close" : "menu"} />
+            </button>
+          </div>
         </header>
 
         {/* منوی موبایل */}

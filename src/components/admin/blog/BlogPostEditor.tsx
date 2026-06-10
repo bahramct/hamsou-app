@@ -1,8 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BlogPostEditor — ساخت/ویرایشِ مقاله (DECISION-065)
-// محتوا Markdown با پیش‌نمایشِ زنده. کاور: فشرده‌سازیِ canvas → base64.
+// BlogPostEditor — ساخت/ویرایشِ مقاله (DECISION-065 + DECISION-069)
+// محتوا: ادیتورِ حرفه‌ایِ بصری (Tiptap) با خروجی Markdown — RichMarkdownEditor.
+// کاور: فشرده‌سازیِ canvas → base64.
 // متنِ دکمهٔ ذخیره ثابت می‌ماند؛ فقط Spinner + toast (DECISION-053).
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -10,7 +11,8 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "@/lib/notifications/toast";
 import { Spinner } from "@/components/ui/Spinner";
-import { renderMarkdown } from "@/lib/blog/markdown";
+import { compressImage } from "@/lib/utils/compress-image";
+import { RichMarkdownEditor } from "./RichMarkdownEditor";
 import { POST_STATUSES, POST_STATUS_LABELS } from "@/lib/blog/constants";
 
 export interface EditorCategory {
@@ -61,7 +63,6 @@ export function BlogPostEditor({ mode, categories, initial }: Props) {
   const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
   const [tagInput, setTagInput] = useState("");
 
-  const [preview, setPreview] = useState(false);
   const [showSeo, setShowSeo] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -161,40 +162,18 @@ export function BlogPostEditor({ mode, categories, initial }: Props) {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="عنوانِ مقاله…"
             className="w-full bg-transparent outline-none text-lg font-medium text-ink"
-            style={{ borderBottom: "1px solid rgba(26,26,31,0.08)", padding: "0.4rem 0" }}
+            style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.08)", padding: "0.4rem 0" }}
           />
         </div>
 
-        {/* محتوا */}
+        {/* محتوا — ادیتورِ بصری (آنچه می‌بینی همان است که در سایت رندر می‌شود) */}
         <div className="rounded-2xl border border-black/8 bg-white/40 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <Label>متنِ مقاله (Markdown)</Label>
-            <button
-              type="button"
-              onClick={() => setPreview((v) => !v)}
-              className="text-xs px-2.5 py-1 rounded-lg bg-black/5 text-stone hover:bg-black/10 transition-colors"
-            >
-              {preview ? "ویرایش" : "پیش‌نمایش"}
-            </button>
+          <div className="mb-2">
+            <Label>متنِ مقاله</Label>
           </div>
-          {preview ? (
-            <div
-              className="prose-article min-h-[300px] rounded-xl bg-paper/50 p-4"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(content) || "<p style='color:#BDB6A7'>چیزی برای نمایش نیست.</p>" }}
-            />
-          ) : (
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={18}
-              placeholder={"## عنوانِ بخش\n\nمتنِ پاراگراف با **تأکید** و *مورب* و [لینک](https://…).\n\n> نقل‌قول\n\n- آیتمِ فهرست"}
-              className="w-full bg-transparent outline-none text-sm text-ink leading-relaxed resize-y"
-              style={{ fontFamily: "inherit", minHeight: "300px" }}
-              dir="rtl"
-            />
-          )}
+          <RichMarkdownEditor value={content} onChange={setContent} />
           <p className="text-[11px] text-fog mt-2">
-            پشتیبانی: # عنوان، **پررنگ**، *مورب*، [لینک](url)، ![تصویر](url)، &gt; نقل‌قول، - فهرست، --- خطِ جدا، ``` کد.
+            در دیتابیس به‌صورت Markdown ذخیره می‌شود — با دکمهٔ «Markdown خام» می‌توانی مستقیم ویرایش کنی.
           </p>
         </div>
 
@@ -401,30 +380,4 @@ function Input({ value, onChange, placeholder, ltr }: { value: string; onChange:
       style={ltr ? { textAlign: "right" } : undefined}
     />
   );
-}
-
-// فشرده‌سازیِ تصویر با canvas → JPEG base64 (الگوی AvatarCropModal).
-function compressImage(file: File, maxW: number, quality: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxW / img.width);
-        const w = Math.round(img.width * scale);
-        const h = Math.round(img.height * scale);
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const cx = canvas.getContext("2d");
-        if (!cx) return reject(new Error("no-ctx"));
-        cx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-      img.onerror = reject;
-      img.src = reader.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }

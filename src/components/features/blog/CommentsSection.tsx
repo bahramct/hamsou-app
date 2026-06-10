@@ -43,7 +43,7 @@ export function CommentsSection({
       {/* فرمِ کامنتِ جدید */}
       <div
         className="rounded-2xl p-5 mb-10"
-        style={{ background: "rgba(255,255,255,0.45)", border: "1px solid rgba(26,26,31,0.07)" }}
+        style={{ background: "rgba(var(--rgb-card),0.45)", border: "1px solid rgba(var(--rgb-line),0.07)" }}
       >
         <p className="text-stone mb-4" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7 }}>
           نظرت را بنویس. کامنت‌ها پس از مرورِ ما نمایش داده می‌شوند — ایمیلت خصوصی می‌ماند.
@@ -79,7 +79,7 @@ function CommentItem({ slug, comment, isReply = false }: { slug: string; comment
           style={
             comment.isAdminReply
               ? { background: "var(--color-sage)", color: "var(--color-paper)", fontWeight: 600 }
-              : { background: "rgba(26,26,31,0.06)", color: "var(--color-stone)", fontWeight: 500 }
+              : { background: "rgba(var(--rgb-line),0.06)", color: "var(--color-stone)", fontWeight: 500 }
           }
         >
           {comment.isAdminReply ? "ه" : comment.authorName.slice(0, 1)}

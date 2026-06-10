@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface Props {
   /** اگر true باشد، لینک‌های anchor به #section می‌روند (صفحه لندینگ).
@@ -30,9 +31,12 @@ export function LandingNav({ landing = false }: Props) {
           <Link href="/blog" className="px-4 py-2 rounded-full text-sm font-medium text-stone hover:text-ink hover:bg-black/5 transition-all duration-300">بلاگ</Link>
         </div>
 
-        <Link href="/login" className="btn btn-primary" style={{ padding: ".65rem 1.25rem", fontSize: "14px" }}>
-          شروع کن
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <ThemeToggle />
+          <Link href="/login" className="btn btn-primary" style={{ padding: ".65rem 1.25rem", fontSize: "14px" }}>
+            شروع کن
+          </Link>
+        </div>
       </div>
     </nav>
   );

@@ -53,7 +53,7 @@ const TARGETS: ShareTarget[] = [
   {
     key: "twitter",
     label: "ایکس",
-    color: "#1A1A1F",
+    color: "var(--color-ink)",
     icon: (
       <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z" />
@@ -377,7 +377,7 @@ export function ShareModal({
                 height: clampedH || 165,
                 overflow: "hidden",
                 position: "relative",
-                background: "rgba(245,242,235,0.45)",
+                background: "rgba(var(--rgb-paper),0.45)",
                 borderRadius: "12px 12px 0 0",
               }}
             >
@@ -409,7 +409,7 @@ export function ShareModal({
                   left: 0,
                   right: 0,
                   height: 52,
-                  background: "linear-gradient(to bottom, transparent, rgba(255,255,255,0.90))",
+                  background: "linear-gradient(to bottom, transparent, rgba(var(--rgb-card),0.90))",
                   pointerEvents: "none",
                   zIndex: 2,
                 }}

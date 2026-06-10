@@ -9,14 +9,14 @@ import type { SectionDef, SectionRenderProps } from "@/lib/cms/types";
 // ═══ HERO ═══
 function ContactHero({ c }: SectionRenderProps) {
   return (
-    <section className="relative z-10 pt-36 pb-16 px-6 lg:px-10">
+    <section className="relative z-10 pt-28 pb-12 px-6 lg:px-10">
       <div className="max-w-2xl mx-auto text-center">
         <div className="anim-fade-up d-1 mb-6 flex items-center justify-center gap-2" style={{ fontWeight: 300, fontSize: "14px" }}>
           <Link href="/" className="text-fog hover:text-stone transition-colors">همسو</Link>
           <span className="text-fog" style={{ opacity: 0.5 }}>›</span>
           <span className="text-stone">تماس با ما</span>
         </div>
-        <div className="anim-fade-up d-2 mb-8 flex justify-center">
+        <div className="anim-fade-up d-2 mb-6 flex justify-center">
           <span className="pill"><span className="pill-dot" />{c.text("pill")}</span>
         </div>
         <h1 className="anim-fade-up d-3" style={{ fontWeight: 100, fontSize: c.fontSize("title"), lineHeight: 1.08, letterSpacing: "-0.025em", color: "var(--color-ink)" }}>
@@ -34,9 +34,9 @@ const contactHero: SectionDef = {
   type: "contact-hero", label: "تماس — سرتیتر", pages: ["contact"],
   fields: [
     { key: "pill", label: "برچسب بالا", type: "text" },
-    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(38px, 5.5vw, 72px)" },
+    { key: "titleLead", label: "عنوان — بخش اول", type: "text", defaultFontSize: "clamp(28px, 4vw, 44px)" },
     { key: "titleEmphasis", label: "عنوان — بخش تأکید", type: "text" },
-    { key: "subtitle", label: "زیرعنوان", type: "textarea", defaultFontSize: "18px" },
+    { key: "subtitle", label: "زیرعنوان", type: "textarea", defaultFontSize: "16px" },
   ],
   defaults: {
     pill: "در دسترس هستیم",
@@ -44,7 +44,7 @@ const contactHero: SectionDef = {
     titleEmphasis: "آرام بپرس.",
     subtitle: "ما از شنیدن از تو خوشحال می‌شویم —\nچه سوال داشته باشی، چه پیشنهاد، چه انتقاد.",
   },
-  defaultStyles: { title: { fontSize: "clamp(38px, 5.5vw, 72px)" }, subtitle: { fontSize: "18px" } },
+  defaultStyles: { title: { fontSize: "clamp(28px, 4vw, 44px)" }, subtitle: { fontSize: "16px" } },
   Component: ContactHero,
 };
 
@@ -56,9 +56,9 @@ function ContactCard({ c }: SectionRenderProps) {
   return (
     <section className="relative z-10 py-8 px-6 lg:px-10">
       <div className="max-w-lg mx-auto reveal">
-        <div className="glass-strong rounded-3xl overflow-hidden" style={{ boxShadow: "0 24px 64px rgba(46,44,40,0.10), inset 0 1px 0 rgba(255,255,255,0.7)" }}>
+        <div className="glass-strong rounded-3xl overflow-hidden" style={{ boxShadow: "0 24px 64px rgba(46,44,40,0.10), inset 0 1px 0 rgba(var(--rgb-card),0.7)" }}>
           {/* ایمیل */}
-          <div className="p-7 flex items-center justify-between gap-4" style={{ borderBottom: "1px solid rgba(26,26,31,0.06)" }}>
+          <div className="p-7 flex items-center justify-between gap-4" style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.06)" }}>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(122,132,113,0.10)", border: "1px solid rgba(122,132,113,0.18)" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -73,7 +73,7 @@ function ContactCard({ c }: SectionRenderProps) {
             <CopyEmailButton email={email} />
           </div>
           {/* اینستاگرام */}
-          <a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-7 hover:bg-black/[0.02] transition-colors" style={{ borderBottom: "1px solid rgba(26,26,31,0.06)" }}>
+          <a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-7 hover:bg-black/[0.02] transition-colors" style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.06)" }}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(199,93,60,0.07)", border: "1px solid rgba(199,93,60,0.14)" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-ember)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
@@ -88,8 +88,8 @@ function ContactCard({ c }: SectionRenderProps) {
             </svg>
           </a>
           {/* توییتر/X */}
-          <a href={`https://x.com/${x}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-7 hover:bg-black/[0.02] transition-colors" style={{ borderBottom: "1px solid rgba(26,26,31,0.06)" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(26,26,31,0.05)", border: "1px solid rgba(26,26,31,0.10)" }}>
+          <a href={`https://x.com/${x}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-7 hover:bg-black/[0.02] transition-colors" style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.06)" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(var(--rgb-line),0.05)", border: "1px solid rgba(var(--rgb-line),0.10)" }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--color-charcoal)">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
