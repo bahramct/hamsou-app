@@ -26,7 +26,8 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
   const post = await getPostBySlug(slug);
   if (!post) return { title: "مقاله یافت نشد — همسو" };
   const title = post.metaTitle ?? `${post.title} — بلاگ همسو`;
@@ -61,7 +62,8 @@ function toNode(c: CommentView): CommentNode {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
