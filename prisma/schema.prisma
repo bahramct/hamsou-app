@@ -807,3 +807,39 @@ model BlogLike {
   @@unique([postId, fingerprint])
   @@index([postId])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CMS سکشن‌های صفحات (DECISION-066) — مدلِ Override، فاز ۲ از CMS.
+// فلسفه: کد = طراحی + محتوای پیش‌فرض؛ DB = override. هم‌راستا با AiPromptOverride.
+//
+// PageSection = حالتِ «پیش‌نویس» که ادمین ویرایش می‌کند (ترتیب/نمایش/محتوا).
+// PageContent = «عکسِ منتشرشده» per صفحه که سایتِ زنده می‌خواند.
+// قاعدهٔ هم‌ترازی: سایت فقط PageContent منتشرشده را می‌خواند؛ اگر صفحه‌ای منتشر
+//   نشده باشد → fallback به سکشن‌های پیش‌فرضِ کد (رندرِ دقیقاً مثل قبل، چیزی نمی‌شکند).
+//
+// content (JSON): { fields: {<key>: value}, styles: {<key>: { fontSize?: string }} }
+//   type کلیدِ رجیستریِ src/lib/cms/registry.ts است → افزودن نوعِ جدید بدون migration.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// PageSection — یک نمونهٔ سکشن در حالتِ پیش‌نویس (قابلِ ویرایش از پنل).
+model PageSection {
+  id        String   @id @default(cuid())
+  pageKey   String // "landing" | "about" | "story" | "contact" | "privacy"
+  type      String // کلیدِ نوعِ سکشن در رجیستری
+  order     Int      @default(0)
+  isVisible Boolean  @default(true)
+  content   String   @default("{}") // JSON: { fields, styles }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pageKey, order])
+}
+
+// PageContent — عکسِ منتشرشدهٔ یک صفحه (آرایهٔ سکشن‌ها به‌صورت JSON). سایت از این می‌خواند.
+model PageContent {
+  pageKey       String    @id // یکتا per صفحه
+  publishedJson String // JSON: [{ type, isVisible, content }]
+  publishedAt   DateTime  @default(now())
+  publishedById String? // AdminUser.id
+  updatedAt     DateTime  @updatedAt
+}

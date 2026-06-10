@@ -35,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/support", label: "تیکت‌ها", perm: "support.read", icon: "headset", ready: true, badge: "tickets" },
   { href: "/admin/livechat", label: "چت آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
   { href: "/admin/blog", label: "بلاگ", perm: "blog.read", icon: "book", ready: true, badge: "comments" },
-  { href: "/admin/content", label: "محتوا", perm: "content.read", icon: "doc", ready: false },
+  { href: "/admin/content", label: "محتوا", perm: "content.read", icon: "doc", ready: true },
   { href: "/admin/admins", label: "ادمین‌ها", perm: "admins.manage", icon: "shield", ready: true },
   { href: "/admin/roles", label: "نقش‌ها و دسترسی‌ها", perm: "roles.manage", icon: "key", ready: true },
   { href: "/admin/audit", label: "لاگ ممیزی", perm: "audit.read", icon: "list", ready: true },
