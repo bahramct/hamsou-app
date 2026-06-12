@@ -19,11 +19,18 @@ import { countCommitments } from "@/lib/stats/commitments";
 import { planAllows } from "@/lib/plans/access";
 import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
 import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
+import { getNow } from "@/lib/dev/time";
 
 export const dynamic = "force-dynamic";
 
 // ── ثابت‌ها ───────────────────────────────────────────────────────────────────
 const PLAN_LABELS: Record<string, string> = { FREE: "رایگان", PLUS: "پلاس", PRO: "پرو" };
+
+function daysLeftLabel(daysLeft: number): string {
+  if (daysLeft === 0) return "امروز منقضی می‌شود";
+  if (daysLeft === 1) return "۱ روز مانده";
+  return `${daysLeft.toLocaleString("fa-IR")} روز مانده`;
+}
 
 const PLAN_BADGE: Record<string, string> = {
   FREE: "bg-black/7 text-stone",
@@ -64,7 +71,7 @@ export default async function AdminUserDetailPage({
     select: {
       id: true, phone: true, email: true, emailVerifiedAt: true,
       username: true, passwordHash: true, displayName: true, bio: true,
-      avatarImage: true, plan: true, planCycle: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
+      avatarImage: true, plan: true, planCycle: true, planExpiresAt: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
       _count: { select: { gaps: true, weeklyReports: true, chatMessages: true } },
     },
   });
@@ -102,6 +109,14 @@ export default async function AdminUserDetailPage({
 
   const ac = AVATAR_COLOR;
   const initLetter = user.displayName?.trim()?.[0] ?? user.phone?.[0] ?? user.email?.[0] ?? "؟";
+
+  // روزهای باقیمانده پلن (فقط برای نمایش در ادمین)
+  const now = getNow();
+  let adminDaysLeft: number | null = null;
+  if (user.plan !== "FREE" && user.planExpiresAt) {
+    const msLeft = user.planExpiresAt.getTime() - now.getTime();
+    adminDaysLeft = Math.max(0, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+  }
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -158,6 +173,18 @@ export default async function AdminUserDetailPage({
               <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-medium ${PLAN_BADGE[user.plan] ?? "bg-black/7 text-stone"}`}>
                 {PLAN_LABELS[user.plan] ?? user.plan}
               </span>
+              {user.planCycle && user.plan !== "FREE" && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-fog/15 text-stone font-medium">
+                  {user.planCycle === "annual" ? "سالانه" : "ماهانه"}
+                </span>
+              )}
+              {adminDaysLeft !== null && (
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  adminDaysLeft <= 3 ? "bg-ember/10 text-ember" : "bg-fog/15 text-stone"
+                }`}>
+                  {daysLeftLabel(adminDaysLeft)}
+                </span>
+              )}
             </div>
 
             {user.username && (

@@ -122,8 +122,9 @@ export const config = {
     /*
      * تطابق با همه مسیرها به جز:
      * - فایل‌های static (_next/static, _next/image, ...)
+     * - WebSocket HMR (_next/webpack-hmr) — باید مستقیم به Next.js برسد
      * - فایل‌های public که پیشوند آنها در SKIP_PREFIXES است
      */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image|_next/webpack-hmr|favicon.ico).*)",
   ],
 };

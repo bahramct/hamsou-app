@@ -89,7 +89,7 @@ function UpgradeCta() {
   return (
     <div className="rounded-2xl border border-gold/25 bg-gold/5 p-6 text-center space-y-3">
       <p className="text-sm text-charcoal leading-relaxed">
-        ارتباط تیکتینگ با پشتیبانی بخشی از پلن <b>پرو</b> است.
+        ارتباط تیکتینگ با پشتیبانی بخشی از پلن <b>پلاس</b> و <b>پرو</b> است.
         برای دسترسی، پلن خود را ارتقا بده.
       </p>
       <Link

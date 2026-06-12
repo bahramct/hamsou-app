@@ -7,7 +7,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -74,10 +73,9 @@ export function AppNav() {
           href="/dashboard"
           className="flex items-center gap-2.5 shrink-0 hover:opacity-70 transition-opacity duration-200"
         >
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo.png"
-            width={58}
-            height={38}
             alt="همسو"
             style={{ width: "auto", height: "38px" }}
           />

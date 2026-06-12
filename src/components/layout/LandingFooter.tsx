@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { SocialLinks } from "@/components/layout/SocialLinks";
 import { TrustBadges } from "@/components/layout/TrustBadges";
@@ -30,9 +29,9 @@ export function LandingFooter() {
 
           {/* ۱) برند + سوشال */}
           <div>
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/logo.png" alt="همسو"
-              width={77} height={50}
               className="mb-4"
               style={{ height: "50px", width: "auto" }}
             />

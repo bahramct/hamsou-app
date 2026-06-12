@@ -48,7 +48,7 @@ export const PLAN_FEATURES: PlanFeatureDef[] = [
     group: "chat",
     type: "quota",
     unit: "پیام در روز",
-    defaults: { FREE: 10, PLUS: 50, PRO: 200 },
+    defaults: { FREE: 10, PLUS: 20, PRO: 30 },
   },
   {
     key: "weekly.reflection",
@@ -64,9 +64,9 @@ export const PLAN_FEATURES: PlanFeatureDef[] = [
     description: "ارسال تیکت و پیگیری پاسخ.",
     group: "support",
     type: "boolean",
-    // ساخته شد (DECISION-044) → دیگر «به‌زودی» نیست؛ برای پرو فعال، با امکان روشن‌کردن
-    // برای هر پلن از پنل (به‌محض روشن‌شدن، enforcement همان‌جا دسترسی می‌دهد).
-    defaults: { FREE: false, PLUS: false, PRO: true },
+    // ساخته شد (DECISION-044) → دیگر «به‌زودی» نیست؛ برای پلاس و پرو فعال، با امکان روشن/خاموش‌کردن
+    // برای هر پلن از پنل (به‌محض تغییر، enforcement همان‌جا دسترسی می‌دهد).
+    defaults: { FREE: false, PLUS: true, PRO: true },
   },
   {
     key: "support.liveChat",

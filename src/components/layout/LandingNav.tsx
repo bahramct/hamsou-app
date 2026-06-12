@@ -7,7 +7,6 @@
 // client component برای تشخیصِ صفحهٔ فعال (usePathname).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -33,11 +32,10 @@ export function LandingNav({ landing: _landing = false }: Props) {
     <nav className="glass-nav fixed top-0 inset-x-0 z-50 anim-fade-in">
       <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 shrink-0">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo.png" alt="همسو"
-            width={68} height={44}
             style={{ height: "44px", width: "auto" }}
-            priority
           />
         </Link>
 
