@@ -17,14 +17,18 @@ const PLANS = [
 interface Props {
   userId: string;
   currentPlan: string;
+  currentCycle?: string | null;
   isBanned: boolean;
   canPlan: boolean;
   canBan: boolean;
 }
 
-export function UserActions({ userId, currentPlan, isBanned, canPlan, canBan }: Props) {
+export function UserActions({ userId, currentPlan, currentCycle, isBanned, canPlan, canBan }: Props) {
   const router = useRouter();
   const [plan, setPlan] = useState(currentPlan);
+  const [cycle, setCycle] = useState<"monthly" | "annual">(
+    currentCycle === "annual" ? "annual" : "monthly"
+  );
   const [banned, setBanned] = useState(isBanned);
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState(false);
@@ -38,7 +42,7 @@ export function UserActions({ userId, currentPlan, isBanned, canPlan, canBan }: 
       const res = await fetch(`/api/admin/users/${userId}/plan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: next }),
+        body: JSON.stringify({ plan: next, cycle: next !== "FREE" ? cycle : null }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطا در تغییر پلن."); return; }
@@ -85,8 +89,27 @@ export function UserActions({ userId, currentPlan, isBanned, canPlan, canBan }: 
   return (
     <div className="space-y-5">
       {canPlan && (
-        <div>
-          <p className="text-[11px] text-fog uppercase tracking-widest mb-2">تغییر پلن</p>
+        <div className="space-y-3">
+          <p className="text-[11px] text-fog uppercase tracking-widest">تغییر پلن</p>
+
+          {/* چرخهٔ صورتحساب — فقط برای پلن‌های پولی */}
+          <div className="flex gap-2">
+            {(["monthly", "annual"] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCycle(c)}
+                className={`px-3 py-1.5 rounded-lg text-xs transition-all ${
+                  cycle === c
+                    ? "bg-sage/20 text-sage-deep font-medium border border-sage/30"
+                    : "bg-white/50 border border-bone text-fog hover:text-stone"
+                }`}
+              >
+                {c === "monthly" ? "ماهانه" : "سالانه"}
+              </button>
+            ))}
+          </div>
+
           <div className="flex gap-2">
             {PLANS.map((p) => (
               <button

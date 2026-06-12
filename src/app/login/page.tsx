@@ -362,7 +362,6 @@ type SignupStep = "form" | "waiting";
 function EmailSignup() {
   const [step, setStep] = useState<SignupStep>("form");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [devLink, setDevLink] = useState<string | null>(null);
@@ -374,7 +373,7 @@ function EmailSignup() {
       const res = await fetch("/api/auth/email/request-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
@@ -391,7 +390,7 @@ function EmailSignup() {
       const res = await fetch("/api/auth/email/request-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
       const data = await res.json();
       if (typeof data.devLink === "string") setDevLink(data.devLink);
@@ -410,15 +409,9 @@ function EmailSignup() {
             className={`${emailInp} num-latin`}
           />
         </Labeled>
-        <Labeled label="رمز عبور (حداقل ۸ کاراکتر)">
-          <input
-            type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }}
-            disabled={loading} dir="ltr" className={emailInp}
-          />
-        </Labeled>
         {error && <p className="text-xs text-ember text-center animate-fade-in">{error}</p>}
         <button
-          type="submit" disabled={loading || !email.trim() || password.length < 8}
+          type="submit" disabled={loading || !email.trim()}
           className="w-full py-3.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal active:scale-[0.98] transition-all duration-350 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading && <Spinner size={14} className="text-paper" />}

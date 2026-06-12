@@ -64,7 +64,7 @@ export default async function AdminUserDetailPage({
     select: {
       id: true, phone: true, email: true, emailVerifiedAt: true,
       username: true, passwordHash: true, displayName: true, bio: true,
-      avatarImage: true, plan: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
+      avatarImage: true, plan: true, planCycle: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
       _count: { select: { gaps: true, weeklyReports: true, chatMessages: true } },
     },
   });
@@ -247,6 +247,7 @@ export default async function AdminUserDetailPage({
             <UserActions
               userId={user.id}
               currentPlan={user.plan}
+              currentCycle={user.planCycle}
               isBanned={user.isBanned}
               canPlan={can(ctx, "users.plan.write")}
               canBan={can(ctx, "users.ban")}

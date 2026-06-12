@@ -5,13 +5,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { AppShell } from "@/components/layout/AppShell";
 import { prisma } from "@/lib/db/client";
 import { EditableAvatar } from "@/components/features/profile/EditableAvatar";
 import { PersonalInfoSection } from "@/components/features/profile/PersonalInfoSection";
 import { IdentityCard } from "@/components/features/profile/IdentityCard";
+import { SetPasswordModal } from "@/components/features/profile/SetPasswordModal";
 import { SupportSection } from "@/components/features/support-chat/SupportSection";
 import { ProfileWalletSection, type ProfileWalletTx } from "@/components/features/wallet/ProfileWalletSection";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
@@ -59,6 +59,7 @@ export default async function ProfileSettingsPage() {
       birthDate: true,
       plan: true,
       planExpiresAt: true,
+      planCycle: true,
       createdAt: true,
       walletBalance: true,
       paymentCardNumber: true,
@@ -84,6 +85,9 @@ export default async function ProfileSettingsPage() {
 
   const daysSince = Math.max(0, Math.floor((now.getTime() - user.createdAt.getTime()) / 86_400_000));
 
+  // کاربرِ ایمیلی که هنوز رمز عبور ندارد → مودالِ قفل (DECISION-080)
+  const needsPassword = !!user.email && !!user.emailVerifiedAt && !user.passwordHash;
+
   const color = AVATAR_COLOR;
   const initialLetter = user.displayName?.trim()?.[0] ?? "ه";
   const planBadge = PLAN_BADGE[effectivePlan.plan] ?? { label: effectivePlan.plan, className: "bg-fog/25 text-stone" };
@@ -104,6 +108,7 @@ export default async function ProfileSettingsPage() {
 
   return (
     <AppShell>
+      {needsPassword && <SetPasswordModal userDisplayName={user.displayName} />}
       <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6">
 
         {/* ───── Hero ───── */}
@@ -142,6 +147,11 @@ export default async function ProfileSettingsPage() {
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${planBadge.className}`}>
                   {planBadge.label}
                 </span>
+                {user.planCycle && effectivePlan.plan !== "FREE" && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-fog/15 text-stone">
+                    {user.planCycle === "annual" ? "سالانه" : "ماهانه"}
+                  </span>
+                )}
                 {/* زمان باقی‌مانده پلن */}
                 {daysLeftStr && (
                   <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs ${
@@ -212,19 +222,13 @@ function StatCard({ value, label }: { value: number; label: string }) {
 
 function NotificationsCard() {
   return (
-    <section className="glass rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <section className="glass rounded-2xl p-6">
       <div className="space-y-0.5">
         <h2 className="text-sm font-semibold text-ink">یادآوری‌ها</h2>
         <p className="text-xs text-fog leading-relaxed max-w-md">
-          رویدادهای مهم مسیر تو — پاسخ پشتیبانی، تغییر پلن و… . تنظیم زمان و نوعِ یادآوری‌های روزانه و هفتگی به‌زودی اضافه می‌شود.
+          رویدادهای مهم مسیر تو — پاسخ پشتیبانی، تغییر پلن و… از طریق زنگوله در نوار بالا قابل مشاهده‌اند. تنظیم زمان و نوعِ یادآوری‌های روزانه و هفتگی به‌زودی اضافه می‌شود.
         </p>
       </div>
-      <Link
-        href="/notifications"
-        className="shrink-0 inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors"
-      >
-        مشاهدهٔ یادآوری‌ها
-      </Link>
     </section>
   );
 }

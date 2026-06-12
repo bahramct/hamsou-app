@@ -7,7 +7,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { toFaDigits } from "@/lib/utils/digits";
 import { NotificationItem } from "./NotificationItem";
 import type { SerializedNotification } from "@/types/notification";
@@ -147,25 +146,17 @@ export function NotificationBell() {
             </div>
           </div>
 
-          <div className="max-h-96 overflow-y-auto divide-y divide-black/5">
+          <div className="max-h-96 overflow-y-auto divide-y divide-black/5 [&::-webkit-scrollbar]:hidden scrollbar-none">
             {!loaded ? (
               <p className="px-4 py-8 text-center text-xs text-fog">در حال بارگذاری…</p>
             ) : items.length === 0 ? (
               <p className="px-4 py-10 text-center text-xs text-fog">یادآوری‌ای نیست.</p>
             ) : (
-              items.slice(0, 8).map((n) => (
+              items.slice(0, 20).map((n) => (
                 <NotificationItem key={n.id} n={n} onRead={markRead} onNavigate={() => setOpen(false)} />
               ))
             )}
           </div>
-
-          <Link
-            href="/notifications"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-3 text-center text-xs text-stone hover:text-ink hover:bg-black/3 transition-colors border-t border-black/6"
-          >
-            مشاهدهٔ همهٔ یادآوری‌ها
-          </Link>
         </div>
       )}
     </div>

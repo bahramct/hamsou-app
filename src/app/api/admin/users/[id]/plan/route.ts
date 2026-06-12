@@ -21,6 +21,9 @@ export async function POST(
   const { id } = await params;
   const body = await req.json().catch(() => null);
   const plan: unknown = body?.plan;
+  const cycleRaw: unknown = body?.cycle;
+  const cycle: "monthly" | "annual" | null =
+    cycleRaw === "monthly" || cycleRaw === "annual" ? cycleRaw : null;
 
   if (!isUserPlan(plan)) {
     return NextResponse.json({ error: "پلن نامعتبر است." }, { status: 400 });
@@ -47,7 +50,14 @@ export async function POST(
     planPaidUpdate.planExpiresAt = null;
   }
 
-  await prisma.user.update({ where: { id }, data: { plan, ...planPaidUpdate } });
+  const planCycleUpdate: { planCycle?: string | null } =
+    plan === "FREE"
+      ? { planCycle: null }
+      : cycle
+        ? { planCycle: cycle }
+        : {};
+
+  await prisma.user.update({ where: { id }, data: { plan, ...planPaidUpdate, ...planCycleUpdate } });
   await logAdminAction({
     actorId: ctx.admin.id,
     action: "user.plan.change",

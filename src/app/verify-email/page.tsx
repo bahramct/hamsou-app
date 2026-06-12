@@ -30,7 +30,8 @@ function VerifyEmailInner() {
       .then((data) => {
         if (data.ok) {
           setState("success");
-          setTimeout(() => router.push("/dashboard"), 1500);
+          // به پروفایل هدایت می‌شود — مودال تعیین رمز عبور آنجا نمایش داده می‌شود (DECISION-080)
+          setTimeout(() => router.push("/settings/profile"), 1500);
         } else {
           setState("error");
           setErrorMsg(data.error ?? "لینک تأیید نادرست یا منقضی شده است.");
@@ -66,7 +67,7 @@ function VerifyEmailInner() {
             </svg>
           </div>
           <h1 className="text-lg font-semibold text-ink">ایمیل تأیید شد</h1>
-          <p className="text-sm text-stone">در حال انتقال به داشبورد…</p>
+          <p className="text-sm text-stone">در حال انتقال به پروفایل…</p>
         </div>
       )}
 

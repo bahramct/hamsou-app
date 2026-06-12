@@ -272,7 +272,7 @@ export async function applyGatewayPlanPurchase(input: {
 
       await db.user.update({
         where: { id: tx.userId },
-        data: { plan: tx.planKey, planExpiresAt: expiresAt, planPaidSince },
+        data: { plan: tx.planKey, planExpiresAt: expiresAt, planPaidSince, planCycle: cycle },
       });
       await db.walletTransaction.update({
         where: { id: tx.id },
@@ -409,7 +409,7 @@ export async function purchasePlan(
       const balanceAfter = fresh.walletBalance - finalPrice;
       await db.user.update({
         where: { id: userId },
-        data: { walletBalance: balanceAfter, plan: planKey, planExpiresAt: expiresAt, planPaidSince },
+        data: { walletBalance: balanceAfter, plan: planKey, planExpiresAt: expiresAt, planPaidSince, planCycle: cycle },
       });
       const tx = await db.walletTransaction.create({
         data: {

@@ -15,7 +15,6 @@ import {
   generateEmailToken,
   getVerificationLinkExpiry,
 } from "@/lib/auth/credentials";
-import { hashPassword, validateUserPassword } from "@/lib/auth/password";
 import { devOnlyPayload } from "@/lib/utils/dev-response";
 import { getNow } from "@/lib/dev/time";
 import { getAppBaseUrl } from "@/lib/utils/app-url";
@@ -23,7 +22,7 @@ import { getAppBaseUrl } from "@/lib/utils/app-url";
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => null)) as
-      | { email?: unknown; password?: unknown }
+      | { email?: unknown }
       | null;
     if (!body) {
       return NextResponse.json({ error: "درخواست نامعتبر." }, { status: 400 });
@@ -33,12 +32,6 @@ export async function POST(req: NextRequest) {
     if (!email) {
       return NextResponse.json({ error: "ایمیل معتبر نیست." }, { status: 400 });
     }
-
-    const pwCheck = validateUserPassword(body.password);
-    if (!pwCheck.ok) {
-      return NextResponse.json({ error: pwCheck.error }, { status: 400 });
-    }
-    const password = body.password as string;
 
     // ایمیل قبلاً ثبت‌نامِ کامل دارد؟
     const existingUser = await prisma.user.findUnique({
@@ -73,7 +66,8 @@ export async function POST(req: NextRequest) {
         email,
         code: token,
         purpose: "signup",
-        passwordHash: hashPassword(password),
+        // رمز عبور پس از تأیید ایمیل در مودال پروفایل تنظیم می‌شود (DECISION-080)
+        passwordHash: null,
         expiresAt: getVerificationLinkExpiry(),
       },
     });

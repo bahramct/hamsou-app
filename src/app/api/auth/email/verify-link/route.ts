@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    if (!record || !record.passwordHash || !record.email) {
+    if (!record || !record.email) {
       return NextResponse.json(
         { error: "لینک تأیید نادرست یا منقضی شده است." },
         { status: 401 }
@@ -55,7 +55,8 @@ export async function GET(req: NextRequest) {
     const user = await prisma.user.create({
       data: {
         email: record.email,
-        passwordHash: record.passwordHash,
+        // رمز عبور در مودال پروفایل تنظیم می‌شود (DECISION-080)
+        passwordHash: record.passwordHash ?? null,
         emailVerifiedAt: now,
       },
       select: { id: true, phone: true },
