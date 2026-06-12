@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { LandingEffects } from "@/components/features/landing/LandingEffects";
 import { LandingNav } from "@/components/layout/LandingNav";
 import { LandingFooter } from "@/components/layout/LandingFooter";
-import { PostCard } from "@/components/features/blog/PostCard";
+import { RelatedPostCard } from "@/components/features/blog/RelatedPostCard";
 import { ViewBeacon } from "@/components/features/blog/ViewBeacon";
 import { LikeButton } from "@/components/features/blog/LikeButton";
 import { ShareBar } from "@/components/features/blog/ShareBar";
@@ -321,15 +321,23 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* مقالاتِ مرتبط */}
       {related.length > 0 && (
-        <section className="relative z-10 px-6 lg:px-10 py-14" style={{ background: "rgba(var(--rgb-bone),0.28)" }}>
+        <section className="relative z-10 px-6 lg:px-10 py-12">
           <div className="max-w-6xl mx-auto">
-            <h2 className="mb-7 text-center" style={{ fontWeight: 300, fontSize: "22px", letterSpacing: "-0.015em", color: "var(--color-ink)" }}>
-              بیشتر بخوان
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* عنوان بخش */}
+            <div className="flex items-center gap-4 mb-7 max-w-2xl">
+              <span
+                className="text-fog"
+                style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase" }}
+              >
+                بیشتر بخوان
+              </span>
+              <div className="flex-1 h-px" style={{ background: "rgba(var(--rgb-line),0.12)" }} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {related.map((p) => (
                 <div key={p.slug} className="reveal">
-                  <PostCard post={p} />
+                  <RelatedPostCard post={p} />
                 </div>
               ))}
             </div>
