@@ -342,10 +342,9 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 
 .sharem-panel {
   position: relative; width: 100%; max-width: 440px;
-  /* پنل خودش اسکرول می‌کند (محتوای بلند در موبایل) */
+  /* محتوا fit به صفحه — بدون اسکرول (DECISION-078) */
   max-height: calc(100dvh - 40px);
-  overflow-y: auto; overflow-x: hidden;
-  overscroll-behavior: contain;
+  overflow: hidden;
   margin: auto 0;
   border-radius: 26px; padding: 24px;
   background: #F5F2EB;
@@ -410,7 +409,7 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 
 /* کاشی‌های اکشن (شبکه‌ها + اشتراکِ سیستمی) — شیشه + لیفت روی hover */
 .sharem-tile {
-  width: 48px; height: 48px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
   cursor: pointer; background: rgba(255,255,255,0.62); border: 1px solid rgba(26,26,31,0.08);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
   transition: transform 350ms var(--ease-expo), box-shadow 350ms var(--ease-expo), background 250ms;

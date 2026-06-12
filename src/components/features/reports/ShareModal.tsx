@@ -55,7 +55,7 @@ const TARGETS: ShareTarget[] = [
     label: "ایکس",
     color: "var(--color-ink)",
     icon: (
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77Z" />
       </svg>
     ),
@@ -67,7 +67,7 @@ const TARGETS: ShareTarget[] = [
     label: "لینکدین",
     color: "#0A66C2",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z" />
       </svg>
     ),
@@ -79,7 +79,7 @@ const TARGETS: ShareTarget[] = [
     label: "تلگرام",
     color: "#2AABEE",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
         <path d="M21.94 4.6 18.9 19.05c-.23 1.01-.83 1.26-1.68.79l-4.64-3.42-2.24 2.16c-.25.25-.46.46-.94.46l.33-4.73 8.6-7.77c.37-.33-.08-.52-.58-.19l-10.63 6.7-4.58-1.43c-1-.31-1.01-1 .21-1.48l17.9-6.9c.83-.31 1.56.2 1.29 1.47Z" />
       </svg>
     ),
@@ -91,7 +91,7 @@ const TARGETS: ShareTarget[] = [
     label: "اینستاگرام",
     color: "#C2387A",
     icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
         <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" stroke="currentColor" strokeWidth="1.9" />
         <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.9" />
         <circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" />
@@ -114,7 +114,6 @@ export function ShareModal({
 }: Props) {
   const [shared, setShared] = useState(initialShared);
   const [preparing, setPreparing] = useState(false);
-  const [reverting, setReverting] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [format, setFormat] = useState<ImageFormat>("card");
   const [shareData, setShareData] = useState<ShareImageData | null>(null);
@@ -292,26 +291,6 @@ export function ShareModal({
       toast.neutral("لینک کپی شد");
     } catch {
       // کاربر لغو کرد یا پشتیبانی نشد
-    }
-  }
-
-  async function stopSharing() {
-    setReverting(true);
-    try {
-      const res = await fetch(`/api/reports/weekly/${reportId}/share`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ shared: false }),
-      });
-      if (!res.ok) throw new Error("failed");
-      setShared(false);
-      onSharedChange(false);
-      toast.neutral("اشتراک‌گذاری لغو شد — لینک دیگر در دسترس نیست");
-      onClose();
-    } catch {
-      toast.error("خطا — دوباره تلاش کن");
-    } finally {
-      setReverting(false);
     }
   }
 
@@ -493,7 +472,7 @@ export function ShareModal({
                 title="اشتراکِ سیستمی"
                 aria-label="اشتراکِ سیستمی"
               >
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   <path d="M16 6l-4-4-4 4M12 2v13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -508,25 +487,6 @@ export function ShareModal({
               <span style={{ display: "block", width: 80, height: 80 }} />
             )}
           </div>
-        </div>
-
-        {/* ⑤ حریم خصوصی + لغو */}
-        <div className="sm-rise sm-d5 pt-3 mt-2 border-t border-black/6">
-          <p className="text-[11px] text-fog leading-relaxed mb-2">
-            هر کسی که این لینک را داشته باشد می‌تواند این گزارش را ببیند. هیچ اطلاعات خصوصی‌ای
-            (شماره، پلن) در صفحهٔ عمومی نیست.
-          </p>
-          {shared && (
-            <button
-              type="button"
-              onClick={stopSharing}
-              disabled={reverting}
-              className="text-xs text-fog hover:text-ember transition-colors disabled:opacity-40 inline-flex items-center gap-1.5"
-            >
-              {reverting && <Spinner size={12} />}
-              لغو اشتراک‌گذاری و خصوصی کردن
-            </button>
-          )}
         </div>
 
         {/* canvasهای hidden برای download (off-screen) */}

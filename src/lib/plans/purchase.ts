@@ -8,9 +8,12 @@
 //   - پلن منقضی یا FREE → از حالا.
 //   مثال: PLUS 15 روز مانده + خرید PRO ماهانه = PRO تا 45 روز دیگر.
 //
-// جلوگیری از downgrade:
-//   اگر پلن فعال رتبهٔ بالاتری دارد، خرید پلن پایین‌تر مسدود است.
-//   مثال: PRO فعال → نمی‌توان PLUS خرید (تا وقتی PRO منقضی نشده).
+// محافظت قیمتی (DECISION-076):
+//   خرید هر پلنی که قیمتش (برای دوره انتخابی) کمتر از پلن فعال کاربر باشد مسدود است.
+//   مقایسه: قیمت کامل دوره جدید vs قیمت کامل دوره فعلی (رتبه مهم نیست، قیمت مهم است).
+//   مثال: PRO ماهانه ۱۰۰ک → PLUS سالانه ۶۰۰ک = مجاز (۶۰۰ک > ۱۰۰ک).
+//   مثال: PLUS سالانه ۶۰۰ک → PRO ماهانه ۱۰۰ک = مسدود (۱۰۰ک < ۶۰۰ک).
+//   ادمین می‌تواند از مسیر پنل بدون این قید پلن کاربر را تغییر دهد.
 //
 // مدت: ماهانه=۳۰ روز، سالانه=۳۶۵ روز. اعلان `plan.changed` (parity با ارتقای ادمین).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -25,8 +28,22 @@ import { createNotification } from "@/lib/notifications/server";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DURATION_DAYS: Record<BillingCycle, number> = { monthly: 30, annual: 365 };
 
-// ترتیب رتبهٔ پلن‌ها (بالاتر = ارزش بیشتر)
-const PLAN_RANK: Record<string, number> = { FREE: 0, PLUS: 1, PRO: 2 };
+// پیدا کردن قیمت پلن فعال کاربر (برای مقایسه در DECISION-076)
+async function getCurrentPlanPrice(userId: string, planKey: string): Promise<number> {
+  const planRecord = await prisma.plan.findUnique({
+    where: { key: planKey },
+    select: { monthlyPrice: true, annualPrice: true },
+  });
+  if (!planRecord) return 0;
+
+  // چرخه فعلی: از آخرین تراکنش خرید موفق این پلن
+  const lastTx = await prisma.walletTransaction.findFirst({
+    where: { userId, type: "purchase", planKey, status: "completed" },
+    orderBy: { createdAt: "desc" },
+  });
+  const currentCycle: BillingCycle = lastTx?.cycle === "annual" ? "annual" : "monthly";
+  return currentCycle === "annual" ? planRecord.annualPrice : planRecord.monthlyPrice;
+}
 
 export type PurchaseResult =
   | {
@@ -92,15 +109,18 @@ export async function quotePlanPurchase(
   });
   if (!user) return { ok: false, error: "کاربر یافت نشد." };
 
-  const currentRank = PLAN_RANK[user.plan] ?? 0;
-  const targetRank = PLAN_RANK[planKey] ?? 0;
   const hasActivePlan = user.plan !== "FREE" && user.planExpiresAt != null && user.planExpiresAt > now;
-  if (hasActivePlan && targetRank < currentRank) {
-    return {
-      ok: false,
-      isDowngrade: true,
-      error: `پلن ${plan.label} پایین‌تر از پلن فعلی شماست. تا پایان دورهٔ جاری می‌توانی از پلن فعلی استفاده کنی.`,
-    };
+
+  // محافظت قیمتی (DECISION-076): خرید پلن ارزان‌تر از پلن فعال مسدود است
+  if (hasActivePlan && user.plan !== "FREE") {
+    const currentPlanPrice = await getCurrentPlanPrice(userId, user.plan);
+    if (currentPlanPrice > 0 && basePrice < currentPlanPrice) {
+      return {
+        ok: false,
+        isDowngrade: true,
+        error: `قیمت پلن ${plan.label} (${cycle === "annual" ? "سالانه" : "ماهانه"}) کمتر از پلن فعلی شماست. پس از پایان دورهٔ جاری می‌توانی پلن دیگری انتخاب کنی.`,
+      };
+    }
   }
 
   return { ok: true, planKey, planLabel: plan.label, cycle, basePrice, finalPrice, appliedCode };
@@ -200,11 +220,25 @@ export async function applyGatewayPlanPurchase(input: {
       const hasActivePlan =
         user.plan !== "FREE" && user.planExpiresAt != null && user.planExpiresAt > now;
 
-      // edge نادر: بین درخواست و پرداخت، پلنِ بالاتری فعال شده → پول هدر نمی‌رود؛
-      // مبلغ به کیف‌پول برمی‌گردد (با یادداشت روشن برای ادمین و رسید).
-      const currentRank = PLAN_RANK[user.plan] ?? 0;
-      const targetRank = PLAN_RANK[tx.planKey] ?? 0;
-      if (hasActivePlan && targetRank < currentRank) {
+      // edge نادر: بین درخواست و پرداخت، پلنِ گران‌تری فعال شده → پول هدر نمی‌رود؛
+      // مبلغ به کیف‌پول برمی‌گردد (DECISION-076).
+      let currentPriceAtCallback = 0;
+      if (hasActivePlan && user.plan !== "FREE") {
+        const cpRecord = await db.plan.findUnique({
+          where: { key: user.plan },
+          select: { monthlyPrice: true, annualPrice: true },
+        });
+        const cpLastTx = await db.walletTransaction.findFirst({
+          where: { userId: tx.userId, type: "purchase", planKey: user.plan, status: "completed" },
+          orderBy: { createdAt: "desc" },
+        });
+        const cpCycle: BillingCycle = cpLastTx?.cycle === "annual" ? "annual" : "monthly";
+        currentPriceAtCallback = cpRecord
+          ? (cpCycle === "annual" ? cpRecord.annualPrice : cpRecord.monthlyPrice)
+          : 0;
+      }
+      const txAmount = Math.abs(tx.amount);
+      if (hasActivePlan && currentPriceAtCallback > 0 && txAmount < currentPriceAtCallback) {
         const balanceAfter = user.walletBalance + Math.abs(tx.amount);
         await db.user.update({ where: { id: tx.userId }, data: { walletBalance: balanceAfter } });
         await db.walletTransaction.update({
@@ -338,16 +372,17 @@ export async function purchasePlan(
   });
   if (!user) return { ok: false, error: "کاربر یافت نشد." };
 
-  // ── جلوگیری از downgrade ─────────────────────────────────────────────────
-  const currentRank = PLAN_RANK[user.plan] ?? 0;
-  const targetRank = PLAN_RANK[planKey] ?? 0;
+  // ── محافظت قیمتی (DECISION-076) — خرید پلن ارزان‌تر از پلن فعال مسدود است ──
   const hasActivePlan = user.plan !== "FREE" && user.planExpiresAt != null && user.planExpiresAt > now;
-  if (hasActivePlan && targetRank < currentRank) {
-    return {
-      ok: false,
-      isDowngrade: true,
-      error: `پلن ${plan.label} پایین‌تر از پلن فعلی شماست. تا پایان دورهٔ جاری می‌توانی از پلن فعلی استفاده کنی؛ پس از انقضا می‌توانی پلن دیگری انتخاب کنی.`,
-    };
+  if (hasActivePlan && user.plan !== "FREE") {
+    const currentPlanPrice = await getCurrentPlanPrice(userId, user.plan);
+    if (currentPlanPrice > 0 && basePrice < currentPlanPrice) {
+      return {
+        ok: false,
+        isDowngrade: true,
+        error: `قیمت پلن ${plan.label} (${cycle === "annual" ? "سالانه" : "ماهانه"}) کمتر از پلن فعلی شماست. پس از پایان دورهٔ جاری می‌توانی پلن دیگری انتخاب کنی.`,
+      };
+    }
   }
 
   if (user.walletBalance < finalPrice) {

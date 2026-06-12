@@ -55,6 +55,7 @@ export default async function PlansPage() {
   let currentPlan = "FREE";
   let walletBalance = 0;
   let planDaysLeft: number | null = null;
+  let currentPlanBasePrice = 0;
   if (user) {
     // پلنِ مؤثر (با انقضا — DECISION-062) + موجودی کیف‌پول برای خرید
     const [eff, dbUser] = await Promise.all([
@@ -64,6 +65,21 @@ export default async function PlansPage() {
     currentPlan = eff.plan;
     planDaysLeft = eff.daysLeft;
     walletBalance = dbUser?.walletBalance ?? 0;
+
+    // قیمت پلن فعال کاربر برای مقایسه در UI (DECISION-076)
+    if (currentPlan !== "FREE" && planDaysLeft != null && planDaysLeft > 0) {
+      const [currentPlanRow, lastPurchaseTx] = await Promise.all([
+        prisma.plan.findUnique({ where: { key: currentPlan }, select: { monthlyPrice: true, annualPrice: true } }),
+        prisma.walletTransaction.findFirst({
+          where: { userId: user.userId, type: "purchase", planKey: currentPlan, status: "completed" },
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+      if (currentPlanRow) {
+        const activeCycle = lastPurchaseTx?.cycle === "annual" ? "annual" : "monthly";
+        currentPlanBasePrice = activeCycle === "annual" ? currentPlanRow.annualPrice : currentPlanRow.monthlyPrice;
+      }
+    }
   }
 
   const rows = await prisma.plan.findMany({
@@ -123,6 +139,7 @@ export default async function PlansPage() {
           walletBalance={walletBalance}
           currentPlanKey={currentPlan}
           planDaysLeft={planDaysLeft}
+          currentPlanBasePrice={currentPlanBasePrice}
         />
       </div>
     </AppShell>

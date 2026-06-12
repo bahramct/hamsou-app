@@ -2,14 +2,12 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatFAB — دکمه شناور برای باز کردن چت‌بات
-// فقط در صفحات authenticated نمایش داده می‌شود (path-based)
+// فقط برای کاربر لاگین‌کرده نمایش داده می‌شود؛ پنل ادمین استثناست.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChatWindow } from "./ChatWindow";
-
-const PUBLIC_PATHS = ["/", "/login", "/forgot-password", "/verify-email", "/reset-password"];
 
 interface Props {
   companionName?: string | null;
@@ -20,8 +18,8 @@ export function ChatFAB({ companionName, isAuthenticated = false }: Props) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  // فقط برای کاربر لاگین‌کرده — در صفحات عمومی و پنل ادمین نمایش داده نمی‌شود
-  if (!isAuthenticated || PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/admin")) return null;
+  // فقط برای کاربر لاگین‌کرده — پنل ادمین نمایش داده نمی‌شود
+  if (!isAuthenticated || pathname.startsWith("/admin")) return null;
 
   return (
     <>

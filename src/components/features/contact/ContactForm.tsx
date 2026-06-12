@@ -170,7 +170,7 @@ export function ContactForm() {
           <input
             type="text"
             inputMode="numeric"
-            placeholder="حاصل جمع؟"
+            placeholder="پاسخ؟"
             value={answer}
             maxLength={3}
             onChange={(e) => setAnswer(e.target.value)}

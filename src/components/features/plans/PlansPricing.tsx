@@ -42,16 +42,16 @@ interface DiscountResult {
 
 const faNum = (n: number) => n.toLocaleString("fa-IR");
 
-const PLAN_RANK: Record<string, number> = { FREE: 0, PLUS: 1, PRO: 2 };
-
 export function PlansPricing({
   plans, isLoggedIn, walletBalance = 0, currentPlanKey = "FREE", planDaysLeft = null,
+  currentPlanBasePrice = 0,
 }: {
   plans: PublicPlan[];
   isLoggedIn: boolean;
   walletBalance?: number;
   currentPlanKey?: string;
   planDaysLeft?: number | null;
+  currentPlanBasePrice?: number;
 }) {
   const [cycle, setCycle] = useState<Cycle>("monthly");
   const [code, setCode] = useState("");
@@ -139,6 +139,7 @@ export function PlansPricing({
             discount={results?.[p.key]?.ok ? results[p.key] : undefined}
             currentPlanKey={currentPlanKey}
             planDaysLeft={planDaysLeft}
+            currentPlanBasePrice={currentPlanBasePrice}
           />
         ))}
       </div>
@@ -167,9 +168,9 @@ function CycleBtn({ active, onClick, children }: { active: boolean; onClick: () 
   );
 }
 
-function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discount, currentPlanKey, planDaysLeft }: {
+function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discount, currentPlanKey, planDaysLeft, currentPlanBasePrice }: {
   plan: PublicPlan; cycle: Cycle; isLoggedIn: boolean; walletBalance: number; appliedCode: string | null;
-  discount?: DiscountResult; currentPlanKey: string; planDaysLeft: number | null;
+  discount?: DiscountResult; currentPlanKey: string; planDaysLeft: number | null; currentPlanBasePrice: number;
 }) {
   const [showBuy, setShowBuy] = useState(false);
   const isPaid = plan.key !== "FREE";
@@ -178,11 +179,9 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
   const finalPrice = discount?.ok && discount.finalPrice !== undefined ? discount.finalPrice : basePrice;
   const priced = isPaid && basePrice > 0;
 
-  // آیا این پلن پایین‌تر از پلن فعال است و هنوز وقت داریم؟
-  const currentRank = PLAN_RANK[currentPlanKey] ?? 0;
-  const thisRank = PLAN_RANK[plan.key] ?? 0;
+  // محافظت قیمتی (DECISION-076): اگر قیمت این پلن کمتر از پلن فعال کاربر باشد، مسدود است
   const currentPlanActive = planDaysLeft != null && planDaysLeft > 0;
-  const isBlockedDowngrade = isLoggedIn && currentPlanActive && thisRank < currentRank;
+  const isBlockedDowngrade = isLoggedIn && currentPlanActive && isPaid && currentPlanBasePrice > 0 && basePrice < currentPlanBasePrice;
 
   return (
     <div className={`rounded-2xl border p-6 flex flex-col gap-5 ${
@@ -238,10 +237,10 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
       ) : isBlockedDowngrade ? (
         <div className="space-y-1.5">
           <div className="py-2.5 px-4 text-center text-sm text-fog/50 border border-black/5 rounded-xl cursor-not-allowed select-none">
-            پلن فعلی بالاتر است
+            امکانپذیر نیست
           </div>
           <p className="text-[10px] text-center text-fog/60 leading-relaxed">
-            تا پایان دوره صبر کن، سپس می‌توانی این پلن را انتخاب کنی.
+            قیمت این پلن کمتر از پلن فعلی توست. پس از پایان دوره می‌توانی آن را انتخاب کنی.
           </p>
         </div>
       ) : (

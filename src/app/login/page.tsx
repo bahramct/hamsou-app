@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { DevOnly } from "@/components/dev/DevOnly";
@@ -107,7 +106,6 @@ export default function LoginPage() {
 type MobileStep = "phone" | "otp";
 
 function MobileFlow() {
-  const router = useRouter();
   const [step, setStep] = useState<MobileStep>("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -168,7 +166,8 @@ function MobileFlow() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
-      router.push("/dashboard");
+      // full page reload — layout با session جدید re-render می‌شود
+      window.location.href = "/dashboard";
     } catch {
       setError("اتصال به سرور برقرار نشد.");
     } finally { setLoading(false); }
@@ -233,10 +232,10 @@ function MobileFlow() {
 
   return (
     <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6">
-      <p className="text-xs text-center text-stone -mt-1">
+      <p className="text-xs text-center text-stone -mt-2">
         کد ارسال‌شده به{" "}
         <span
-          className="font-medium text-ink cursor-pointer" dir="ltr"
+          className="font-medium text-ink cursor-pointer underline underline-offset-2 decoration-dotted"
           onClick={() => { setStep("phone"); setError(""); setOtp(["","","","","",""]); }}
           title="تغییر شماره"
         >
@@ -301,7 +300,6 @@ function EmailFlow() {
 }
 
 function EmailLogin() {
-  const router = useRouter();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -318,7 +316,7 @@ function EmailLogin() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch {
       setError("اتصال به سرور برقرار نشد.");
     } finally { setLoading(false); }
