@@ -2,13 +2,16 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CommentsSection — گفت‌وگوی مقاله (ری‌دیزاین کارتی)
-// • هر کامنت یک کارتِ مدرن؛ راست‌چین و هم‌عرضِ متنِ مقاله (داخل ستون مقاله).
-// • کامنتِ خودِ بازدیدکننده تا تأیید ادمین به‌صورت gray-out فقط برای خودش دیده
-//   می‌شود (ذخیره در localStorage همین دستگاه؛ پس از تأیید، خودکار عادی می‌شود).
-// • پاسخ (ریپلای) روی کامنت‌های منتشرشده برای همه فعال است.
+// • فقط کاربرانِ عضو (لاگین‌کرده) می‌توانند کامنت/پاسخ بگذارند (DECISION-079).
+//   اگر کاربر عضو نباشد، به‌جای فرم یک کارتِ دعوت به عضویت + لینکِ ورود دیده می‌شود.
+// • ترتیب: جدیدترین → قدیمی‌ترین (سرور مرتب می‌کند). بیش از ۱۰ کامنتِ ریشه →
+//   صفحه‌بندیِ سمتِ کلاینت (بدونِ رفرشِ صفحه).
+// • کامنتِ خودِ کاربر تا تأیید ادمین به‌صورت gray-out فقط برای خودش دیده می‌شود
+//   (ذخیره در localStorage همین دستگاه؛ پس از تأیید، خودکار عادی می‌شود).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { formatJalali } from "@/lib/utils/date";
 import { toFaDigits } from "@/lib/utils/digits";
 import { CommentForm, type SubmittedComment } from "./CommentForm";
@@ -22,6 +25,11 @@ export interface CommentNode {
   replies: CommentNode[];
 }
 
+/** کاربرِ عضوِ لاگین‌کرده — فقط نامِ نمایشی. null = مهمان. */
+export interface CurrentUser {
+  name: string;
+}
+
 /** کامنتِ در انتظارِ تأییدِ همین بازدیدکننده (فقط روی همین دستگاه دیده می‌شود). */
 interface PendingComment {
   id: string;
@@ -31,6 +39,7 @@ interface PendingComment {
   createdAtIso: string;
 }
 
+const ROOTS_PER_PAGE = 10; // بیش از ۱۰ کامنتِ ریشه → صفحهٔ بعد
 const PENDING_TTL_MS = 7 * 24 * 60 * 60 * 1000; // ۷ روز
 const pendingKey = (slug: string) => `hamsoo:blog:pending-comments:${slug}`;
 
@@ -74,10 +83,12 @@ export function CommentsSection({
   slug,
   comments,
   totalCount,
+  currentUser,
 }: {
   slug: string;
   comments: CommentNode[];
   totalCount: number;
+  currentUser: CurrentUser | null;
 }) {
   const approvedIds = useMemo(() => {
     const s = new Set<string>();
@@ -86,6 +97,7 @@ export function CommentsSection({
   }, [comments]);
 
   const [pending, setPending] = useState<PendingComment[]>([]);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     setPending(loadPending(slug, approvedIds));
@@ -118,6 +130,20 @@ export function CommentsSection({
     return m;
   }, [pending]);
 
+  // صفحه‌بندیِ کامنت‌های تأییدشده (سرور: جدیدترین→قدیمی‌ترین).
+  const pageCount = Math.max(1, Math.ceil(comments.length / ROOTS_PER_PAGE));
+  const safePage = Math.min(page, pageCount);
+  const pageComments = comments.slice(
+    (safePage - 1) * ROOTS_PER_PAGE,
+    safePage * ROOTS_PER_PAGE
+  );
+
+  function goToPage(p: number) {
+    setPage(p);
+    // پرشِ نرم به بالای بخشِ گفت‌وگو (بدونِ رفرش)
+    document.getElementById("comments")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <section id="comments" className="max-w-2xl py-14 text-right">
       <div className="flex items-center gap-3 mb-8">
@@ -134,16 +160,20 @@ export function CommentsSection({
         )}
       </div>
 
-      {/* فرمِ کامنتِ جدید */}
-      <div
-        className="rounded-2xl p-5 mb-10"
-        style={{ background: "rgba(var(--rgb-card),0.45)", border: "1px solid rgba(var(--rgb-line),0.07)" }}
-      >
-        <p className="text-stone mb-4" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7 }}>
-          نظرت را بنویس. کامنت‌ها پس از مرورِ ما برای همه نمایش داده می‌شوند — ایمیلت خصوصی می‌ماند.
-        </p>
-        <CommentForm slug={slug} onSubmitted={addPending} />
-      </div>
+      {/* فرمِ کامنتِ جدید — فقط برای کاربرِ عضو؛ مهمان → دعوت به عضویت */}
+      {currentUser ? (
+        <div
+          className="rounded-2xl p-5 mb-10"
+          style={{ background: "rgba(var(--rgb-card),0.45)", border: "1px solid rgba(var(--rgb-line),0.07)" }}
+        >
+          <p className="text-stone mb-4" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7 }}>
+            نظرت را بنویس. کامنت‌ها پس از مرورِ ما برای همه نمایش داده می‌شوند.
+          </p>
+          <CommentForm slug={slug} authorName={currentUser.name} onSubmitted={addPending} />
+        </div>
+      ) : (
+        <RegisterGate />
+      )}
 
       {/* فهرستِ کامنت‌ها */}
       {comments.length === 0 && pendingRoots.length === 0 ? (
@@ -151,22 +181,98 @@ export function CommentsSection({
           هنوز کامنتی نیست. اولین نفر باش.
         </p>
       ) : (
-        <div className="space-y-4">
-          {comments.map((c) => (
-            <CommentCard
-              key={c.id}
-              slug={slug}
-              comment={c}
-              pendingReplies={pendingByParent.get(c.id) ?? []}
-              onSubmitted={addPending}
-            />
-          ))}
-          {pendingRoots.map((p) => (
-            <PendingCard key={p.id} item={p} />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4">
+            {/* کامنت‌های در انتظارِ خودِ کاربر — بالای صفحهٔ اول (جدیدترین) */}
+            {safePage === 1 &&
+              pendingRoots.map((p) => <PendingCard key={p.id} item={p} />)}
+            {pageComments.map((c) => (
+              <CommentCard
+                key={c.id}
+                slug={slug}
+                comment={c}
+                currentUser={currentUser}
+                pendingReplies={pendingByParent.get(c.id) ?? []}
+                onSubmitted={addPending}
+              />
+            ))}
+          </div>
+
+          {pageCount > 1 && (
+            <Pagination page={safePage} pageCount={pageCount} onChange={goToPage} />
+          )}
+        </>
       )}
     </section>
+  );
+}
+
+// ─── کارتِ دعوت به عضویت (مهمان) ────────────────────────────────────────────
+function RegisterGate() {
+  return (
+    <div
+      className="rounded-2xl p-6 mb-10 text-center"
+      style={{ background: "rgba(var(--rgb-card),0.45)", border: "1px solid rgba(var(--rgb-line),0.08)" }}
+    >
+      <p className="text-stone" style={{ fontWeight: 300, fontSize: "15px", lineHeight: 1.9 }}>
+        برای ثبت نظر باید عضو همسو شوی.
+      </p>
+      <Link
+        href="/login"
+        className="btn btn-primary mt-4 inline-flex"
+        style={{ fontSize: "14px", padding: "0.6rem 1.6rem" }}
+      >
+        ورود یا ثبت‌نام
+      </Link>
+    </div>
+  );
+}
+
+// ─── نوارِ صفحه‌بندی (بدونِ رفرش) ────────────────────────────────────────────
+function Pagination({
+  page,
+  pageCount,
+  onChange,
+}: {
+  page: number;
+  pageCount: number;
+  onChange: (p: number) => void;
+}) {
+  const pages = Array.from({ length: pageCount }, (_, i) => i + 1);
+  const navStyle = (active: boolean): React.CSSProperties =>
+    active
+      ? { background: "var(--color-ink)", color: "var(--color-paper)", fontWeight: 500 }
+      : { background: "rgba(var(--rgb-line),0.05)", color: "var(--color-stone)", fontWeight: 400 };
+
+  return (
+    <div className="mt-8 flex items-center justify-center gap-1.5 flex-wrap" dir="ltr">
+      <button
+        onClick={() => onChange(page - 1)}
+        disabled={page <= 1}
+        className="text-xs rounded-lg px-3 py-1.5 transition-all disabled:opacity-35"
+        style={navStyle(false)}
+      >
+        قبلی
+      </button>
+      {pages.map((p) => (
+        <button
+          key={p}
+          onClick={() => onChange(p)}
+          className="fa-num text-xs rounded-lg w-8 h-8 transition-all"
+          style={navStyle(p === page)}
+        >
+          {toFaDigits(p)}
+        </button>
+      ))}
+      <button
+        onClick={() => onChange(page + 1)}
+        disabled={page >= pageCount}
+        className="text-xs rounded-lg px-3 py-1.5 transition-all disabled:opacity-35"
+        style={navStyle(false)}
+      >
+        بعدی
+      </button>
+    </div>
   );
 }
 
@@ -211,11 +317,13 @@ function CommentHeader({ name, isAdmin, dateIso }: { name: string; isAdmin: bool
 function CommentCard({
   slug,
   comment,
+  currentUser,
   pendingReplies,
   onSubmitted,
 }: {
   slug: string;
   comment: CommentNode;
+  currentUser: CurrentUser | null;
   pendingReplies: PendingComment[];
   onSubmitted: (c: SubmittedComment) => void;
 }) {
@@ -235,27 +343,31 @@ function CommentCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <CommentHeader name={comment.authorName} isAdmin={comment.isAdminReply} dateIso={comment.createdAtIso} />
-            <button
-              onClick={() => setReplying((v) => !v)}
-              className="shrink-0 text-xs rounded-full px-3 py-1 transition-all"
-              style={
-                replying
-                  ? { color: "var(--color-ember)", background: "rgba(199,93,60,0.07)", fontWeight: 400 }
-                  : { color: "var(--color-sage-deep)", background: "rgba(122,132,113,0.08)", fontWeight: 400 }
-              }
-            >
-              {replying ? "بستن" : "پاسخ"}
-            </button>
+            {/* پاسخ فقط برای کاربرِ عضو */}
+            {currentUser && (
+              <button
+                onClick={() => setReplying((v) => !v)}
+                className="shrink-0 text-xs rounded-full px-3 py-1 transition-all"
+                style={
+                  replying
+                    ? { color: "var(--color-ember)", background: "rgba(199,93,60,0.07)", fontWeight: 400 }
+                    : { color: "var(--color-sage-deep)", background: "rgba(122,132,113,0.08)", fontWeight: 400 }
+                }
+              >
+                {replying ? "بستن" : "پاسخ"}
+              </button>
+            )}
           </div>
 
           <p className="mt-2 text-stone" style={{ fontWeight: 300, fontSize: "15px", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
             {comment.body}
           </p>
 
-          {replying && (
+          {replying && currentUser && (
             <div className="mt-4">
               <CommentForm
                 slug={slug}
+                authorName={currentUser.name}
                 parentId={comment.id}
                 compact
                 onSubmitted={onSubmitted}

@@ -800,10 +800,15 @@ model BlogPost {
 // status: "pending" (در انتظار) | "approved" (تأیید) | "rejected" (رد).
 // authorEmail خصوصی است — هرگز در سایت نمایش داده نمی‌شود.
 // isAdminReply: پاسخِ رسمی «همسو» (نمایش متمایز، بدون نیاز به تأیید).
+// authorUserId (DECISION-079): فقط کاربرانِ عضو (لاگین‌کرده) می‌توانند کامنت بگذارند؛
+//   این = id حسابِ کاربر برای تریسِ دقیق در پنل (مهم چون ورودِ اصلی موبایل+OTP است و
+//   اکثر کاربران ایمیل ندارند). null فقط برای پاسخ‌های رسمیِ ادمین (isAdminReply).
+//   اسکالر بدون relation تا مدلِ User دست‌نخورده بماند؛ lookup سمتِ پنل دستی است.
 model BlogComment {
   id           String    @id @default(cuid())
   postId       String
   parentId     String? // پاسخ به کامنت دیگر — null = ریشه
+  authorUserId String? // id کاربرِ عضو (DECISION-079) — null برای پاسخ ادمین
   authorName   String
   authorEmail  String // خصوصی — فقط برای ادمین
   body         String
@@ -820,6 +825,7 @@ model BlogComment {
 
   @@index([postId, status])
   @@index([status, createdAt])
+  @@index([authorUserId])
 }
 
 // BlogLike — لایک یکتا per (post, fingerprint). کاربر لاگین نیست → fingerprint = hash(IP+UA).

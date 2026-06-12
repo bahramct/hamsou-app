@@ -1,20 +1,31 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /api/blog/<slug>/comments — ثبتِ کامنتِ عمومی (DECISION-065)
-// هر کسی (حتی غیرکاربر) با نام+ایمیل+متن. وضعیتِ اولیه pending — فقط پس از تأییدِ
-// ادمین در سایت نمایش داده می‌شود. ایمیل خصوصی است. honeypot ساده ضدِ ربات.
+// POST /api/blog/<slug>/comments — ثبتِ کامنت (DECISION-079؛ بازنگریِ DECISION-065)
+// فقط کاربرانِ عضو (لاگین‌کرده) می‌توانند کامنت بگذارند. هویت از session می‌آید —
+// نه از بدنهٔ درخواست. اگر کاربر عضو/لاگین نباشد → 401 با پیام دعوت به عضویت.
+// وضعیتِ اولیه pending — فقط پس از تأییدِ ادمین در سایت دیده می‌شود.
+// نام نمایشی = displayName کاربر؛ ایمیل/موبایل خصوصی (فقط ادمین). honeypot ساده.
 // «اعلان پنل»: کامنتِ جدید در شمارِ nav-counts پنل ظاهر می‌شود.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
-import { COMMENT_MAX_LEN, COMMENT_NAME_MAX_LEN } from "@/lib/blog/constants";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { getSessionUser } from "@/lib/utils/auth-server";
+import { COMMENT_MAX_LEN } from "@/lib/blog/constants";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
 export async function POST(req: NextRequest, { params }: Ctx) {
   const { slug } = await params;
+
+  // گیتِ عضویت — فقط کاربرِ لاگین‌کرده (DECISION-079)
+  const session = await getSessionUser();
+  if (!session) {
+    return NextResponse.json(
+      { error: "برای ثبت نظر باید عضو همسو شوی.", requireAuth: true },
+      { status: 401 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const b = (body ?? {}) as Record<string, unknown>;
 
@@ -23,17 +34,23 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ ok: true, pending: true });
   }
 
-  const name = typeof b.name === "string" ? b.name.trim() : "";
-  const email = typeof b.email === "string" ? b.email.trim() : "";
   const text = typeof b.body === "string" ? b.body.trim() : "";
   const parentId = typeof b.parentId === "string" && b.parentId ? b.parentId : null;
 
-  if (!name || name.length > COMMENT_NAME_MAX_LEN)
-    return NextResponse.json({ error: "نام را درست وارد کن." }, { status: 400 });
-  if (!EMAIL_RE.test(email))
-    return NextResponse.json({ error: "ایمیل معتبر نیست." }, { status: 400 });
   if (!text || text.length > COMMENT_MAX_LEN)
     return NextResponse.json({ error: "متنِ کامنت را درست وارد کن." }, { status: 400 });
+
+  // هویتِ نویسنده از حساب (نه از بدنهٔ درخواست)
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { displayName: true, username: true, email: true, phone: true },
+  });
+  if (!user) {
+    return NextResponse.json(
+      { error: "برای ثبت نظر باید عضو همسو شوی.", requireAuth: true },
+      { status: 401 }
+    );
+  }
 
   const post = await prisma.blogPost.findFirst({
     where: { slug, status: "published" },
@@ -50,12 +67,18 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     if (!parent) return NextResponse.json({ error: "کامنتِ مرجع نامعتبر است." }, { status: 400 });
   }
 
+  // نامِ نمایشی: displayName کاربر (نام‌کاربری/ایمیل/موبایل هرگز نمایش داده نمی‌شوند).
+  const displayName = user.displayName?.trim() || "عضو همسو";
+  // ردِ پای خصوصی برای پنل: ایمیل اگر بود، وگرنه موبایل (فقط ادمین می‌بیند).
+  const privateContact = user.email?.trim() || user.phone?.trim() || "";
+
   const created = await prisma.blogComment.create({
     data: {
       postId: post.id,
       parentId,
-      authorName: name,
-      authorEmail: email,
+      authorUserId: session.userId,
+      authorName: displayName,
+      authorEmail: privateContact,
       body: text,
       status: "pending",
     },

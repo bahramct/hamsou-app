@@ -60,6 +60,19 @@ export class ResendEmailAdapter implements EmailAdapter {
     }
     return { success: true, messageId: data.id };
   }
+
+  async sendContactReply(email: string, subject: string, message: string): Promise<SendEmailResult> {
+    const { data, error } = await this.client.emails.send({
+      from: this.from,
+      to: email,
+      subject,
+      html: buildMessageHtml(subject, message),
+    });
+    if (error || !data?.id) {
+      return { success: false, error: error?.message ?? "خطای ناشناخته Resend" };
+    }
+    return { success: true, messageId: data.id };
+  }
 }
 
 // ─── قالب‌های HTML ────────────────────────────────────────────────────────────
@@ -75,6 +88,28 @@ function buildCodeHtml(code: string, title: string): string {
     <p style="font-size:14px;color:#555;margin:0 0 24px 0;">کد زیر را در همسو وارد کن:</p>
     <div style="font-size:36px;font-weight:700;letter-spacing:10px;text-align:center;padding:20px 16px;background:#f5f4f0;border-radius:12px;margin:0 0 24px 0;direction:ltr;color:#1a1a1a;">${code}</div>
     <p style="font-size:12px;color:#aaa;margin:0;line-height:1.8;">این کد ۲۴ ساعت معتبر است.<br>اگر این درخواست را نداده‌ای، این ایمیل را نادیده بگیر.</p>
+  </div>
+</body>
+</html>`;
+}
+
+/** پاسخِ آزادِ تماس — متنِ کاربر escape و خطوط حفظ می‌شوند (ضدِ تزریقِ HTML). */
+function buildMessageHtml(title: string, message: string): string {
+  const safe = message
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\n/g, "<br>");
+  return `<!DOCTYPE html>
+<html dir="rtl" lang="fa">
+<head><meta charset="utf-8"><title>${title}</title></head>
+<body style="margin:0;padding:0;background:#fafaf8;font-family:system-ui,-apple-system,sans-serif;">
+  <div style="max-width:520px;margin:40px auto;padding:32px;background:#ffffff;border-radius:16px;border:1px solid #e8e5de;">
+    <p style="font-size:13px;color:#888;margin:0 0 4px 0;">همسو</p>
+    <h1 style="font-size:17px;font-weight:600;color:#1a1a1a;margin:0 0 20px 0;">${title}</h1>
+    <div style="font-size:14px;color:#444;line-height:1.95;">${safe}</div>
+    <hr style="border:none;border-top:1px solid #eee;margin:24px 0 16px 0;">
+    <p style="font-size:11px;color:#bbb;margin:0;line-height:1.8;">این پاسخ از تیمِ همسو در پاسخ به پیامِ «تماس با ما»ی توست.</p>
   </div>
 </body>
 </html>`;

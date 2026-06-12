@@ -15,7 +15,7 @@ import { prisma } from "@/lib/db/client";
 import { getDefaultEmailService, type ResolvedEmailService } from "@/lib/email/services";
 import { getEmailAdapterForService } from "@/lib/adapters";
 
-export type EmailPurpose = "signup" | "add-email" | "password-reset" | "test";
+export type EmailPurpose = "signup" | "add-email" | "password-reset" | "test" | "contact-reply";
 
 export interface SendEmailServiceResult {
   success: boolean;
@@ -49,6 +49,7 @@ const SUBJECTS: Record<string, string> = {
   "add-email": "کد تأیید ایمیل — همسو",
   "password-reset": "بازیابی رمز عبور — همسو",
   test: "ایمیل آزمایشی — همسو",
+  "contact-reply": "پاسخ همسو",
 };
 
 function mockService(): ResolvedEmailService {
@@ -107,6 +108,15 @@ export async function sendPasswordResetEmail(
   link: string
 ): Promise<SendEmailServiceResult> {
   return _send(email, "password-reset", (adapter) => adapter.sendPasswordResetLink(email, link));
+}
+
+/** پاسخِ ادمین به پیامِ «تماس با ما» — فرستنده = سرویسِ پیش‌فرض (hello@hamsouapp.ir) (DECISION-079). */
+export async function sendContactReplyEmail(
+  email: string,
+  subject: string,
+  message: string
+): Promise<SendEmailServiceResult> {
+  return _send(email, "contact-reply", (adapter) => adapter.sendContactReply(email, subject, message));
 }
 
 // ─── هسته مشترک ──────────────────────────────────────────────────────────────

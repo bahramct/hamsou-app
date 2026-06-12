@@ -22,4 +22,10 @@ export interface EmailAdapter {
    * ارسال لینک بازیابی رمز — توکن ۳۲-بایتی، منقضی‌شدنی ۱ ساعته
    */
   sendPasswordResetLink(email: string, link: string): Promise<SendEmailResult>;
+
+  /**
+   * پاسخِ ادمین به پیامِ «تماس با ما» (DECISION-079).
+   * subject و متنِ آزادِ پاسخ؛ فرستنده = آدرسِ سرویسِ پیکربندی‌شده (hello@hamsouapp.ir).
+   */
+  sendContactReply(email: string, subject: string, message: string): Promise<SendEmailResult>;
 }

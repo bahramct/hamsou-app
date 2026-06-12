@@ -35,4 +35,13 @@ export class MockEmailAdapter implements EmailAdapter {
     }
     return { success: true, messageId: `mock-${Date.now()}` };
   }
+
+  async sendContactReply(email: string, subject: string, message: string): Promise<SendEmailResult> {
+    if (process.env.NODE_ENV !== "test") {
+      console.log(
+        `[MockEmailAdapter] پاسخِ تماس به ${email} — «${subject}»:\n  ${message}   (${new Date().toLocaleTimeString("fa-IR")})`
+      );
+    }
+    return { success: true, messageId: `mock-${Date.now()}` };
+  }
 }

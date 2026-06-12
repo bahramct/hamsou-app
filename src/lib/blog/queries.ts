@@ -240,8 +240,10 @@ export interface CommentView {
   replies: CommentView[];
 }
 
-/** کامنت‌های تأییدشدهٔ یک مقاله، به‌صورتِ درختیِ یک‌سطح (ریشه + پاسخ‌ها). */
+/** کامنت‌های تأییدشدهٔ یک مقاله، به‌صورتِ درختیِ یک‌سطح (ریشه + پاسخ‌ها).
+ *  ترتیبِ ریشه‌ها: جدیدترین → قدیمی‌ترین. پاسخ‌ها زیرِ هر ریشه: قدیمی→جدید (روالِ گفت‌وگو). */
 export async function getApprovedComments(postId: string): Promise<CommentView[]> {
+  // asc می‌خوانیم تا درخت درست ساخته شود (ریشه قبل از پاسخ)، سپس ریشه‌ها را معکوس می‌کنیم.
   const rows = await prisma.blogComment.findMany({
     where: { postId, status: "approved" },
     orderBy: { createdAt: "asc" },
@@ -275,5 +277,6 @@ export async function getApprovedComments(postId: string): Promise<CommentView[]
     }
   }
 
-  return roots.map(({ parentId: _p, ...n }) => n);
+  // جدیدترین کامنتِ ریشه بالا (پاسخ‌ها همچنان به‌ترتیبِ زمانیِ گفت‌وگو می‌مانند).
+  return roots.reverse().map(({ parentId: _p, ...n }) => n);
 }

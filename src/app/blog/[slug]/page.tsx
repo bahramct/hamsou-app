@@ -22,6 +22,8 @@ import {
 import { renderMarkdown, extractHeadings } from "@/lib/blog/markdown";
 import { formatJalali } from "@/lib/utils/date";
 import { toFaDigits } from "@/lib/utils/digits";
+import { getSessionUser } from "@/lib/utils/auth-server";
+import { prisma } from "@/lib/db/client";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +55,18 @@ function countComments(nodes: CommentView[]): number {
   return nodes.reduce((sum, n) => sum + 1 + n.replies.length, 0);
 }
 
+/** کاربرِ عضوِ لاگین‌کرده (یا null). فقط نامِ نمایشی لازم است (DECISION-079). */
+async function getCommentAuthor(): Promise<{ name: string } | null> {
+  const session = await getSessionUser();
+  if (!session) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { displayName: true },
+  });
+  if (!user) return null;
+  return { name: user.displayName?.trim() || "عضو همسو" };
+}
+
 /** تبدیلِ CommentView (با Date) به CommentNode سریال‌پذیر (با ISO). */
 function toNode(c: CommentView): CommentNode {
   return {
@@ -71,11 +85,12 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const [comments, related, popular, tags] = await Promise.all([
+  const [comments, related, popular, tags, currentUser] = await Promise.all([
     getApprovedComments(post.id),
     getRelatedPosts(post.slug, post.categorySlug, 3),
     getPopularPosts(4),
     getPopularTags(10),
+    getCommentAuthor(),
   ]);
 
   // «خواندنی‌ترین‌ها» بدونِ خودِ مقاله
@@ -196,7 +211,12 @@ export default async function BlogPostPage({ params }: Props) {
               </div>
 
               {/* کامنت‌ها — هم‌عرض و هم‌راستا با متنِ مقاله (راست‌چین) */}
-              <CommentsSection slug={post.slug} comments={commentNodes} totalCount={commentTotal} />
+              <CommentsSection
+                slug={post.slug}
+                comments={commentNodes}
+                totalCount={commentTotal}
+                currentUser={currentUser}
+              />
             </div>
 
             {/* ─── سایدبار: فهرست مطالب + خواندنی‌ترین‌ها + برچسب‌ها ─── */}

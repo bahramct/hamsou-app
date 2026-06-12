@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast } from "@/lib/notifications/toast";
-import { COMMENT_MAX_LEN, COMMENT_NAME_MAX_LEN } from "@/lib/blog/constants";
+import { COMMENT_MAX_LEN } from "@/lib/blog/constants";
 
-// فرمِ کامنت — هم برای کامنتِ ریشه و هم پاسخ (با parentId). متنِ دکمه ثابت می‌ماند
-// (DECISION-053)؛ فقط Spinner و toast. کامنت پس از تأییدِ ادمین برای همه نمایش
-// داده می‌شود؛ تا آن موقع برای خودِ نویسنده gray-out دیده می‌شود (onSubmitted).
+// فرمِ کامنت — هم برای کامنتِ ریشه و هم پاسخ (با parentId). فقط کاربرِ عضو می‌بیند؛
+// هویت (نام/ایمیل) از session می‌آید نه از این فرم (DECISION-079) — پس فقط متن.
+// متنِ دکمه ثابت می‌ماند (DECISION-053)؛ فقط Spinner و toast. کامنت پس از تأییدِ
+// ادمین برای همه نمایش داده می‌شود؛ تا آن موقع برای خودِ نویسنده gray-out دیده می‌شود.
 
 /** دادهٔ کامنتِ تازه‌ثبت‌شده — برای نمایشِ gray-out تا تأییدِ ادمین. */
 export interface SubmittedComment {
@@ -20,6 +21,7 @@ export interface SubmittedComment {
 
 export function CommentForm({
   slug,
+  authorName,
   parentId,
   onDone,
   onCancel,
@@ -27,14 +29,14 @@ export function CommentForm({
   compact = false,
 }: {
   slug: string;
+  /** نامِ نمایشیِ کاربرِ لاگین‌کرده — برای gray-outِ کامنتِ خودش. */
+  authorName: string;
   parentId?: string;
   onDone?: () => void;
   onCancel?: () => void;
   onSubmitted?: (c: SubmittedComment) => void;
   compact?: boolean;
 }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [busy, setBusy] = useState(false);
@@ -42,8 +44,8 @@ export function CommentForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
-    if (!name.trim() || !email.trim() || !body.trim()) {
-      toast.error("نام، ایمیل و متنِ کامنت لازم است.");
+    if (!body.trim()) {
+      toast.error("متنِ کامنت لازم است.");
       return;
     }
     setBusy(true);
@@ -51,7 +53,7 @@ export function CommentForm({
       const res = await fetch(`/api/blog/${encodeURIComponent(slug)}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, body, parentId, website }),
+        body: JSON.stringify({ body, parentId, website }),
       });
       const d = await res.json();
       if (res.ok && d?.ok) {
@@ -60,16 +62,16 @@ export function CommentForm({
         if (d.comment?.id && onSubmitted) {
           onSubmitted({
             id: d.comment.id,
-            authorName: d.comment.authorName ?? name.trim(),
+            authorName: d.comment.authorName ?? authorName,
             body: d.comment.body ?? body.trim(),
             parentId: d.comment.parentId ?? parentId ?? null,
             createdAtIso: d.comment.createdAtIso ?? new Date().toISOString(),
           });
         }
-        setName("");
-        setEmail("");
         setBody("");
         onDone?.();
+      } else if (res.status === 401 || d?.requireAuth) {
+        toast.error(d?.error ?? "برای ثبت نظر باید عضو همسو شوی.");
       } else {
         toast.error(d?.error ?? "ثبتِ کامنت انجام نشد.");
       }
@@ -104,36 +106,6 @@ export function CommentForm({
         style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
         aria-hidden
       />
-
-      <div className={compact ? "" : "grid grid-cols-1 sm:grid-cols-2 gap-3"}>
-        <input
-          type="text"
-          placeholder="نام"
-          value={name}
-          maxLength={COMMENT_NAME_MAX_LEN}
-          onChange={(e) => setName(e.target.value)}
-          style={inputStyle}
-        />
-        {!compact && (
-          <input
-            type="email"
-            placeholder="ایمیل (نمایش داده نمی‌شود)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={{ ...inputStyle, direction: "ltr", textAlign: "right" }}
-          />
-        )}
-      </div>
-
-      {compact && (
-        <input
-          type="email"
-          placeholder="ایمیل (نمایش داده نمی‌شود)"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={{ ...inputStyle, direction: "ltr", textAlign: "right" }}
-        />
-      )}
 
       <textarea
         placeholder={parentId ? "پاسخت را بنویس…" : "کامنتت را بنویس…"}

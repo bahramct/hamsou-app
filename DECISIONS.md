@@ -1534,4 +1534,80 @@
 
 ---
 
+---
+
+### DECISION-076 ✅ | محافظت قیمتی پلن — جایگزین منطق rank-based با price-based
+- **تاریخ:** ۲۰۲۶-۰۶-۱۲
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **مشکل:** منطق قدیمی rank-based (FREE=0، PLUS=1، PRO=2) اجازه تغییر پلن را صرفاً بر اساس رتبه می‌داد؛ اما قیمت مبنا نبود. کاربر می‌توانست از PLUS سالانه (۶۰۰ک) به PRO ماهانه (۱۰۰ک) برود که ارزان‌تر بود.
+- **قاعده جدید:** مقایسه **قیمت کامل دوره** (نه رتبه). اگر قیمت پلن جدید برای دوره انتخابی < قیمت پلن فعال برای دوره فعلی → مسدود. مثال‌ها:
+  - PRO ماهانه (۱۰۰ک) → PLUS سالانه (۶۰۰ک): **مجاز** (۶۰۰ک > ۱۰۰ک)
+  - PLUS سالانه (۶۰۰ک) → PRO ماهانه (۱۰۰ک): **مسدود** (۱۰۰ک < ۶۰۰ک)
+  - PLUS سالانه → PRO سالانه: **مجاز** (PRO سالانه گران‌تر)
+- **چرخه فعلی کاربر:** از آخرین `WalletTransaction` موفق (type=purchase، planKey=پلن فعلی) خوانده می‌شود. اگر تراکنشی نبود (ادمین دستی داد) → فرض ماهانه (محافظه‌کار).
+- **ادمین:** مسیر پنل ادمین از این قید مستثناست (مستقیم User.plan را تغییر می‌دهد).
+- **پیاده‌سازی:** `src/lib/plans/purchase.ts` (helper `getCurrentPlanPrice`، تغییر در `quotePlanPurchase`، `purchasePlan`، `applyGatewayPlanPurchase`). UI: `PlansPricing.tsx` + `plans/page.tsx` (prop جدید `currentPlanBasePrice`).
+- **اعتبارسنجی:** `tsc` ✅
+
+---
+
+### DECISION-077 ✅ | کپچای پیچیده‌تر — چهار نوع چالش ریاضی
+- **تاریخ:** ۲۰۲۶-۰۶-۱۲
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **مشکل:** کپچای قبلی فقط جمع سادهٔ تک‌رقمی بود (مثل ۳+۵) که برای ربات‌های مدرن ساده است.
+- **راه‌حل:** چهار نوع چالش با انتخاب تصادفی:
+  1. **جمع دورقمی:** a + b (a,b ∈ [۱۱–۴۹]، نتیجه ≤ ۹۸)
+  2. **ضرب تکی:** a × b (a,b ∈ [۳–۹]، نتیجه ≤ ۸۱)
+  3. **ضرب + جمع:** a × b + c (نتیجه ≤ ۹۹)
+  4. **ضرب − تفریق:** a × b − c (نتیجه ≥ ۲)
+- **SVG:** عرض پویا (`max(180, chars*22+40)`) برای جا گرفتن عبارت‌های طولانی‌تر. ۵ خط نویز (قبلاً ۴) + ۲۰ نقطه (قبلاً ۱۴). فونت bold‌تر.
+- **Verify:** همان regex `/^\d{1,3}$/` — نتایج همه حالات ≤ ۹۹ (دورقمی).
+- **UI:** placeholder فرم تماس از «حاصل جمع؟» به «پاسخ؟» تغییر کرد.
+- **پیاده‌سازی:** `src/lib/captcha/captcha.ts` + `src/components/features/contact/ContactForm.tsx`.
+- **اعتبارسنجی:** `tsc` ✅
+
+---
+
+### DECISION-078 ✅ | اصلاحات UI/UX دور سوم — ChatFAB، Share Modal، OTP Display
+- **تاریخ:** ۲۰۲۶-۰۶-۱۲
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **تغییر ۱ — ChatFAB بعد از لاگین:** Next.js App Router layoutها در client-side navigation کش می‌شوند؛ `isAuthenticated` از رندر قبل از لاگین حفظ می‌ماند. راه‌حل: `window.location.href = "/dashboard"` به‌جای `router.push` — full page reload تضمین می‌کند layout با session جدید re-render شود.
+- **تغییر ۲ — Share Modal no-scroll:** حذف section ⑤ (متن حریم خصوصی + لینک «لغو اشتراک‌گذاری»). تغییر `overflow-y: auto` به `overflow: hidden` روی `.sharem-panel`. کوچک‌تر شدن آیکون‌های شبکه‌های اجتماعی از ۴۸×۴۸ به ۴۰×۴۰ (SVG از ۲۰px به ۱۶px).
+- **تغییر ۳ — OTP phone number dir:** حذف `dir="ltr"` از span شماره موبایل در مرحلهٔ OTP. در RTL context با `dir="ltr"` bidi algorithm ترتیب بصری را معکوس می‌کرد. اضافه کردن `underline decoration-dotted` برای وضوح clickable بودن.
+- **پیاده‌سازی:** `src/app/login/page.tsx` + `src/components/features/reports/ShareModal.tsx` + `src/app/globals.css`.
+- **اعتبارسنجی:** `tsc --noEmit` ✅
+
+---
+
+### DECISION-079 ✅ | کامنتِ بلاگ فقط برای اعضا + پاسخِ ایمیلیِ تماس + حذفِ بخشِ محتوا از پنل
+- **تاریخ:** ۲۰۲۶-۰۶-۱۲
+- **وضعیت:** ✅ پیاده‌سازی شد
+- **بستر:** سه اصلاح هم‌زمان با رعایتِ اصل هم‌ترازی (سایت ↔ پنل).
+
+**۱) گیتِ عضویتِ کامنتِ بلاگ (بازنگریِ DECISION-065):**
+- پیش‌تر هر مهمان با نام+ایمیل کامنت می‌گذاشت. حالا **فقط کاربرِ لاگین‌کرده** (session) می‌تواند کامنت/پاسخ بگذارد. مهمان به‌جای فرم، کارتِ «برای ثبت نظر باید عضو همسو شوی» + لینکِ `/login` می‌بیند.
+- هویت **از session** می‌آید نه از بدنهٔ درخواست (ضدِ جعل). نامِ نمایشی = `displayName` کاربر؛ نام‌کاربری/ایمیل/موبایل هرگز نمایش داده نمی‌شوند.
+- **schema:** ستونِ `authorUserId String?` به `BlogComment` افزوده شد (db push، افزایشی، nullable؛ null فقط برای پاسخِ رسمیِ ادمین) — برای تریسِ دقیقِ پنل، چون ورودِ اصلی موبایل+OTP است و اکثر کاربران ایمیل ندارند. `authorEmail` حالا ایمیل **یا** موبایلِ کاربر را برای ادمین نگه می‌دارد.
+- مدریشن دست‌نخورده: کامنت `pending` می‌ماند تا تأییدِ ادمین.
+- **ترتیب + صفحه‌بندی:** ریشه‌ها جدیدترین→قدیمی‌ترین؛ بیش از ۱۰ کامنتِ ریشه → صفحه‌بندیِ سمتِ کلاینت بدونِ رفرش. پاسخ‌ها زیرِ هر ریشه به‌ترتیبِ زمانیِ گفت‌وگو.
+- **داده:** همهٔ کامنت‌های موجود حذف شدند و `commentCount` صفر شد (شروعِ تمیز برای تریس).
+- **فایل‌ها:** `prisma/schema.prisma` · `src/app/api/blog/[slug]/comments/route.ts` · `src/app/blog/[slug]/page.tsx` · `src/components/features/blog/CommentForm.tsx` · `CommentsSection.tsx` · `src/lib/blog/queries.ts`.
+
+**۲) پاسخِ ایمیلیِ «تماس با ما» (جایگزینِ mailto):**
+- پیش‌تر دکمهٔ «پاسخ» فقط `mailto:` بود. حالا ادمین در مودال باکسِ متنی باز می‌کند و پاسخ **با سرویسِ ایمیلِ پیش‌فرض (فرستنده hello@hamsouapp.ir)** به فرستنده ارسال می‌شود.
+- متد `sendContactReply` به `EmailAdapter` (+ Resend و Mock) و تابعِ `sendContactReplyEmail` (purpose `contact-reply`) به `email/send.ts` افزوده شد. مسیرِ جدید `POST /api/admin/contact/[id]/reply` (permission `support.respond`) — پس از ارسالِ موفق پیام را خوانده‌شده می‌کند.
+- **نکتهٔ ops:** فرستندهٔ واقعی = `fromAddress` سرویسِ پیکربندی‌شده در پنل؛ برای hello@hamsouapp.ir باید دامنه در Resend verify و آدرس تنظیم شود.
+- **UI پنل:** کارت‌های پیامِ تماس **دو‌ستونه و تقریباً مربعی**؛ کلیک → مودالِ متنِ کامل؛ دکمهٔ صریحِ «مشاهده شد» → تبِ خوانده‌شده (دیگر باز شدن، خودکار خوانده‌شده نمی‌کند). متنِ دکمه‌ها ثابت (DECISION-053).
+- **فایل‌ها:** `src/lib/adapters/email.adapter.ts` · `resend-email.adapter.ts` · `mock-email.adapter.ts` · `src/lib/email/send.ts` · `src/app/api/admin/contact/[id]/reply/route.ts` · `src/components/admin/contact/ContactMessagesManager.tsx`.
+
+**۳) حذفِ بخشِ «محتوا» از پنل ادمین (CMS سکشن‌ها):**
+- بخش بسیار حساس بود؛ با دقت **فقط لایهٔ ادمینِ ویرایش** حذف شد و **لایهٔ رندرِ سایت دست‌نخورده** ماند تا چیزی نشکند. صفحاتِ استاتیک (درباره/تماس/داستان/حریم/فرود) همچنان از `src/lib/cms/queries.ts` (منتشرشده → fallback پیش‌فرضِ کد) رندر می‌شوند.
+- **حذف‌شده:** `src/app/admin/(panel)/content/*` · `src/app/admin/content-preview/*` · `src/app/api/admin/content/*` · `src/components/admin/content/*` + آیتمِ nav «محتوا» در `AdminShell`.
+- **حفظ‌شده (عمداً):** کلیدهای permission `content.read`/`content.write` و نقشِ سیستمیِ «تولیدکنندهٔ محتوا» در `permissions.ts` (حذفشان نیازمندِ reseed و شکستنِ نقش بود) + کلِ `src/lib/cms/*` و `src/components/cms/*` (رندرِ سایت). جداولِ `PageSection`/`PageContent` بدونِ تغییر ماندند.
+- بازنویسیِ این بخش با رویکردِ دیگری در آینده.
+- **اعتبارسنجی:** `tsc --noEmit` ✅ (۰ خطا).
+
+---
+
 *هر تصمیم جدید باید به این فایل اضافه شود — نه به TASKS.md یا CLAUDE.md*
+
