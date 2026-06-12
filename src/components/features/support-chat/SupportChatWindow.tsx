@@ -266,7 +266,7 @@ export function SupportChatWindow({ isOpen, onClose, onSeen }: Props) {
         aria-modal="true"
         aria-label="پشتیبانی آنلاین همسو"
         className="fixed bottom-0 right-0 left-0 sm:left-auto sm:right-6 sm:bottom-6 z-50
-                   w-full sm:w-95 h-[85dvh] sm:h-155
+                   w-full sm:w-95 h-[85dvh] sm:h-155 sm:max-h-[calc(100dvh-2rem)]
                    flex flex-col overflow-hidden
                    rounded-t-3xl sm:rounded-3xl
                    bg-paper border border-black/6

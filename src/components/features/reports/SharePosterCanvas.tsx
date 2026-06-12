@@ -65,7 +65,7 @@ export function SharePosterCanvas({ data }: Props) {
   const radarUri = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(radarSvg(radarDims))))}`;
   const donutLegend = buildDonutLegend(m);
   const insights = data.insights.slice(0, 3);
-  const reflectionQuote = data.reflection ? clip(data.reflection, 220) : null;
+  const reflectionQuote = data.reflection ?? null;
 
   const panel = (children: React.ReactNode) => (
     <div
@@ -234,7 +234,7 @@ export function SharePosterCanvas({ data }: Props) {
         <>
           {caption("خلاصه")}
           <p style={{ fontSize: 24, color: K.stone, lineHeight: 1.9, fontFamily: FONT, margin: 0, textAlign: "right" }}>
-            {clip(data.summary, 280)}
+            {data.summary}
           </p>
         </>
       )}
@@ -256,7 +256,7 @@ export function SharePosterCanvas({ data }: Props) {
                 }}
               />
               <p style={{ fontSize: 23, color: K.stone, lineHeight: 1.75, fontFamily: FONT, margin: 0, textAlign: "right" }}>
-                {clip(it.text, 120)}
+                {it.text}
               </p>
             </div>
           ))}
