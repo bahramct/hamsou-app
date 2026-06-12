@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/lib/notifications/toast";
 
 // نوارِ اشتراک‌گذاری — کپیِ لینکِ کوتاه + اشتراک در تلگرام/واتساپ/ایکس (DECISION-065).
@@ -15,12 +15,15 @@ export function ShareBar({
   title: string;
 }) {
   const [copied, setCopied] = useState(false);
+  // origin در SSR خالی است — useEffect بعد از hydration مقدار واقعی می‌دهد
+  const [siteOrigin, setSiteOrigin] = useState("");
 
-  function origin() {
-    return typeof window !== "undefined" ? window.location.origin : "";
-  }
-  const fullUrl = `${origin()}/blog/${slug}`;
-  const shortUrl = `${origin()}/b/${shortCode}`;
+  useEffect(() => {
+    setSiteOrigin(window.location.origin);
+  }, []);
+
+  const fullUrl = `${siteOrigin}/blog/${slug}`;
+  const shortUrl = `${siteOrigin}/b/${shortCode}`;
 
   async function copyShort() {
     try {
