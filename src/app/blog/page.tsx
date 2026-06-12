@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LandingEffects } from "@/components/features/landing/LandingEffects";
 import { LandingNav } from "@/components/layout/LandingNav";
 import { LandingFooter } from "@/components/layout/LandingFooter";
-import { PostCard } from "@/components/features/blog/PostCard";
+import { PostsExplorer, type ExplorerPost } from "@/components/features/blog/PostsExplorer";
 import { BlogSidebar } from "@/components/features/blog/BlogSidebar";
 import {
   getPublishedPosts,
@@ -11,7 +11,9 @@ import {
   getCategoriesWithCount,
   getPopularPosts,
   getPopularTags,
+  type PostCardView,
 } from "@/lib/blog/queries";
+import { formatJalali } from "@/lib/utils/date";
 import { toFaDigits } from "@/lib/utils/digits";
 
 export const metadata: Metadata = {
@@ -42,8 +44,25 @@ export default async function BlogPage({ searchParams }: Props) {
     page === 1 && !filtered ? getFeaturedPost() : Promise.resolve(null),
   ]);
 
-  // مقالهٔ شاخص از گریدِ صفحهٔ اول حذف می‌شود تا تکراری نباشد
-  const gridPosts = featured ? posts.filter((p) => p.slug !== featured.slug) : posts;
+  // مقالهٔ شاخص اولِ فهرست می‌آید (با نشانِ «شاخص») — بدون کارتِ تمام‌عرضِ بزرگ
+  const ordered = featured
+    ? [featured, ...posts.filter((p) => p.slug !== featured.slug)]
+    : posts;
+
+  // serialize برای کامپوننتِ کلاینت (تاریخ از همین‌جا جلالی می‌شود)
+  const explorerPosts: ExplorerPost[] = ordered.map((p: PostCardView) => ({
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    coverImage: p.coverImage,
+    categoryName: p.categoryName,
+    dateLabel: p.publishedAt ? formatJalali(new Date(p.publishedAt)) : null,
+    readingMinutes: p.readingMinutes,
+    viewCount: p.viewCount,
+    likeCount: p.likeCount,
+    commentCount: p.commentCount,
+    isFeatured: Boolean(featured && p.slug === featured.slug),
+  }));
 
   // ساختِ querystring صفحه‌بندی با حفظِ فیلترهای فعال
   const pageHref = (n: number) => {
@@ -134,21 +153,8 @@ export default async function BlogPage({ searchParams }: Props) {
               </div>
             ) : (
               <>
-                {/* شاخص */}
-                {featured && (
-                  <div className="reveal mb-7">
-                    <PostCard post={featured} featured />
-                  </div>
-                )}
-
-                {/* گرید — دو ستونه داخل ستونِ اصلی */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {gridPosts.map((p, i) => (
-                    <div key={p.slug} className="reveal" style={i % 2 === 1 ? { transitionDelay: "70ms" } : undefined}>
-                      <PostCard post={p} />
-                    </div>
-                  ))}
-                </div>
+                {/* فهرست با چیدمانِ انتخابیِ کاربر (کاشی/لیستی — ذخیره در دستگاه) */}
+                <PostsExplorer posts={explorerPosts} />
 
                 {/* صفحه‌بندی */}
                 {pageCount > 1 && (

@@ -69,6 +69,109 @@ export async function createTopupRequest(input: {
   });
 }
 
+// ─── شارژِ آنلاین از درگاه (DECISION-071) ─────────────────────────────────────
+// جریان: createGatewayTopup (pending) → attachAuthority → [کاربر در درگاه] →
+// confirmGatewayTopup (اتمیک، idempotent) یا failGatewayTopup.
+
+/** ساختِ تراکنشِ شارژِ آنلاین (pending) — قبل از هدایت به درگاه. */
+export async function createGatewayTopup(input: {
+  userId: string;
+  amount: number;
+  gateway: string; // "zarinpal" | "mock"
+}) {
+  const ref = await genTopupRef();
+  return prisma.walletTransaction.create({
+    data: {
+      userId: input.userId,
+      type: "topup",
+      amount: input.amount,
+      status: "pending",
+      refCode: ref,
+      gateway: input.gateway,
+    },
+  });
+}
+
+/** ذخیرهٔ authority پس از موفقیتِ request (برای یافتنِ tx در callback). */
+export async function attachAuthority(txId: string, authority: string): Promise<void> {
+  await prisma.walletTransaction.update({ where: { id: txId }, data: { authority } });
+}
+
+/** یافتنِ تراکنشِ درگاه با authority (برای callback). */
+export async function findTopupByAuthority(authority: string) {
+  return prisma.walletTransaction.findUnique({ where: { authority } });
+}
+
+/** تأییدِ شارژِ آنلاین پس از verify موفق — موجودی را اتمیک و idempotent اضافه می‌کند.
+ *  گاردِ status: اگر قبلاً approved شده، دوباره شارژ نمی‌شود (callback تکراری/refresh). */
+export async function confirmGatewayTopup(input: {
+  authority: string;
+  refId: string;
+  cardPan?: string | null;
+}): Promise<TopupActionResult & { alreadyDone?: boolean }> {
+  try {
+    return await prisma.$transaction(async (db) => {
+      const tx = await db.walletTransaction.findUnique({ where: { authority: input.authority } });
+      if (!tx || tx.type !== "topup") return { ok: false as const, error: "تراکنش یافت نشد." };
+
+      // idempotent: قبلاً تأیید شده → همان نتیجه، بدون شارژِ دوباره
+      if (tx.status === "approved") {
+        return {
+          ok: true as const,
+          alreadyDone: true,
+          userId: tx.userId,
+          amount: tx.amount,
+          balanceAfter: tx.balanceAfter ?? 0,
+          refCode: tx.refCode,
+        };
+      }
+      if (tx.status !== "pending") return { ok: false as const, error: "این شارژ قابلِ تأیید نیست." };
+      if (!tx.amount || tx.amount <= 0) return { ok: false as const, error: "مبلغ نامعتبر است." };
+
+      const user = await db.user.findUnique({ where: { id: tx.userId }, select: { walletBalance: true } });
+      if (!user) return { ok: false as const, error: "کاربر یافت نشد." };
+
+      const balanceAfter = user.walletBalance + tx.amount;
+      await db.user.update({ where: { id: tx.userId }, data: { walletBalance: balanceAfter } });
+      await db.walletTransaction.update({
+        where: { id: tx.id },
+        data: {
+          status: "approved",
+          balanceAfter,
+          gatewayRefId: input.refId,
+          cardPan: input.cardPan ?? null,
+          reviewedAt: getNow(),
+        },
+      });
+      return {
+        ok: true as const,
+        userId: tx.userId,
+        amount: tx.amount,
+        balanceAfter,
+        refCode: tx.refCode,
+      };
+    });
+  } catch (err) {
+    console.error("[wallet] confirmGatewayTopup ناموفق:", err);
+    return { ok: false, error: "خطای سرور در تأیید." };
+  }
+}
+
+/** علامت‌زدنِ شارژِ آنلاین به‌عنوان ناموفق (NOK یا verify ناموفق) — idempotent. */
+export async function failGatewayTopup(input: {
+  authority: string;
+  reason: string;
+}): Promise<{ ok: boolean; userId?: string }> {
+  const tx = await prisma.walletTransaction.findUnique({ where: { authority: input.authority } });
+  if (!tx || tx.type !== "topup") return { ok: false };
+  if (tx.status !== "pending") return { ok: true, userId: tx.userId }; // قبلاً نهایی شده
+  await prisma.walletTransaction.update({
+    where: { id: tx.id },
+    data: { status: "rejected", adminNote: input.reason || null, reviewedAt: getNow() },
+  });
+  return { ok: true, userId: tx.userId };
+}
+
 // ─── تأیید/رد شارژ (اتمیک، idempotent) ────────────────────────────────────────
 
 export type TopupActionResult =

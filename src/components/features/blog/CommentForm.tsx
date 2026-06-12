@@ -6,18 +6,31 @@ import { toast } from "@/lib/notifications/toast";
 import { COMMENT_MAX_LEN, COMMENT_NAME_MAX_LEN } from "@/lib/blog/constants";
 
 // فرمِ کامنت — هم برای کامنتِ ریشه و هم پاسخ (با parentId). متنِ دکمه ثابت می‌ماند
-// (DECISION-053)؛ فقط Spinner و toast. کامنت پس از تأییدِ ادمین نمایش داده می‌شود.
+// (DECISION-053)؛ فقط Spinner و toast. کامنت پس از تأییدِ ادمین برای همه نمایش
+// داده می‌شود؛ تا آن موقع برای خودِ نویسنده gray-out دیده می‌شود (onSubmitted).
+
+/** دادهٔ کامنتِ تازه‌ثبت‌شده — برای نمایشِ gray-out تا تأییدِ ادمین. */
+export interface SubmittedComment {
+  id: string;
+  authorName: string;
+  body: string;
+  parentId: string | null;
+  createdAtIso: string;
+}
+
 export function CommentForm({
   slug,
   parentId,
   onDone,
   onCancel,
+  onSubmitted,
   compact = false,
 }: {
   slug: string;
   parentId?: string;
   onDone?: () => void;
   onCancel?: () => void;
+  onSubmitted?: (c: SubmittedComment) => void;
   compact?: boolean;
 }) {
   const [name, setName] = useState("");
@@ -43,6 +56,16 @@ export function CommentForm({
       const d = await res.json();
       if (res.ok && d?.ok) {
         toast.success(d.message ?? "کامنتت ثبت شد و پس از تأیید نمایش داده می‌شود.");
+        // نمایش gray-out برای خودِ نویسنده تا تأیید ادمین
+        if (d.comment?.id && onSubmitted) {
+          onSubmitted({
+            id: d.comment.id,
+            authorName: d.comment.authorName ?? name.trim(),
+            body: d.comment.body ?? body.trim(),
+            parentId: d.comment.parentId ?? parentId ?? null,
+            createdAtIso: d.comment.createdAtIso ?? new Date().toISOString(),
+          });
+        }
         setName("");
         setEmail("");
         setBody("");

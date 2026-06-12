@@ -65,7 +65,17 @@ export function NotificationBell() {
   function toggle() {
     const next = !open;
     setOpen(next);
-    if (next) load();
+    if (next) {
+      // باز کردنِ پنل = دیده‌شدنِ اعلان‌ها → badge همان لحظه پاک می‌شود.
+      // آیتم‌ها در همین باز شدن هنوز با استایلِ خوانده‌نشده دیده می‌شوند (فقط شمارنده صفر می‌شود).
+      void (async () => {
+        await load(); // اول فهرستِ تازه (تا race با read-all پیش نیاید)
+        setUnread(0);
+        fetch("/api/notifications/read-all", { method: "POST" }).catch(() => {
+          /* با polling بعدی هماهنگ می‌شود */
+        });
+      })();
+    }
   }
 
   const markRead = useCallback(async (id: string) => {

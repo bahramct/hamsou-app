@@ -13,14 +13,15 @@ const PUBLIC_PATHS = ["/", "/login", "/forgot-password", "/verify-email", "/rese
 
 interface Props {
   companionName?: string | null;
+  isAuthenticated?: boolean;
 }
 
-export function ChatFAB({ companionName }: Props) {
+export function ChatFAB({ companionName, isAuthenticated = false }: Props) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  // در صفحات عمومی و کل پنل ادمین نمایش داده نمی‌شود (همدم فقط برای کاربر نهایی است)
-  if (PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/admin")) return null;
+  // فقط برای کاربر لاگین‌کرده — در صفحات عمومی و پنل ادمین نمایش داده نمی‌شود
+  if (!isAuthenticated || PUBLIC_PATHS.includes(pathname) || pathname.startsWith("/admin")) return null;
 
   return (
     <>

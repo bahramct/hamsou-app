@@ -16,6 +16,8 @@ export interface TopupView {
   refCode: string;
   amount: number;
   status: string;
+  gateway: string | null; // "zarinpal" | null (کارت‌به‌کارتِ دستی) — DECISION-071
+  gatewayRefId: string | null; // شمارهٔ پیگیریِ بانکی
   payerCardSnapshot: string | null; // کارتی که کاربر هنگام درخواست انتخاب کرد
   adminNote: string | null;
   createdAt: string;
@@ -217,10 +219,21 @@ function TopupRow({ topup, canManage }: { topup: TopupView; canManage: boolean }
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-semibold text-ink fa-num">{topup.amount.toLocaleString("fa-IR")} تومان</span>
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+            {topup.gateway && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-mist/20 text-charcoal">
+                {topup.gateway === "zarinpal" ? "زرین‌پال" : "درگاه آنلاین"}
+              </span>
+            )}
           </div>
           {/* شناسه + تاریخ */}
           <div className="text-[11px] text-fog flex items-center gap-2 flex-wrap">
             <span className="num-latin text-stone font-medium" dir="ltr">{topup.refCode}</span>
+            {topup.gatewayRefId && (
+              <>
+                <span>·</span>
+                <span className="num-latin" dir="ltr">پیگیری: {topup.gatewayRefId}</span>
+              </>
+            )}
             <span>·</span>
             <span>{faDateTime(topup.createdAt)}</span>
             {topup.reviewedAt && (
@@ -235,7 +248,8 @@ function TopupRow({ topup, canManage }: { topup: TopupView; canManage: boolean }
             {u?.name ?? "—"}
             {u?.phone && <span className="num-latin text-fog mr-2" dir="ltr"> · {u.phone}</span>}
           </div>
-          {/* کارت‌های کاربر */}
+          {/* کارت‌های کاربر — فقط برای شارژِ کارت‌به‌کارتِ دستی */}
+          {!topup.gateway && (
           <div className="space-y-1">
             {cards.length === 0 ? (
               <div className="text-[11px] text-fog">کارتی ثبت نشده</div>
@@ -251,6 +265,11 @@ function TopupRow({ topup, canManage }: { topup: TopupView; canManage: boolean }
               ))
             )}
           </div>
+          )}
+          {/* پرداختِ درگاهی — پیامِ راهنما به‌جای اکشن دستی */}
+          {topup.gateway && topup.status === "pending" && (
+            <div className="text-[11px] text-fog">در انتظارِ تکمیلِ پرداخت توسط کاربر در درگاه.</div>
+          )}
           {/* کارت واریزشده (snapshot) */}
           {usedCard && (
             <div className="flex items-center gap-2 text-[11px]">
@@ -269,7 +288,7 @@ function TopupRow({ topup, canManage }: { topup: TopupView; canManage: boolean }
           )}
         </div>
 
-        {canManage && isPending && mode === null && (
+        {canManage && isPending && mode === null && !topup.gateway && (
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={() => setMode("approve")} className="text-xs px-3 py-1.5 rounded-lg bg-ink text-paper hover:bg-charcoal transition-colors">تأیید</button>
             <button onClick={() => setMode("reject")} className="text-xs px-3 py-1.5 rounded-lg text-ember hover:bg-ember/8 transition-colors">رد</button>

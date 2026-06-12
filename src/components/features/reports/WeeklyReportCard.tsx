@@ -95,10 +95,13 @@ interface Props {
   userPlan: string;
   /** زمان آخرین ارتقا به پلن پولی (ISO) — null یعنی کاربر قدیمی (پیش‌فرض: دسترسی کامل) */
   planPaidSince?: string | null;
+  /** پیش‌فرض باز؟ — برای اولین کارت صفحه اول (پیش‌فرض: بسته) */
+  defaultExpanded?: boolean;
 }
 
-export function WeeklyReportCard({ report, userPlan, planPaidSince = null }: Props) {
+export function WeeklyReportCard({ report, userPlan, planPaidSince = null, defaultExpanded = false }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("summary");
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const { jalaliStart, jalaliEnd, meta, generatedAt } = report;
   const view = normalize(report.content);
 
@@ -119,9 +122,13 @@ export function WeeklyReportCard({ report, userPlan, planPaidSince = null }: Pro
 
   return (
     <article className="glass rounded-3xl overflow-hidden animate-fade-up">
-      {/* هدر کارت */}
-      <header className="px-6 py-4 border-b border-black/6 flex items-center justify-between gap-4">
-        <div>
+      {/* ── هدر کارت — همیشه نمایان؛ کلیک = باز/بسته ── */}
+      <header
+        className="px-6 py-4 flex items-center gap-4 cursor-pointer select-none"
+        style={{ borderBottom: isExpanded ? "1px solid rgba(var(--rgb-line),0.06)" : "none" }}
+        onClick={() => setIsExpanded((v) => !v)}
+      >
+        <div className="flex-1 min-w-0">
           <p className="text-[10px] text-fog tracking-widest uppercase mb-1">گزارش هفته</p>
           <p className="text-sm font-semibold text-ink fa-num">
             {jalaliStart}
@@ -129,56 +136,76 @@ export function WeeklyReportCard({ report, userPlan, planPaidSince = null }: Pro
             {jalaliEnd}
           </p>
         </div>
-        <ShareButton
-          reportId={report.id}
-          initialShared={report.isShared}
-          weekLabel={`${jalaliStart} ← ${jalaliEnd}`}
-          isPaidPlan={isPaidPlan}
-        />
+
+        {/* دکمه اشتراک‌گذاری — کلیک جداگانه (stopPropagation) */}
+        <div onClick={(e) => e.stopPropagation()}>
+          <ShareButton
+            reportId={report.id}
+            initialShared={report.isShared}
+            weekLabel={`${jalaliStart} ← ${jalaliEnd}`}
+            isPaidPlan={isPaidPlan}
+          />
+        </div>
+
+        {/* شیوون باز/بسته */}
+        <span
+          className="shrink-0 text-fog/50 transition-transform duration-300"
+          style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
+          aria-hidden
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </header>
 
-      {/* تب‌ها */}
-      <div className="flex border-b border-black/5 bg-black/1.5">
-        {(["summary", "insights", "reflection"] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`relative flex-1 py-3 text-sm font-medium transition-colors duration-200
-              flex items-center justify-center gap-1.5
-              ${activeTab === tab ? "text-ember" : "text-stone hover:text-ink"}`}
-          >
-            {TAB_LABELS[tab]}
-            {tab === "reflection" && !isPaidPlan && <LockIcon />}
-            {activeTab === tab && (
-              <span className="absolute bottom-0 h-0.5 w-10 rounded-full bg-ember translate-y-px" />
+      {/* ── محتوا — فقط وقتی باز باشد ── */}
+      {isExpanded && (
+        <>
+          {/* تب‌ها */}
+          <div className="flex border-b border-black/5 bg-black/1.5">
+            {(["summary", "insights", "reflection"] as Tab[]).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`relative flex-1 py-3 text-sm font-medium transition-colors duration-200
+                  flex items-center justify-center gap-1.5
+                  ${activeTab === tab ? "text-ember" : "text-stone hover:text-ink"}`}
+              >
+                {TAB_LABELS[tab]}
+                {tab === "reflection" && !isPaidPlan && <LockIcon />}
+                {activeTab === tab && (
+                  <span className="absolute bottom-0 h-0.5 w-10 rounded-full bg-ember translate-y-px" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* محتوای تب */}
+          <div className="px-6 py-6 min-h-40">
+            {activeTab === "summary" && <SummaryTab view={view} />}
+            {activeTab === "insights" && <InsightsTab insights={view.insights} />}
+            {activeTab === "reflection" && (
+              <ReflectionTab
+                reflection={view.reflection}
+                isPaidPlan={isPaidPlan}
+                metrics={view.metrics}
+                categories={view.categories}
+              />
             )}
-          </button>
-        ))}
-      </div>
+          </div>
 
-      {/* محتوای تب */}
-      <div className="px-6 py-6 min-h-40">
-        {activeTab === "summary" && <SummaryTab view={view} />}
-        {activeTab === "insights" && <InsightsTab insights={view.insights} />}
-        {activeTab === "reflection" && (
-          <ReflectionTab
-            reflection={view.reflection}
-            isPaidPlan={isPaidPlan}
-            metrics={view.metrics}
-            categories={view.categories}
-          />
-        )}
-      </div>
-
-      {/* فوتر */}
-      <footer className="px-6 pb-4 flex items-center gap-1.5 text-[10px] text-fog/60 fa-num">
-        <span>{genDate}</span>
-        <span className="text-fog/30">·</span>
-        <span>{meta.provider}</span>
-        <span className="text-fog/30">·</span>
-        <span>{toFa(meta.outputTokens)} توکن</span>
-      </footer>
+          {/* فوتر */}
+          <footer className="px-6 pb-4 flex items-center gap-1.5 text-[10px] text-fog/60 fa-num">
+            <span>{genDate}</span>
+            <span className="text-fog/30">·</span>
+            <span>{meta.provider}</span>
+            <span className="text-fog/30">·</span>
+            <span>{toFa(meta.outputTokens)} توکن</span>
+          </footer>
+        </>
+      )}
     </article>
   );
 }
@@ -480,12 +507,12 @@ function ShareButton({
       <button
         type="button"
         disabled
-        aria-label="اشتراک‌گذاری گزارش — برای اعضای Plus و Pro"
+        aria-label="اشتراک‌گذاری و دانلود گزارش — برای اعضای Plus و Pro"
         className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
           text-xs font-medium text-fog/40 cursor-not-allowed select-none"
       >
         <ShareGlyph />
-        <span>اشتراک‌گذاری</span>
+        <span>اشتراک‌گذاری و دانلود</span>
         <LockIcon size={10} />
       </button>
     );
@@ -496,13 +523,13 @@ function ShareButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="اشتراک‌گذاری گزارش"
+        aria-label="اشتراک‌گذاری و دانلود گزارش"
         className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
           text-xs font-medium transition-colors duration-200
           ${isShared ? "text-ember hover:text-ember/70" : "text-stone/60 hover:text-stone"}`}
       >
         <ShareGlyph />
-        <span>اشتراک‌گذاری</span>
+        <span>اشتراک‌گذاری و دانلود</span>
       </button>
       <ShareModal
         reportId={reportId}

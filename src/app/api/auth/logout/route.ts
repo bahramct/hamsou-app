@@ -14,10 +14,10 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
 
-  // اگر درخواست از فرم HTML آمده (مرورگر text/html می‌فرستد) → redirect
+  // اگر درخواست از فرم HTML آمده (مرورگر text/html می‌فرستد) → صفحه اصلی (landing)
   const accept = request.headers.get("accept") ?? "";
   if (accept.includes("text/html")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   // درخواست‌های fetch (مثل DevResetPanel) → JSON

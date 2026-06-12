@@ -17,9 +17,11 @@
 import type { AIAdapter } from "@/lib/adapters/ai.adapter";
 import type { SMSAdapter } from "@/lib/adapters/sms.adapter";
 import type { EmailAdapter } from "@/lib/adapters/email.adapter";
+import type { PaymentAdapter } from "@/lib/adapters/payment.adapter";
 import type { ResolvedAiService } from "@/lib/ai/services";
 import type { ResolvedSmsService } from "@/lib/sms/services";
 import type { ResolvedEmailService } from "@/lib/email/services";
+import type { ResolvedPaymentGateway } from "@/lib/payment/gateway";
 
 // ─── AI Adapter — by-name factory ───────────────────────────────────────────
 
@@ -217,4 +219,47 @@ export function getEmailAdapterForService(svc: ResolvedEmailService): EmailAdapt
 export function getEmailAdapter(): EmailAdapter {
   const { MockEmailAdapter } = require("@/lib/adapters/mock-email.adapter");
   return new MockEmailAdapter() as EmailAdapter;
+}
+
+// ─── Payment Adapter از روی یک PaymentGateway (DECISION-071) ──────────────────
+// آینهٔ SMS/Email Adapter: منبع‌حقیقتِ provider/merchantId/isSandbox ردیف PaymentGateway است.
+// انتخابِ config-محور (نه اجبارِ dev):
+//   • provider=mock          → MockPaymentAdapter (آنی، بدونِ شبکه — برای CI/آفلاین)
+//   • provider=zarinpal      → ZarinpalAdapter؛ isSandbox=true → sandbox.zarinpal.com (تستِ بدونِ پول)
+// سندباکس بدونِ merchantId → یک UUIDِ تستِ پیش‌فرض (سندباکس هر UUIDی را می‌پذیرد).
+// تولید (isSandbox=false) بدونِ merchantId → خطای واضح (نمی‌توان بدونِ کدِ واقعی شارژ گرفت).
+// cache بر اساس امضای (id|provider|merchantId|sandbox) تا با تغییر هرکدام بازساخته شود.
+
+// UUIDِ تستِ پیش‌فرضِ سندباکس (وقتی owner هنوز کدی وارد نکرده) — فقط برای sandbox معتبر.
+const SANDBOX_TEST_MERCHANT = "00000000-0000-0000-0000-000000000000";
+
+const resolvedPaymentAdapterCache = new Map<string, PaymentAdapter>();
+
+export function getPaymentAdapterForGateway(gw: ResolvedPaymentGateway): PaymentAdapter {
+  const sig = `${gw.id}|${gw.provider}|${gw.merchantId ?? ""}|${gw.isSandbox ? "sb" : "prod"}`;
+  const cached = resolvedPaymentAdapterCache.get(sig);
+  if (cached) return cached;
+
+  let adapter: PaymentAdapter;
+  if (gw.provider === "mock") {
+    const { MockPaymentAdapter } = require("@/lib/adapters/mock-payment.adapter");
+    adapter = new MockPaymentAdapter() as PaymentAdapter;
+  } else {
+    // zarinpal — واقعی یا سندباکس بر اساس isSandbox
+    let merchantId = gw.merchantId?.trim() || null;
+    if (!merchantId) {
+      if (gw.isSandbox) {
+        merchantId = SANDBOX_TEST_MERCHANT; // سندباکس هر UUIDی را می‌پذیرد
+      } else {
+        throw new Error(
+          `[PaymentAdapter] درگاه «${gw.label}» کدِ درگاه (merchantId) ندارد — در پنل ادمین تنظیمش کن.`
+        );
+      }
+    }
+    const { ZarinpalAdapter } = require("@/lib/adapters/zarinpal.adapter");
+    adapter = new ZarinpalAdapter({ merchantId, sandbox: gw.isSandbox }) as PaymentAdapter;
+  }
+
+  resolvedPaymentAdapterCache.set(sig, adapter);
+  return adapter;
 }

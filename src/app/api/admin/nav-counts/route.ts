@@ -34,5 +34,11 @@ export async function GET() {
     pendingComments = await getPendingCommentsCount();
   }
 
-  return NextResponse.json({ ok: true, openTickets, unreadChats, pendingPayments, pendingComments });
+  // پیام‌های جدید فرم تماس (DECISION-072) — فقط برای دارندگان support.read
+  let newContacts = 0;
+  if (can(ctx, "support.read")) {
+    newContacts = await prisma.contactMessage.count({ where: { status: "new" } });
+  }
+
+  return NextResponse.json({ ok: true, openTickets, unreadChats, pendingPayments, pendingComments, newContacts });
 }

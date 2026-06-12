@@ -23,7 +23,7 @@
 | ۰ | TASK-UI-FIXES-063 | اصلاح باگ | ✅ | ✅ تمام | — | — | مسیریابی + کارت کیف‌پول + سال شمسی + کارت پشتیبانی + رسید — ۲۰۲۶-۰۶-۰۸ |
 | ۱ | TASK-AUTH-RECOVERY | رفع گپ حیاتی | 🔴 Critical | ✅ تمام | multi-auth ✅ | روز ۱~ | تأیید ایمیل با لینک + بازیابی رمز؛ محصول بدون آن قابل عرضه نبود — ۲۰۲۶-۰۶-۰۸ |
 | ۲ | Email Provider واقعی | زیرساخت | 🔴 Critical | ✅ تمام | EmailAdapter ✅ | روز ۱~ | Resend + پنل /admin/email + مهاجرت ۵ route؛ Mock حذف شد — ۲۰۲۶-۰۶-۰۹ |
-| ۳ | درگاه پرداخت | فیچر | 🔴 Critical | ⏳ تصمیم لازم | wallet ✅ | روز ۳~ | پیشنهادی ZarinPal؛ کیف‌پول آماده است؛ درگاه = منبع دوم شارژ |
+| ۳ | درگاه پرداخت | فیچر | 🔴 Critical | ✅ تمام | wallet ✅ | — | ZarinPal (DECISION-071) — Adapter + کانفیگ DB/پنل + شارژِ اتمیک idempotent + Mock در dev؛ merchant_id در prod از پنل — ۲۰۲۶-۰۶-۱۲ |
 | ۴ | Onboarding Flow | فیچر جدید ✨ | 🟠 High | ⏳ شروع نشده | multi-auth ✅ | روز ۱.۵~ | کاربر جدید بدون راهنما وارد می‌شود — رفع خلأ فعال‌سازی اول پایین |
 | ۵ | موبایل‌سازی + PWA | فیچر | 🟠 High | ⏳ شروع نشده | — | روز ۲~ | نصب روی گوشی ممکن نیست؛ PWA بازار ایران موبایل‌محور است؛ بدون وابستگی |
 | ۶ | یادآوری‌ها (موج ۲) | فیچر | 🟠 High | ⏳ شروع نشده | notifications-core ✅ | روز ۳~ | زیرساخت آماده است + scheduler باقی است؛ صفحه تنظیمات فقط |
@@ -40,6 +40,10 @@
 | ۱۷ | ری‌دیزاین بلاگ (سایدبار + TOC) | فیچر ✨ | 🟠 High | ✅ تمام | DECISION-065 ✅ | — | DECISION-068 — سایدبار شیشه‌ای (جستجو/دسته/خواندنی‌ترین/برچسب) + TOC چسبان + نوار پیشرفت — ۲۰۲۶-۰۶-۱۰ |
 | ۱۸ | ادیتور حرفه‌ای مقاله (Tiptap) | فیچر ✨ | 🟠 High | ✅ تمام | DECISION-065 ✅ | — | DECISION-069 — WYSIWYG با خروجی Markdown؛ DB و رندر سایت دست‌نخورده؛ درج تصویر base64 — ۲۰۲۶-۰۶-۱۰ |
 | ۱۹ | ری‌دیزاین تایپوگرافی استاتیک | بهبود ✨ | 🟠 High | ✅ تمام | DECISION-066 ✅ | — | DECISION-070 — مقیاس آرام‌تر (~۳۵٪ کوچک‌تر) در ۵ صفحهٔ CMS + بلاگ؛ overrideهای DB مقدم‌اند — ۲۰۲۶-۰۶-۱۰ |
+| ۲۰ | فرم تماس + کپچای اختصاصی | فیچر ✨ | 🟠 High | ✅ تمام | CMS ✅ | — | DECISION-072 — کپچای SVG/HMAC بدون گوگل + مدل ContactMessage + پنل «پیام‌های تماس» (badge) + سوشال مونوکروم — ۲۰۲۶-۰۶-۱۲ |
+| ۲۱ | خرید مستقیم پلن از درگاه | فیچر ✨ | 🔴 Critical | ✅ تمام | DECISION-071 ✅ | — | DECISION-073 — checkout/callback مستقل از کیف‌پول + مودال دو روشه + PlanReturnToast؛ متن‌های «به‌زودی» حذف — ۲۰۲۶-۰۶-۱۲ |
+| ۲۲ | شمارش تعهد بدون روزهای گپ | اصلاح | 🟠 High | ✅ تمام | — | — | DECISION-074 — helper مشترک `lib/stats/commitments` در پروفایل + لیست/جزئیات کاربر پنل؛ گیت تیکت/چت پنل با planAllows — ۲۰۲۶-۰۶-۱۲ |
+| ۲۳ | بستهٔ اصلاحات UI/UX سراسری | بهبود ✨ | 🟠 High | ✅ تمام | — | — | DECISION-075 — nav یکدست + تم چپ-بالا + فوتر ۴ستونه (e-Namad/زرین‌پال هم‌سایز) + بلاگ کاشی/لیستی + کامنت کارتی gray-out + لاگین نرم + badge زنگوله + مودال «اشتراک‌گذاری و دانلود» — ۲۰۲۶-۰۶-۱۲ |
 
 ---
 
@@ -73,18 +77,37 @@
 
 ---
 
-### TASK-GATEWAY | درگاه پرداخت — ⏳ تصمیم لازم
+### TASK-GATEWAY | درگاه پرداخت — ✅ تمام (۲۰۲۶-۰۶-۱۲)
 
-- **اولویت:** 🔴 Critical
-- **وضعیت:** کیف‌پول و کارت‌به‌کارت آماده است؛ درگاه = منبع دوم شارژ بدون تداخل
-- **تصمیم باز:** انتخاب Provider — ZarinPal / Vandar / Shaparak مستقیم
-- **معماری:** `PaymentGatewayAdapter` interface → درگاه = فقط یک روش شارژ کیف‌پول جدید
-- **ساب‌تسک‌ها (پس از تصمیم):**
-  - [ ] `PaymentGatewayAdapter` interface (initiatePayment، verifyPayment)
-  - [ ] پیاده‌سازی Provider انتخابی
-  - [ ] `/api/wallet/gateway/initiate` · `/api/wallet/gateway/verify/[id]`
-  - [ ] صفحه redirect به درگاه + صفحه callback
-  - [ ] مدیریت از پنل ادمین (مثل SMS/Email)
+- **Provider:** ZarinPal (API v4) + Mock برای آفلاین — DECISION-071
+- **پیاده‌شده:** `PaymentAdapter` interface + `ZarinpalAdapter`/`MockPaymentAdapter` · کانفیگ DB/پنل (`PaymentGateway` + `PaymentGatewayManager`) · شارژ آنلاین کیف‌پول (`/api/wallet/topup/{gateway,callback}`، اتمیک/idempotent) · `WalletReturnToast`
+- **تکمیل (DECISION-073):** خرید مستقیم پلن از درگاه، مستقل از کیف‌پول — `/api/plans/checkout/{gateway,callback}` + مودال دو روشه در `/plans` + `PlanReturnToast`
+
+---
+
+### TASK-CONTACT-FORM | فرم تماس + کپچای اختصاصی + پنل پیام‌ها — ✅ تمام (۲۰۲۶-۰۶-۱۲ — DECISION-072)
+
+- [x] کپچای اختصاصی stateless (`lib/captcha/captcha.ts`) — SVG ارقام فارسی + نویز؛ HMAC + انقضا؛ بدون سرویس گوگل
+- [x] مدل `ContactMessage` (db push با تأیید مالک) + `POST /api/contact` (honeypot + کپچا + سقف نرخ per-IP)
+- [x] سکشن CMS `contact-form` جایگزین کارت رنگی قدیمی + `SocialLinks` مونوکروم زیر فرم
+- [x] پنل `/admin/contact` (permission `support.read`) + تب‌های وضعیت + badge «پیام‌های تماس» در سایدبار/nav-counts
+- `db push` ✅ · `tsc` ✅ · `build` ✅ · تست API ۷/۷ ✅
+
+---
+
+### TASK-UI-BATCH-075 | بستهٔ اصلاحات UI/UX سراسری — ✅ تمام (۲۰۲۶-۰۶-۱۲ — DECISION-075)
+
+- [x] تم‌تاگل = آخرین آیتم گوشهٔ چپ-بالا (LandingNav + AppNav) · nav قبل از ورود یکدست: صفحه اصلی/درباره ما/تماس با ما/بلاگ · لوگو بزرگ‌تر (هشدار next/image رفع شد)
+- [x] فوتر ۴ ستونه: برند+شعار+سوشال · محصول · لینک‌های مفید · مجوزها (e-Namad + زرین‌پال هم‌سایز — `TrustBadges`)
+- [x] «خط قرمز» درباره ما → گرید دو ستونهٔ فشرده
+- [x] بلاگ: `PostsExplorer` کاشی/لیستی + ذخیرهٔ ترجیح در localStorage؛ کارت شاخص بزرگ حذف
+- [x] مقاله: کاور هم‌عرض متن (سقف ۳۸۰px) + متن justify + سایدبار غنی (TOC/خواندنی‌ترین/برچسب)
+- [x] کامنت‌ها: کارتی مدرن راست‌چین + ریپلای + **gray-out کامنت خود کاربر تا تأیید ادمین** (localStorage per-slug)
+- [x] لاگین: `SmoothHeight` — سوییچ تب‌ها بدون پرش
+- [x] زنگوله: badge با باز شدن پنل فوراً صفر می‌شود (read-all)
+- [x] مودال گزارش: «اشتراک‌گذاری و دانلود» + قفل کامل اسکرول پس‌زمینه
+- [x] آمار تعهد بدون روزهای گپ (DECISION-074) + گیت تیکت/چت پنل با `planAllows` (هم‌ترازی)
+- `tsc` ✅ · `build` ✅
 
 ---
 

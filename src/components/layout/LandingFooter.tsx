@@ -1,5 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SocialLinks } from "@/components/layout/SocialLinks";
+import { TrustBadges } from "@/components/layout/TrustBadges";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LandingFooter — فوتر سایت: ۴ ستون (راست به چپ):
+// ۱) برند: لوگو + «آیینه‌ای، برای واقعی‌تر کردن زندگی» + شبکه‌های اجتماعی
+// ۲) محصول: چطور کار می‌کند · آنچه همسو نیست · کاربران (anchorهای لندینگ)
+// ۳) لینک‌های مفید: داستان همسو · درباره ما · تماس با ما · حریم خصوصی
+// ۴) مجوزها: نماد اعتماد + زرین‌پال (هم‌سایز، کنار هم)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ColTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>
+      {children}
+    </div>
+  );
+}
 
 export function LandingFooter() {
   return (
@@ -8,50 +26,47 @@ export function LandingFooter() {
       style={{ borderTop: "1px solid rgba(var(--rgb-line),0.06)" }}
     >
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 mb-12">
 
-          {/* برند */}
+          {/* ۱) برند + سوشال */}
           <div>
             <Image
               src="/logo.png" alt="همسو"
-              width={40} height={40}
-              className="h-10 w-auto mb-4"
-              style={{ width: "auto", height: "auto" }}
+              width={77} height={50}
+              className="mb-4"
+              style={{ height: "50px", width: "auto" }}
             />
-            <p className="text-stone" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7, maxWidth: "280px" }}>
-              آینه‌ای آرام برای کلماتت. برای واقعی‌تر زندگی کردن.
+            <p className="text-stone mb-5" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.7, maxWidth: "280px" }}>
+              آیینه‌ای، برای واقعی‌تر کردن زندگی
             </p>
+            <SocialLinks />
           </div>
 
-          {/* محصول */}
+          {/* ۲) محصول */}
           <div>
-            <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>محصول</div>
+            <ColTitle>محصول</ColTitle>
             <ul className="space-y-3 text-stone text-sm" style={{ fontWeight: 300 }}>
               <li><a href="/#solution" className="hover:text-ink transition-colors">چطور کار می‌کند</a></li>
               <li><a href="/#difference" className="hover:text-ink transition-colors">آنچه همسو نیست</a></li>
-              <li><Link href="/blog" className="hover:text-ink transition-colors">بلاگ</Link></li>
+              <li><a href="/#testimonial" className="hover:text-ink transition-colors">کاربران</a></li>
             </ul>
           </div>
 
-          {/* برند / صفحات */}
+          {/* ۳) لینک‌های مفید */}
           <div>
-            <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>برند</div>
+            <ColTitle>لینک‌های مفید</ColTitle>
             <ul className="space-y-3 text-stone text-sm" style={{ fontWeight: 300 }}>
-              <li><Link href="/about" className="hover:text-ink transition-colors">درباره ما</Link></li>
               <li><Link href="/story" className="hover:text-ink transition-colors">داستان همسو</Link></li>
-              <li><Link href="/privacy" className="hover:text-ink transition-colors">حریم خصوصی</Link></li>
+              <li><Link href="/about" className="hover:text-ink transition-colors">درباره ما</Link></li>
               <li><Link href="/contact" className="hover:text-ink transition-colors">تماس با ما</Link></li>
+              <li><Link href="/privacy" className="hover:text-ink transition-colors">حریم خصوصی</Link></li>
             </ul>
           </div>
 
-          {/* اعتماد */}
-          <div className="flex flex-col items-start">
-            <div className="text-fog text-xs uppercase tracking-[0.18em] mb-4" style={{ fontWeight: 600 }}>اعتماد</div>
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `<a referrerpolicy='origin' target='_blank' href='https://trustseal.enamad.ir/?id=741289&Code=6NTv9eYWnDK4uTnjWHuHnead8qkxgg9L'><img referrerpolicy='origin' src='https://trustseal.enamad.ir/logo.aspx?id=741289&Code=6NTv9eYWnDK4uTnjWHuHnead8qkxgg9L' alt='' style='cursor:pointer' code='6NTv9eYWnDK4uTnjWHuHnead8qkxgg9L'></a>`,
-              }}
-            />
+          {/* ۴) مجوزها */}
+          <div>
+            <ColTitle>مجوزها</ColTitle>
+            <TrustBadges />
           </div>
         </div>
 

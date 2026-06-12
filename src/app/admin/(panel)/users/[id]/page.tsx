@@ -15,6 +15,10 @@ import { toFaDigits } from "@/lib/utils/digits";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { StatusBadge, CategoryLabel } from "@/components/features/support/badges";
 import { AutoRefresh } from "@/components/admin/AutoRefresh";
+import { countCommitments } from "@/lib/stats/commitments";
+import { planAllows } from "@/lib/plans/access";
+import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
+import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 
 export const dynamic = "force-dynamic";
 
@@ -61,32 +65,36 @@ export default async function AdminUserDetailPage({
       id: true, phone: true, email: true, emailVerifiedAt: true,
       username: true, passwordHash: true, displayName: true, bio: true,
       avatarImage: true, plan: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
-      _count: { select: { entries: true, gaps: true, weeklyReports: true, chatMessages: true } },
+      _count: { select: { gaps: true, weeklyReports: true, chatMessages: true } },
     },
   });
   if (!user) notFound();
 
-  // آخرین تیکت‌ها + آخرین سشن‌های چت (همیشه query، فقط PRO نمایش می‌دهد)
-  const [recentTickets, recentChatAll] = await Promise.all([
-    prisma.supportTicket.findMany({
-      where: { userId: id },
-      orderBy: { lastMessageAt: "desc" },
-      take: 3,
-      select: { id: true, subject: true, status: true, category: true, priority: true, lastMessageAt: true, createdAt: true },
-    }),
-    prisma.supportChatSession.findMany({
-      where: { userId: id },
-      orderBy: { createdAt: "desc" },
-      take: 3,
-      select: { id: true, dayKey: true, status: true, lastUserAt: true, createdAt: true, _count: { select: { messages: true } } },
-    }),
-  ]);
+  // آخرین تیکت‌ها + آخرین سشن‌های چت + دسترسی پلن (همان planAllows سایت — هم‌ترازی)
+  const [recentTickets, recentChatAll, commitmentCount, ticketingAllowed, liveChatAllowed] =
+    await Promise.all([
+      prisma.supportTicket.findMany({
+        where: { userId: id },
+        orderBy: { lastMessageAt: "desc" },
+        take: 3,
+        select: { id: true, subject: true, status: true, category: true, priority: true, lastMessageAt: true, createdAt: true },
+      }),
+      prisma.supportChatSession.findMany({
+        where: { userId: id },
+        orderBy: { createdAt: "desc" },
+        take: 3,
+        select: { id: true, dayKey: true, status: true, lastUserAt: true, createdAt: true, _count: { select: { messages: true } } },
+      }),
+      // «تعهدها» = روزهای دارای تعهد، بدون روزهای داخل بازه‌های فاصله (DECISION-074)
+      countCommitments(id),
+      planAllows(user.plan, TICKETING_FEATURE_KEY),
+      planAllows(user.plan, LIVE_CHAT_FEATURE_KEY),
+    ]);
 
-  const recentChats = user.plan === "PRO" ? recentChatAll : [];
-  const isPro       = user.plan === "PRO";
+  const recentChats = liveChatAllowed ? recentChatAll : [];
 
   const stats = [
-    { label: "تعهدها",       value: user._count.entries       },
+    { label: "تعهدها",       value: commitmentCount           },
     { label: "فاصله‌ها",     value: user._count.gaps          },
     { label: "گزارش هفتگی", value: user._count.weeklyReports },
     { label: "پیام چت",     value: user._count.chatMessages  },
@@ -262,28 +270,44 @@ export default async function AdminUserDetailPage({
         {/* ─ ستون چپ — تیکت‌ها + چت آنلاین (عریض‌تر) ─ */}
         <div className="col-span-12 lg:col-span-7 space-y-4">
 
-          {/* آخرین تیکت‌ها */}
-          <section className="rounded-2xl border border-black/8 bg-white/45 overflow-hidden">
+          {/* آخرین تیکت‌ها — اگر پلن اجازهٔ تیکت ندهد، مثل کارتِ چت غیرفعال نمایش داده می‌شود */}
+          <section className={`rounded-2xl border overflow-hidden ${ticketingAllowed ? "border-black/8 bg-white/45" : "border-black/6 bg-white/25"}`}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-black/6">
               <div className="flex items-center gap-2">
-                <TicketIcon />
-                <h2 className="text-sm font-semibold text-ink">آخرین تیکت‌ها</h2>
-                {recentTickets.length > 0 && (
+                <TicketIcon muted={!ticketingAllowed} />
+                <h2 className={`text-sm font-semibold ${ticketingAllowed ? "text-ink" : "text-fog"}`}>
+                  آخرین تیکت‌ها
+                </h2>
+                {!ticketingAllowed && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/6 text-fog border border-black/8">
+                    در این پلن نیست
+                  </span>
+                )}
+                {ticketingAllowed && recentTickets.length > 0 && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/7 text-stone font-medium tabular-nums">
                     {toFa(recentTickets.length)}
                   </span>
                 )}
               </div>
-              <Link
-                href="/admin/support"
-                className="text-[11px] text-stone hover:text-ink transition-colors flex items-center gap-1 group"
-              >
-                مشاهده همه
-                <ArrowIcon />
-              </Link>
+              {ticketingAllowed && (
+                <Link
+                  href="/admin/support"
+                  className="text-[11px] text-stone hover:text-ink transition-colors flex items-center gap-1 group"
+                >
+                  مشاهده همه
+                  <ArrowIcon />
+                </Link>
+              )}
             </div>
 
-            {recentTickets.length === 0 ? (
+            {!ticketingAllowed ? (
+              <EmptyState
+                icon={<TicketIcon muted />}
+                text={`کاربر پلن ${PLAN_LABELS[user.plan] ?? user.plan} دارد`}
+                sub="تیکت پشتیبانی در پلن این کاربر فعال نیست"
+                faded
+              />
+            ) : recentTickets.length === 0 ? (
               <EmptyState icon={<TicketIcon muted />} text="تیکتی ثبت نشده" />
             ) : (
               <div className="divide-y divide-black/5">
@@ -313,26 +337,26 @@ export default async function AdminUserDetailPage({
             )}
           </section>
 
-          {/* چت آنلاین */}
-          <section className={`rounded-2xl border overflow-hidden ${isPro ? "border-black/8 bg-white/45" : "border-black/6 bg-white/25"}`}>
+          {/* چت آنلاین — دسترسی از planAllows (هم‌ترازی با سایت)، نه چکِ hardcode پلن */}
+          <section className={`rounded-2xl border overflow-hidden ${liveChatAllowed ? "border-black/8 bg-white/45" : "border-black/6 bg-white/25"}`}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-black/6">
               <div className="flex items-center gap-2">
-                <ChatIcon muted={!isPro} />
-                <h2 className={`text-sm font-semibold ${isPro ? "text-ink" : "text-fog"}`}>
+                <ChatIcon muted={!liveChatAllowed} />
+                <h2 className={`text-sm font-semibold ${liveChatAllowed ? "text-ink" : "text-fog"}`}>
                   چت آنلاین
                 </h2>
-                {!isPro && (
+                {!liveChatAllowed && (
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-black/6 text-fog border border-black/8">
-                    فقط پرو
+                    در این پلن نیست
                   </span>
                 )}
-                {isPro && recentChats.length > 0 && (
+                {liveChatAllowed && recentChats.length > 0 && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/7 text-stone font-medium tabular-nums">
                     {toFa(recentChats.length)}
                   </span>
                 )}
               </div>
-              {isPro && (
+              {liveChatAllowed && (
                 <Link
                   href="/admin/livechat"
                   className="text-[11px] text-stone hover:text-ink transition-colors flex items-center gap-1"
@@ -343,11 +367,11 @@ export default async function AdminUserDetailPage({
               )}
             </div>
 
-            {!isPro ? (
+            {!liveChatAllowed ? (
               <EmptyState
                 icon={<ChatIcon muted />}
                 text={`کاربر پلن ${PLAN_LABELS[user.plan] ?? user.plan} دارد`}
-                sub="چت آنلاین مخصوص کاربران پرو است"
+                sub="چت آنلاین در پلن این کاربر فعال نیست"
                 faded
               />
             ) : recentChats.length === 0 ? (

@@ -15,6 +15,8 @@ import {
   getPostBySlug,
   getRelatedPosts,
   getApprovedComments,
+  getPopularPosts,
+  getPopularTags,
   type CommentView,
 } from "@/lib/blog/queries";
 import { renderMarkdown, extractHeadings } from "@/lib/blog/markdown";
@@ -69,10 +71,15 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const [comments, related] = await Promise.all([
+  const [comments, related, popular, tags] = await Promise.all([
     getApprovedComments(post.id),
     getRelatedPosts(post.slug, post.categorySlug, 3),
+    getPopularPosts(4),
+    getPopularTags(10),
   ]);
+
+  // «خواندنی‌ترین‌ها» بدونِ خودِ مقاله
+  const sidebarPopular = popular.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   const html = renderMarkdown(post.content);
   const headings = extractHeadings(post.content);
@@ -145,15 +152,15 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_260px] gap-10 items-start">
             {/* ─── ستونِ مقاله ─── */}
             <div className="min-w-0" id="article-body">
-              {/* کاور */}
+              {/* کاور — هم‌عرضِ متن، با سقفِ ارتفاع (نه تمام‌قد) */}
               {post.coverImage && (
-                <div className="reveal mb-10">
+                <div className="reveal mb-10 max-w-2xl">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={post.coverImage}
                     alt={post.title}
-                    className="w-full rounded-3xl"
-                    style={{ boxShadow: "0 24px 64px rgba(46,44,40,0.14)" }}
+                    className="w-full rounded-2xl object-cover"
+                    style={{ maxHeight: "380px", boxShadow: "0 16px 44px rgba(46,44,40,0.12)" }}
                   />
                 </div>
               )}
@@ -187,10 +194,13 @@ export default async function BlogPostPage({ params }: Props) {
                 <LikeButton slug={post.slug} initialCount={post.likeCount} />
                 <ShareBar slug={post.slug} shortCode={post.shortCode} title={post.title} />
               </div>
+
+              {/* کامنت‌ها — هم‌عرض و هم‌راستا با متنِ مقاله (راست‌چین) */}
+              <CommentsSection slug={post.slug} comments={commentNodes} totalCount={commentTotal} />
             </div>
 
-            {/* ─── سایدبار: فهرست مطالب چسبان ─── */}
-            <aside className="hidden lg:block sticky top-24 self-start">
+            {/* ─── سایدبار: فهرست مطالب + خواندنی‌ترین‌ها + برچسب‌ها ─── */}
+            <aside className="hidden lg:block sticky top-24 self-start space-y-5">
               <div className="glass rounded-2xl p-5 anim-fade-in d-4">
                 <ArticleToc headings={headings} />
                 {headings.length < 2 && (
@@ -199,13 +209,95 @@ export default async function BlogPostPage({ params }: Props) {
                   </p>
                 )}
               </div>
+
+              {/* خواندنی‌ترین‌ها */}
+              {sidebarPopular.length > 0 && (
+                <div className="glass rounded-2xl p-5 anim-fade-in d-5">
+                  <div className="text-fog text-[11px] uppercase tracking-[0.16em] mb-4" style={{ fontWeight: 600 }}>
+                    خواندنی‌ترین‌ها
+                  </div>
+                  <ul className="space-y-3.5">
+                    {sidebarPopular.map((p, i) => (
+                      <li key={p.slug}>
+                        <Link href={`/blog/${p.slug}`} className="group flex items-start gap-3">
+                          <span
+                            className="fa-num shrink-0 leading-none"
+                            style={{ fontWeight: 100, fontSize: "22px", color: "var(--color-fog)", marginTop: "2px" }}
+                          >
+                            {toFaDigits(i + 1)}
+                          </span>
+                          <span className="min-w-0">
+                            <span
+                              className="block text-[13px] transition-colors group-hover:text-sage-deep"
+                              style={{
+                                fontWeight: 400,
+                                color: "var(--color-ink)",
+                                lineHeight: 1.6,
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                              }}
+                            >
+                              {p.title}
+                            </span>
+                            <span className="block mt-0.5 text-[11px] text-fog fa-num" style={{ fontWeight: 300 }}>
+                              {toFaDigits(p.readingMinutes)} دقیقه مطالعه
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* برچسب‌ها */}
+              {tags.length > 0 && (
+                <div className="glass rounded-2xl p-5 anim-fade-in d-6">
+                  <div className="text-fog text-[11px] uppercase tracking-[0.16em] mb-3.5" style={{ fontWeight: 600 }}>
+                    برچسب‌ها
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tags.map((t) => (
+                      <Link
+                        key={t.slug}
+                        href={`/blog?tag=${encodeURIComponent(t.slug)}`}
+                        className="text-xs rounded-full px-2.5 py-1 transition-all hover:-translate-y-px"
+                        style={{
+                          background: "rgba(var(--rgb-line),0.04)",
+                          color: "var(--color-stone)",
+                          fontWeight: 300,
+                          border: "1px solid rgba(var(--rgb-line),0.08)",
+                        }}
+                      >
+                        #{t.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* دربارهٔ بلاگ */}
+              <div className="glass rounded-2xl p-5 anim-fade-in d-6">
+                <div className="text-fog text-[11px] uppercase tracking-[0.16em] mb-3" style={{ fontWeight: 600 }}>
+                  بلاگ همسو
+                </div>
+                <p className="text-stone text-[13px] mb-3" style={{ fontWeight: 300, lineHeight: 1.9 }}>
+                  یادداشت‌هایی آرام دربارهٔ فاصلهٔ میان حرف و عمل، خودآگاهی، و مسیر.
+                </p>
+                <Link
+                  href="/blog"
+                  className="text-[13px] transition-colors hover:text-sage-deep"
+                  style={{ color: "var(--color-sage-deep)", fontWeight: 400 }}
+                >
+                  همهٔ نوشته‌ها ←
+                </Link>
+              </div>
             </aside>
           </div>
         </div>
       </article>
-
-      {/* کامنت‌ها */}
-      <CommentsSection slug={post.slug} comments={commentNodes} totalCount={commentTotal} />
 
       {/* مقالاتِ مرتبط */}
       {related.length > 0 && (

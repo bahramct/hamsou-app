@@ -5,9 +5,10 @@
 // enforce: payment.read؛ تغییر: payment.manage
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { requirePermission, can } from "@/lib/admin/auth-server";
+import { requirePermission, can, isOwner } from "@/lib/admin/auth-server";
 import { prisma } from "@/lib/db/client";
 import { PaymentCardsManager, type BankCardView } from "@/components/admin/payment/PaymentCardsManager";
+import { PaymentGatewayManager, type GatewayView } from "@/components/admin/payment/PaymentGatewayManager";
 import { WalletTopupsManager, type TopupView } from "@/components/admin/payment/WalletTopupsManager";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,22 @@ export const dynamic = "force-dynamic";
 export default async function PaymentPage() {
   const ctx = await requirePermission("payment.read");
   const canManage = can(ctx, "payment.manage");
+  const owner = isOwner(ctx);
+
+  const gwRow = await prisma.paymentGateway.findFirst({
+    orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
+  });
+  const gateway: GatewayView | null = gwRow
+    ? {
+        label: gwRow.label,
+        provider: gwRow.provider,
+        isSandbox: gwRow.isSandbox,
+        isActive: gwRow.isActive,
+        hasMerchantId: Boolean(gwRow.merchantId && gwRow.merchantId.trim()),
+        merchantId: owner ? gwRow.merchantId : null,
+        note: gwRow.note,
+      }
+    : null;
 
   const cardRows = await prisma.bankCard.findMany({
     orderBy: [{ isDefault: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
@@ -49,6 +66,8 @@ export default async function PaymentPage() {
         refCode: t.refCode,
         amount: t.amount,
         status: t.status,
+        gateway: t.gateway,
+        gatewayRefId: t.gatewayRefId,
         payerCardSnapshot: t.payerCardSnapshot,
         adminNote: t.adminNote,
         createdAt: t.createdAt.toISOString(),
@@ -81,6 +100,7 @@ export default async function PaymentPage() {
         کاربر مبلغی به «کارت مرجع» واریز می‌کند و یک «شناسهٔ یکتا» می‌گیرد. اینجا با تطبیقِ آن شناسه و «کارتِ ثبت‌شدهٔ کاربر» (مبدأ واریز)، شارژ را تأیید می‌کنی؛ کیف‌پول بلافاصله شارژ می‌شود و به کاربر اعلان می‌رود. درگاهِ پرداختِ آینده هم همین کیف‌پول را شارژ خواهد کرد — بدون تداخل.
       </div>
 
+      <PaymentGatewayManager gateway={gateway} canManage={canManage} isOwner={owner} />
       <PaymentCardsManager cards={cards} canManage={canManage} />
       <WalletTopupsManager topups={topups} canManage={canManage} />
     </div>

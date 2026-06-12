@@ -248,7 +248,7 @@ function AboutNotList({ c }: SectionRenderProps) {
   const items = c.list("items");
   return (
     <section className="relative z-10 py-16 px-6 lg:px-10">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="reveal mb-10">
           <div className="text-fog text-xs uppercase tracking-[0.18em] mb-5" style={{ fontWeight: 600 }}>
             {c.text("eyebrow")}
@@ -257,19 +257,20 @@ function AboutNotList({ c }: SectionRenderProps) {
             {c.text("heading")}
           </h2>
         </div>
-        <div className="space-y-3">
+        {/* گرید دو ستونه و فشرده — به‌جای کارت‌های تمام‌عرضِ زیرِ هم (فضای کمتر، خوانایی همان) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {items.map((item, i) => (
             <div
               key={i}
-              className="reveal flex items-center gap-4 p-5 rounded-2xl"
+              className="reveal flex items-center gap-3 px-4 py-3.5 rounded-2xl"
               style={{ background: "rgba(199,93,60,0.035)", border: "1px solid rgba(199,93,60,0.08)", animationDelay: `${i * 60}ms` }}
             >
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(199,93,60,0.07)" }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-ember)" strokeWidth="2.2" strokeLinecap="round">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(199,93,60,0.07)" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--color-ember)" strokeWidth="2.2" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </div>
-              <span className="text-stone" style={{ fontWeight: 300, fontSize: c.fontSize("items") }}>{item}</span>
+              <span className="text-stone" style={{ fontWeight: 300, fontSize: c.fontSize("items"), lineHeight: 1.7 }}>{item}</span>
             </div>
           ))}
         </div>

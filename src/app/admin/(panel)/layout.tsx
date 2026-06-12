@@ -31,7 +31,11 @@ export default async function PanelLayout({
   const pendingComments = ctx.permissions.has("blog.moderate")
     ? await getPendingCommentsCount()
     : 0;
-  const initialCounts = { ...support, pendingPayments, pendingComments };
+  // پیام‌های جدید فرم تماس (DECISION-072)
+  const newContacts = ctx.permissions.has("support.read")
+    ? await prisma.contactMessage.count({ where: { status: "new" } })
+    : 0;
+  const initialCounts = { ...support, pendingPayments, pendingComments, newContacts };
 
   return (
     <AdminShell

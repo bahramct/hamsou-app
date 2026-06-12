@@ -29,6 +29,12 @@ const PUBLIC_PATHS = [
   "/api/auth",
   "/api/dev",
   "/api/blog",
+  // فرم تماس + کپچای اختصاصی (DECISION-072) — عمومی؛ خودش honeypot/کپچا/سقف نرخ دارد
+  "/api/contact",
+  // بازگشتِ درگاهِ پرداخت (DECISION-071/073): کوکی سشن SameSite=Strict در redirectِ
+  // cross-site از زرین‌پال ارسال نمی‌شود؛ هندلر خودگارد است (شناسایی با authority + verify).
+  "/api/wallet/topup/callback",
+  "/api/plans/checkout/callback",
 ];
 
 // مسیرهایی که کاملاً بیرون از middleware هستند (static, assets)

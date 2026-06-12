@@ -14,7 +14,7 @@ import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { toFaDigits as toFa } from "@/lib/utils/digits";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
-type BadgeKey = "tickets" | "chat" | "payments" | "comments";
+type BadgeKey = "tickets" | "chat" | "payments" | "comments" | "contacts";
 
 interface NavItem {
   href: string;
@@ -35,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/payment", label: "پرداخت", perm: "payment.read", icon: "wallet", ready: true, badge: "payments" },
   { href: "/admin/support", label: "تیکت‌ها", perm: "support.read", icon: "headset", ready: true, badge: "tickets" },
   { href: "/admin/livechat", label: "چت آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
+  { href: "/admin/contact", label: "پیام‌های تماس", perm: "support.read", icon: "inbox", ready: true, badge: "contacts" },
   { href: "/admin/blog", label: "بلاگ", perm: "blog.read", icon: "book", ready: true, badge: "comments" },
   { href: "/admin/content", label: "محتوا", perm: "content.read", icon: "doc", ready: true },
   { href: "/admin/admins", label: "ادمین‌ها", perm: "admins.manage", icon: "shield", ready: true },
@@ -47,6 +48,7 @@ interface NavCounts {
   unreadChats: number;
   pendingPayments: number;
   pendingComments: number;
+  newContacts: number;
 }
 
 const COUNTS_POLL_MS = 20000;
@@ -77,6 +79,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
         unreadChats: data.unreadChats ?? 0,
         pendingPayments: data.pendingPayments ?? 0,
         pendingComments: data.pendingComments ?? 0,
+        newContacts: data.newContacts ?? 0,
       });
     } catch {
       // بی‌صدا
@@ -98,6 +101,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
       : key === "chat" ? counts.unreadChats
       : key === "payments" ? counts.pendingPayments
       : key === "comments" ? counts.pendingComments
+      : key === "contacts" ? counts.newContacts
       : 0;
 
   function isActive(href: string) {
@@ -279,6 +283,7 @@ const ICONS = {
   shield: <><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" {...S} /></>,
   key: <><circle cx="8" cy="8" r="4" {...S} /><path d="M11 11l8 8M16 16l2-2M18 18l2-2" {...S} /></>,
   list: <><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" {...S} /></>,
+  inbox: <><path d="M22 12h-6l-2 3h-4l-2-3H2" {...S} /><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" {...S} /></>,
   logout: <><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l-5-5 5-5M5 12h11" {...S} /></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16" {...S} /></>,
   close: <><path d="M6 6l12 12M18 6L6 18" {...S} /></>,

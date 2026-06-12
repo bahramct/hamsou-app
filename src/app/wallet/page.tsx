@@ -8,6 +8,7 @@ import { getSessionUser } from "@/lib/utils/auth-server";
 import { AppShell } from "@/components/layout/AppShell";
 import { prisma } from "@/lib/db/client";
 import { WalletPanel, type WalletTx } from "@/components/features/wallet/WalletPanel";
+import { WalletReturnToast } from "@/components/features/wallet/WalletReturnToast";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function WalletPage() {
 
   return (
     <AppShell>
+      <WalletReturnToast />
       <div className="flex-1 max-w-2xl mx-auto w-full px-5 py-10 sm:py-14 animate-fade-up">
         <div className="mb-8">
           <h1 className="text-xl font-semibold text-ink">کیف‌پول</h1>

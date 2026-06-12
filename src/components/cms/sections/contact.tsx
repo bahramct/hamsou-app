@@ -4,6 +4,8 @@
 
 import Link from "next/link";
 import { CopyEmailButton } from "@/app/contact/CopyEmailButton";
+import { ContactForm } from "@/components/features/contact/ContactForm";
+import { SocialLinks } from "@/components/layout/SocialLinks";
 import type { SectionDef, SectionRenderProps } from "@/lib/cms/types";
 
 // ═══ HERO ═══
@@ -136,6 +138,60 @@ const contactCard: SectionDef = {
   Component: ContactCard,
 };
 
+// ═══ فرم تماس + کپچا + سوشال (DECISION-072) ═══
+function ContactFormSection({ c }: SectionRenderProps) {
+  const email = c.text("email");
+  return (
+    <section className="relative z-10 py-8 px-6 lg:px-10">
+      <div className="max-w-lg mx-auto reveal">
+        <div
+          className="glass-strong rounded-3xl p-7"
+          style={{ boxShadow: "0 24px 64px rgba(46,44,40,0.10), inset 0 1px 0 rgba(var(--rgb-card),0.7)" }}
+        >
+          <h2 className="mb-1.5" style={{ fontWeight: 400, fontSize: "17px", color: "var(--color-ink)" }}>
+            {c.text("formTitle")}
+          </h2>
+          <p className="text-stone mb-5" style={{ fontWeight: 300, fontSize: "14px", lineHeight: 1.8 }}>
+            {c.text("formIntro")}
+          </p>
+          <ContactForm />
+        </div>
+
+        {/* راه‌های دیگر — سوشالِ مونوکروم + ایمیل، زیر فرم */}
+        <div className="mt-8 flex flex-col items-center gap-4 text-center">
+          <SocialLinks size="lg" />
+          <a
+            href={`mailto:${email}`}
+            className="text-stone hover:text-ink transition-colors"
+            style={{ fontWeight: 300, fontSize: "14px", direction: "ltr", display: "inline-block" }}
+          >
+            {email}
+          </a>
+          <p className="text-fog" style={{ fontWeight: 300, fontSize: "13px" }}>
+            {c.text("responseTime")}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+const contactForm: SectionDef = {
+  type: "contact-form", label: "تماس — فرم تماس + شبکه‌ها", pages: ["contact"],
+  fields: [
+    { key: "formTitle", label: "عنوان فرم", type: "text" },
+    { key: "formIntro", label: "متن بالای فرم", type: "textarea" },
+    { key: "email", label: "ایمیل (زیر فرم)", type: "text" },
+    { key: "responseTime", label: "زمان پاسخگویی", type: "text" },
+  ],
+  defaults: {
+    formTitle: "برایمان بنویس",
+    formIntro: "سوال، پیشنهاد یا انتقادت را همین‌جا بنویس — مستقیم به دست تیم همسو می‌رسد.",
+    email: "hello@hamsouapp.ir",
+    responseTime: "معمولاً ظرف ۴۸ ساعت پاسخ می‌دهیم",
+  },
+  Component: ContactFormSection,
+};
+
 // ═══ کاربران فعلی ═══
 function ContactExisting({ c }: SectionRenderProps) {
   return (
@@ -169,4 +225,4 @@ const contactExisting: SectionDef = {
   Component: ContactExisting,
 };
 
-export const CONTACT_SECTIONS: SectionDef[] = [contactHero, contactCard, contactExisting];
+export const CONTACT_SECTIONS: SectionDef[] = [contactHero, contactForm, contactCard, contactExisting];

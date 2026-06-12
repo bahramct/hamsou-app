@@ -76,10 +76,10 @@ export function AppNav() {
         >
           <Image
             src="/logo.png"
-            width={28}
-            height={28}
+            width={58}
+            height={38}
             alt="همسو"
-            style={{ width: "auto", height: "28px" }}
+            style={{ width: "auto", height: "38px" }}
           />
         </Link>
 
@@ -110,11 +110,8 @@ export function AppNav() {
           })}
         </div>
 
-        {/* سمت چپ: ناقوس + پروفایل + خروج (دسکتاپ) و همبرگر (موبایل) */}
+        {/* سمت چپ: ناقوس + پروفایل + خروج (دسکتاپ) و همبرگر (موبایل)؛ تم همیشه آخر (گوشهٔ چپ) */}
         <div className="flex items-center gap-1 shrink-0">
-          {/* تم روشن/تاریک */}
-          <ThemeToggle className="ml-1" />
-
           {/* ناقوس اعلان — همیشه نمایان (دسکتاپ + موبایل) */}
           <NotificationBell />
 
@@ -152,6 +149,9 @@ export function AppNav() {
           >
             <Hamburger open={menuOpen} />
           </button>
+
+          {/* تم روشن/تاریک — آخرین آیتم (گوشهٔ چپ-بالا) */}
+          <ThemeToggle className="mr-1" />
         </div>
       </div>
 

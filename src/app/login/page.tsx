@@ -9,6 +9,7 @@ import { DevOtpPanel } from "@/components/dev/DevOtpPanel";
 import { AmbientField } from "@/components/layout/AmbientField";
 import { toFaDigits } from "@/lib/utils/digits";
 import { Spinner } from "@/components/ui/Spinner";
+import { TermsModal } from "@/components/features/auth/TermsModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // صفحهٔ ورود همسو (DECISION-058) — دو روش:
@@ -19,8 +20,37 @@ import { Spinner } from "@/components/ui/Spinner";
 
 type Method = "mobile" | "email";
 
+// ظرفِ ارتفاع-نرم: تغییرِ ارتفاعِ محتوا (سوییچ تب/مرحله) را به‌جای پرش، با گذارِ
+// آرام انیمیت می‌کند تا چشم اذیت نشود. ResizeObserver ارتفاعِ واقعی را دنبال می‌کند.
+function SmoothHeight({ children }: { children: React.ReactNode }) {
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setHeight(el.offsetHeight));
+    ro.observe(el);
+    setHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      style={{
+        height: height ?? "auto",
+        overflow: "hidden",
+        transition: "height 420ms cubic-bezier(0.22, 1, 0.36, 1)",
+      }}
+    >
+      <div ref={innerRef}>{children}</div>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const [method, setMethod] = useState<Method>("mobile");
+  const [termsOpen, setTermsOpen] = useState(false);
 
   return (
     <main className="relative min-h-dvh flex flex-col items-center justify-center px-4">
@@ -48,14 +78,27 @@ export default function LoginPage() {
         </div>
 
         <div className="glass-strong rounded-2xl p-6">
-          {method === "mobile" ? <MobileFlow /> : <EmailFlow />}
+          <SmoothHeight>
+            <div key={method} className="animate-fade-in">
+              {method === "mobile" ? <MobileFlow /> : <EmailFlow />}
+            </div>
+          </SmoothHeight>
         </div>
 
         <p className="text-center text-xs text-fog mt-6 leading-6">
           ورود به معنای پذیرش{" "}
-          <a href="#" className="text-stone hover:text-ink transition-colors">قوانین</a> است.
+          <button
+            type="button"
+            onClick={() => setTermsOpen(true)}
+            className="text-stone hover:text-ink transition-colors underline underline-offset-2"
+          >
+            قوانین استفاده
+          </button>{" "}
+          است.
         </p>
       </div>
+
+      <TermsModal isOpen={termsOpen} onAccept={() => setTermsOpen(false)} />
     </main>
   );
 }

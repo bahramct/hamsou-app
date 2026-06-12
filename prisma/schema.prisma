@@ -529,6 +529,29 @@ model BankCard {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PaymentGateway — درگاهِ پرداختِ آنلاین قابل‌تنظیم از پنل (DECISION-071؛ آینهٔ SmsService)
+// provider: "zarinpal" (واقعی) | "mock" (آزمایشی، dev). در dev همیشه Mock استفاده می‌شود (§۱۳).
+// merchantId (کدِ درگاه، ۳۶ کاراکتر) فقط Owner مشاهده/ویرایش می‌کند (قاعدهٔ apiKey).
+// شارژِ موفق، کیف‌پول را اتوماتیک شارژ می‌کند (بدونِ تأیید دستیِ ادمین).
+// ─────────────────────────────────────────────────────────────────────────────
+model PaymentGateway {
+  id          String   @id @default(cuid())
+  label       String   @default("زرین‌پال") // برچسب انسانی
+  provider    String   @default("zarinpal") // "zarinpal" | "mock"
+  merchantId  String? // کدِ درگاه — فقط Owner مشاهده/ویرایش می‌کند
+  isSandbox   Boolean  @default(false) // حالت آزمایشیِ درگاه (در صورت پشتیبانی)
+  isActive    Boolean  @default(true)
+  isDefault   Boolean  @default(false) // درگاهِ پیش‌فرض — حداکثر یکی فعال
+  sortOrder   Int      @default(0)
+  note        String?
+  createdById String? // AdminUser.id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, isDefault])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // WalletTransaction — دفترِ کلِ کیف‌پول (DECISION-062): هر تغییر موجودی یک ردیف.
 // type: "topup" (شارژ، +) | "purchase" (خرید پلن، −) | "adjust" (اصلاح دستیِ ادمین، ±)
 // status: topup → pending→approved/rejected؛ purchase/adjust → completed.
@@ -545,6 +568,10 @@ model WalletTransaction {
   refCode           String   @unique // topup: "HM-hhmmdd-xxxx"
   payerCardSnapshot String? // کارتِ کاربر در لحظهٔ درخواست (برای تطبیق ادمین)
   bankCardId        String? // BankCard.id که نمایش داده شد
+  gateway           String? // "zarinpal" (شارژ آنلاین) | null (کارت‌به‌کارتِ دستی) — DECISION-071
+  authority         String?  @unique // authority زرین‌پال + کلیدِ idempotency
+  gatewayRefId      String? // ref_id بانکیِ زرین‌پال (شمارهٔ پیگیری برای رسید)
+  cardPan           String? // کارتِ ماسک‌شدهٔ پرداخت (از verify)
   planKey           String? // برای purchase
   cycle             String? // "monthly" | "annual" (برای purchase)
   adminNote         String? // دلیل رد / یادداشت
@@ -806,6 +833,24 @@ model BlogLike {
 
   @@unique([postId, fingerprint])
   @@index([postId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ContactMessage — پیام‌های فرم «تماس با ما» (DECISION-072)
+// عمومی (بدون نیاز به حساب) + کپچای اختصاصی سمت سرور (بدون سرویس گوگل).
+// در پنل ادمین («پیام‌های تماس»، permission support.read) دیده و مدیریت می‌شود.
+model ContactMessage {
+  id        String    @id @default(cuid())
+  name      String
+  email     String // برای پاسخ — فقط ادمین می‌بیند
+  subject   String?
+  body      String
+  status    String    @default("new") // new | read | archived
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+  readById  String? // AdminUser.id
+
+  @@index([status, createdAt])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

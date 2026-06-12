@@ -6,6 +6,30 @@
 
 ## آخرین تغییرات
 
+### بستهٔ بزرگ اصلاحات UI/UX + فرم تماس + خرید مستقیم پلن (۲۰۲۶-۰۶-۱۲) — DECISION-072/073/074/075
+- **ناوبری و برند (DECISION-075):** لینک‌های قبل از ورود در همهٔ صفحات یکدست شد (صفحه اصلی · درباره ما · تماس با ما · بلاگ، با حالت active)؛ دکمهٔ تم در هر سه nav آخرین آیتم گوشهٔ چپ-بالا؛ لوگو بزرگ‌تر (nav ۴۴px / AppNav ۳۸px / فوتر ۵۰px) با ابعاد درست next/image (هشدار logo.png رفع شد).
+- **فوتر ۴ ستونه:** برند + «آیینه‌ای، برای واقعی‌تر کردن زندگی» + سوشال مونوکروم (`SocialLinks` — X/اینستاگرام/واتساپ/تلگرام، آدرس‌ها بعداً) · محصول (anchors لندینگ + کاربران) · لینک‌های مفید · مجوزها: e-Namad و زرین‌پال در کادرهای هم‌سایز (`TrustBadges` — رندر مستقیم خروجی TrustCode چون document.write در React اجرا نمی‌شود).
+- **فرم تماس + کپچای اختصاصی (DECISION-072):** کپچای SVG با ارقام فارسی + نویز، stateless با HMAC و انقضا (بدون گوگل/DB) — `lib/captcha/captcha.ts` + `GET /api/contact/captcha`. مدل جدید `ContactMessage` (db push با تأیید مالک) + `POST /api/contact` (honeypot + کپچا + سقف نرخ per-IP). سکشن CMS جدید `contact-form` جایگزین کارت رنگی شد؛ سوشال مونوکروم زیر فرم. پنل: `/admin/contact` با تب‌های جدید/خوانده/بایگانی + badge «پیام‌های تماس» (nav-counts).
+- **بلاگ:** کارت‌های جمع‌وجور + `PostsExplorer` با دو چیدمان کاشی/لیستی و ذخیرهٔ ترجیح کاربر در localStorage؛ کارت شاخص تمام‌عرض حذف (اولین کارت با نشان «شاخص»).
+- **صفحهٔ مقاله:** کاور هم‌عرض متن با سقف ارتفاع ۳۸۰px؛ متن justify (انتهای سطرها تراز)؛ سایدبار غنی‌تر (TOC + خواندنی‌ترین‌ها + برچسب‌ها + کارت بلاگ)؛ `metadataBase` به layout ریشه (رفع هشدار OG).
+- **کامنت‌ها:** بازطراحی کارتی مدرن، راست‌چین و هم‌راستا با ستون مقاله؛ ریپلای داخل کارت؛ **کامنت کاربر تا تأیید ادمین فقط برای خودش gray-out** دیده می‌شود (API کامنت ساخته‌شده را برمی‌گرداند + localStorage per-slug با TTL ۷روزه؛ پس از تأیید خودکار عادی). تست موقت API: ۷/۷ ✅ (سپس داده پاک شد).
+- **خرید مستقیم پلن از درگاه (DECISION-073):** مستقل از کیف‌پول — `quotePlanPurchase` مشترک + `POST /api/plans/checkout/gateway` + callback عمومی idempotent که پلن را اتمیک اعمال می‌کند (تمدید هوشمند؛ موجودی دست‌نخورده؛ کد تخفیف پس از پرداخت موفق مصرف می‌شود؛ edge ایمن downgrade → اعتبار به کیف‌پول). مودال خرید دو دکمهٔ مستقل: «خرید با کیف‌پول» / «پرداخت مستقیم از درگاه آنلاین» + `PlanReturnToast`. متن‌های «به‌زودی» حذف شد.
+- **آمار تعهد (DECISION-074):** helper مشترک `lib/stats/commitments.ts` — تعهدهای داخل بازه‌های فاصله شمرده نمی‌شوند (دادهٔ گپ برای تحلیل می‌ماند). مصرف: پروفایل سایت + لیست و جزئیات کاربر پنل. «روز همراهی» طبق نظر مالک دست‌نخورده ماند.
+- **هم‌ترازی پنل:** گیت «تیکت‌ها» و «چت آنلاین» در جزئیات کاربر از hardcode به `planAllows()` منتقل شد؛ پلن بدون تیکت → کارت غیرفعال «در این پلن نیست» (مثل چت).
+- **ریزبهبودها:** لاگین با `SmoothHeight` بدون پرش بین تب‌ها؛ badge زنگوله با باز شدن پنل فوراً صفر می‌شود؛ مودال گزارش «اشتراک‌گذاری و دانلود» شد + قفل کامل اسکرول (html+body+overscroll-contain)؛ کارت‌های «خط قرمز» درباره ما گرید دو ستونه.
+- `db push` ✅ · `tsc` ✅ · `next build` ✅ (۸۳ مسیر) · probe صفحات ✅
+
+### درگاه پرداخت آنلاین (زرین‌پال) برای شارژ کیف‌پول (۲۰۲۶-۰۶-۱۲) — DECISION-071
+- **Adapter Pattern:** اینترفیس `PaymentAdapter` (`payment.adapter.ts`) + `ZarinpalAdapter` (API v4، سندباکس/تولید با سوییچِ میزبان) + `MockPaymentAdapter`. factory `getPaymentAdapterForGateway` **config-محور** است: `provider=mock`→ماک آنی؛ `provider=zarinpal`+`isSandbox`→`sandbox.zarinpal.com` (تستِ بدونِ پول)؛ بدونِ سندباکس→تولید. هیچ کد فیچری مستقیم به درگاه وصل نمی‌شود.
+- **اصلاحِ ۲۰۲۶-۰۶-۱۲ (سندباکسِ واقعی):** نسخهٔ اول در dev همیشه Mock می‌گذاشت (تستِ آنی/نامرئی، گیج‌کننده). با تأیید مالک پیش‌فرضِ dev به **سندباکسِ واقعیِ زرین‌پال** تغییر کرد — کاربر صفحهٔ واقعیِ درگاه را می‌بیند، بدونِ پولِ واقعی. پنل `PaymentGatewayManager` بنرِ «حالتِ فعال» (سندباکس/تولید/ماک) را زنده نشان می‌دهد. (انحرافِ تأییدشده از §۱۳.)
+- **کانفیگ DB + پنل:** مدل `PaymentGateway` (آینهٔ SmsService) + resolver `getActivePaymentGateway()` (cache + null). مدیریت در `/admin/payment` با `PaymentGatewayManager` — `merchant_id` فقط Owner می‌بیند/ویرایش می‌کند. route `GET/PUT /api/admin/payment/gateway`.
+- **مدل داده:** ۴ فیلدِ افزایشی به `WalletTransaction` (`gateway`, `authority @unique`, `gatewayRefId`, `cardPan`) — `db push` بدون migration.
+- **جریانِ امن:** `createGatewayTopup`→`attachAuthority`→`verifyPayment`→`confirmGatewayTopup` (اتمیک در `$transaction`، idempotent با گاردِ status + یکتاییِ authority) / `failGatewayTopup`. مبلغ همیشه از tx (ضدِ دستکاری)؛ `currency:"IRT"` (تومان). اعلانِ `wallet.topup.approved` بازاستفاده شد.
+- **Routeها:** `POST /api/wallet/topup/gateway` (شروع → startPayUrl) + `GET /api/wallet/topup/callback` (verify→شارژ→redirect با `?pay=`). callback در `PUBLIC_PATHS` چون کوکیِ سشن `SameSite=Strict` در redirectِ cross-site نمی‌آید (هندلر خودگارد است).
+- **UI:** «پرداخت آنلاین» مسیرِ اصلیِ مودالِ شارژ (بدونِ نیاز به کارت)؛ کارت‌به‌کارت گزینهٔ دوم. `WalletReturnToast` بازخوردِ بازگشت. در پنل تراکنش‌های درگاهی با نشانِ «زرین‌پال» auto-approved.
+- **هم‌ترازی (Admin/Project Parity):** ادمین درگاه را تنظیم می‌کند ↔ کاربر آنلاین شارژ می‌کند و موجودی اتوماتیک اضافه می‌شود؛ همان موجودی برای خرید پلن.
+- `build` ✅ · `db push` ✅ · `seed` درگاه ✅ (در dev آزمایشی؛ merchant_id در prod از پنل)
+
 ### ری‌دیزاین UI بزرگ — دارک مود + تایپوگرافی + بلاگ + ادیتور (۲۰۲۶-۰۶-۱۰) — DECISION-067/068/069/070
 - **دارک مود سراسری «شبِ گرم» (DECISION-067):** سایت + اپ + پنل ادمین. فلیپ توکن‌ها زیر `[data-theme="dark"]` (شامل `--color-white/black` تیلویند → پوشش خودکار پنل) + توکن‌های RGB معنایی (`--rgb-card/line/paper/bone`) برای رنگ‌های inline (۲۲ فایل). `ThemeScript` ضدفلش + `ThemeToggle` ۳حالته (سیستم/روشن/تاریک) در LandingNav/AppNav/AdminShell. گذار نرم `theme-anim`. خروجی‌های تصویر (share/receipt/QR) عمداً همیشه روشن.
 - **ری‌دیزاین تایپوگرافی استاتیک (DECISION-070):** مقیاس ~۳۵٪ آرام‌تر در هر ۵ صفحهٔ CMS — هیرو ۹۲→۵۶px، سکشن ۵۰→۳۶px، بدنه ۱۹→۱۶px، پدینگ‌ها py-32→py-20؛ تزئینات (ribbon/step-num/qmark/btn-lg) کوچک‌تر. **توجه:** override فونتِ ذخیره‌شده در CMS مقدم است؛ در صورت نیاز «بازگردانی به طراحی کد».

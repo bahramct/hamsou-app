@@ -200,15 +200,20 @@ export function ShareModal({
   }, [isOpen, url]);
 
   // ── Escape + scroll lock ──────────────────────────────────────────────────────
+  // قفلِ اسکرول باید روی <html> هم اعمال شود (فقط body کافی نیست — صفحهٔ زیرِ
+  // مودال هنگام wheel/touch اسکرول می‌شد). رفتارِ هدف: مثل مودالِ رسید پرداخت.
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", handler);
-    const prev = document.body.style.overflow;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", handler);
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
     };
   }, [isOpen, onClose]);
 
@@ -328,12 +333,12 @@ export function ShareModal({
         className="sharem-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="اشتراک‌گذاری گزارش هفتگی"
+        aria-label="اشتراک‌گذاری و دانلود گزارش هفتگی"
       >
         {/* ① هدر */}
         <div className="sm-rise sm-d1 flex items-start justify-between gap-3 mb-4">
           <div className="min-w-0">
-            <h2 className="text-[17px] font-semibold text-ink">اشتراک‌گذاری گزارش</h2>
+            <h2 className="text-[17px] font-semibold text-ink">اشتراک‌گذاری و دانلود</h2>
             <p className="text-xs text-stone mt-1 leading-relaxed">
               لینک و تصویر اجتماعی ساخته شد. کپی، دانلود یا مستقیم منتشر کن.
             </p>

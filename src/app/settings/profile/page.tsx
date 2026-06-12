@@ -20,6 +20,7 @@ import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
 import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import { toFaDigits } from "@/lib/utils/digits";
 import { getEffectivePlan } from "@/lib/plans/effective";
+import { countCommitments } from "@/lib/stats/commitments";
 import { getNow } from "@/lib/dev/time";
 
 function formatMemberSince(date: Date): string {
@@ -70,8 +71,9 @@ export default async function ProfileSettingsPage() {
   const effectivePlan = await getEffectivePlan(session.userId);
   const now = getNow();
 
+  // «تعهد ثبت‌شده» = روزهای دارای تعهد، بدون روزهای داخل بازه‌های فاصله (DECISION-074)
   const [entryCount, reportCount, recentTxsRaw] = await Promise.all([
-    prisma.dailyEntry.count({ where: { userId: session.userId } }),
+    countCommitments(session.userId),
     prisma.weeklyReport.count({ where: { userId: session.userId } }),
     prisma.walletTransaction.findMany({
       where: { userId: session.userId },

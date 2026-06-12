@@ -171,20 +171,19 @@ function LandingProblem({ c }: SectionRenderProps) {
   return (
     <section className="relative z-10 px-6 lg:px-10 py-16 lg:py-20">
       <div className="max-w-5xl mx-auto">
-        <div className="grid lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-20 items-start">
-          <div className="reveal">
-            <div className="ribbon-num fa-num">{c.text("num")}</div>
-            <span className="text-stone text-sm mt-2 block" style={{ fontWeight: 500, letterSpacing: ".04em" }}>{c.text("label")}</span>
+        <div className="max-w-3xl reveal">
+          {/* eyebrow — همان الگوی section ۰۲ (یک hr-line + برچسب) */}
+          <div className="flex items-center gap-3 mb-6">
+            <span className="hr-line w-10" />
+            <span className="text-stone text-xs uppercase tracking-[0.18em] fa-num" style={{ fontWeight: 500 }}>{c.text("eyebrow")}</span>
           </div>
-          <div className="reveal">
-            <h2 style={{ fontWeight: 300, fontSize: c.fontSize("heading"), lineHeight: 1.25, letterSpacing: "-0.01em" }}>
-              {c.text("headingA")}<br />
-              <em style={{ fontStyle: "italic", color: "var(--color-sage-deep)" }}>{c.text("headingEm")}</em>{c.text("headingB")}
-            </h2>
-            <div className="mt-6 space-y-4 text-stone max-w-xl" style={{ fontWeight: 300, fontSize: "16px", lineHeight: 1.85 }}>
-              <p>{c.text("para1")}</p>
-              <p style={{ color: "var(--color-ink)", fontWeight: 400 }}>{c.text("para2")}</p>
-            </div>
+          <h2 style={{ fontWeight: 300, fontSize: c.fontSize("heading"), lineHeight: 1.25, letterSpacing: "-0.01em" }}>
+            {c.text("headingA")}<br />
+            <em style={{ fontStyle: "italic", color: "var(--color-sage-deep)" }}>{c.text("headingEm")}</em>{c.text("headingB")}
+          </h2>
+          <div className="mt-6 space-y-4 text-stone max-w-xl" style={{ fontWeight: 300, fontSize: "16px", lineHeight: 1.85 }}>
+            <p>{c.text("para1")}</p>
+            <p style={{ color: "var(--color-ink)", fontWeight: 400 }}>{c.text("para2")}</p>
           </div>
         </div>
       </div>
@@ -194,8 +193,7 @@ function LandingProblem({ c }: SectionRenderProps) {
 const landingProblem: SectionDef = {
   type: "landing-problem", label: "اصلی — مشکل (۰۱)", pages: ["landing"],
   fields: [
-    { key: "num", label: "شماره", type: "text" },
-    { key: "label", label: "برچسب", type: "text" },
+    { key: "eyebrow", label: "برچسب شماره (مثل: ۰۱ — مشکل)", type: "text" },
     { key: "headingA", label: "عنوان — خط اول", type: "text", defaultFontSize: "clamp(23px, 2.9vw, 33px)" },
     { key: "headingEm", label: "عنوان — کلمهٔ سبز", type: "text" },
     { key: "headingB", label: "عنوان — بعد", type: "text" },
@@ -203,7 +201,7 @@ const landingProblem: SectionDef = {
     { key: "para2", label: "پاراگراف دوم (پررنگ)", type: "textarea" },
   ],
   defaults: {
-    num: "۰۱", label: "— مشکل",
+    eyebrow: "۰۱ — مشکل",
     headingA: "شاید مشکل تو،", headingEm: "کمبود انگیزه", headingB: " نباشد.",
     para1: "صبح، با خودت قراری می‌گذاری. شب، فراموش کرده‌ای چه قراری بود. این فاصله‌ی کوچک، روز به روز بزرگ‌تر می‌شود. اعتمادت به کلمات خودت، آرام آرام فرو می‌ریزد.",
     para2: "نه — این تنبلی نیست. این خستگی از زندگی در میان وعده‌هایی است که با هیچ‌کس، حتی خودت، در میانشان نگذاشته‌ای.",

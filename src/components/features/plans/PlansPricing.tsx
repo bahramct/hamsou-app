@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // PlansPricing — نمایش پویای پلن‌ها با سوییچ ماهانه/سالانه و کد تخفیف (DECISION-040)
 // قیمت‌ها از سرور می‌آیند؛ کد تخفیف از /api/plans/validate-discount اعتبارسنجی می‌شود.
-// خرید واقعی نیست (درگاه پرداخت ندارد) — دکمه در حالت «به‌زودی».
+// خرید با دو روش مستقل (DECISION-073): موجودی کیف‌پول یا پرداخت مستقیم از درگاه آنلاین.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
@@ -150,7 +150,7 @@ export function PlansPricing({
         </p>
       )}
       <p className="text-center text-xs text-fog/60">
-        خرید از موجودی کیف‌پول انجام می‌شود. درگاه پرداخت آنلاین به‌زودی اضافه می‌شود.
+        خرید با موجودی کیف‌پول یا پرداخت مستقیم از درگاه آنلاین — هر کدام که راحت‌تری.
       </p>
     </div>
   );
@@ -249,7 +249,7 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
           onClick={() => setShowBuy(true)}
           className="py-2.5 px-4 text-center text-sm font-medium text-paper bg-ink rounded-xl hover:bg-charcoal transition-colors"
         >
-          {plan.isCurrent ? "تمدید با کیف‌پول" : "خرید با کیف‌پول"}
+          {plan.isCurrent ? "تمدید پلن" : "خرید پلن"}
         </button>
       )}
 
@@ -350,7 +350,9 @@ function CheckIcon({ className = "" }: { className?: string }) {
   );
 }
 
-// ─── مودال خرید پلن از کیف‌پول (DECISION-062) ─────────────────────────────────
+// ─── مودال خرید پلن — کیف‌پول یا درگاه مستقیم (DECISION-062 → DECISION-073) ────
+// دو روش مستقل: ① موجودی کیف‌پول (اگر کافی باشد) ② پرداخت مستقیم از درگاه آنلاین
+// (بدون نیاز به شارژ قبلی). شارژ کیف‌پول و خرید پلن از هم جدا هستند.
 function PurchaseModal({
   planKey, planLabel, cycle, finalPrice, walletBalance, appliedCode, isRenew, onClose,
 }: {
@@ -358,12 +360,14 @@ function PurchaseModal({
   walletBalance: number; appliedCode: string | null; isRenew: boolean; onClose: () => void;
 }) {
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
+  const [busyWallet, setBusyWallet] = useState(false);
+  const [busyGateway, setBusyGateway] = useState(false);
+  const busy = busyWallet || busyGateway;
   const enough = walletBalance >= finalPrice;
   const shortBy = Math.max(0, finalPrice - walletBalance);
 
-  async function buy() {
-    setBusy(true);
+  async function buyWithWallet() {
+    setBusyWallet(true);
     try {
       const res = await fetch("/api/wallet/purchase", {
         method: "POST",
@@ -376,7 +380,28 @@ function PurchaseModal({
       router.refresh();
       onClose();
     } catch { toast.error("اتصال برقرار نشد."); }
-    finally { setBusy(false); }
+    finally { setBusyWallet(false); }
+  }
+
+  async function buyWithGateway() {
+    setBusyGateway(true);
+    try {
+      const res = await fetch("/api/plans/checkout/gateway", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planKey, cycle, code: appliedCode ?? undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok || !d?.startPayUrl) {
+        toast.error(d?.error ?? "اتصال به درگاه برقرار نشد.");
+        return;
+      }
+      window.location.href = d.startPayUrl; // هدایت به درگاه
+    } catch {
+      toast.error("اتصال برقرار نشد.");
+    } finally {
+      setBusyGateway(false);
+    }
   }
 
   return createPortal(
@@ -395,22 +420,41 @@ function PurchaseModal({
           <div className="h-px bg-black/6" />
           <Line label="موجودی کیف‌پول" value={`${faNum(walletBalance)} تومان`} />
           {enough ? (
-            <Line label="موجودی پس از خرید" value={`${faNum(walletBalance - finalPrice)} تومان`} />
+            <Line label="موجودی پس از خرید با کیف‌پول" value={`${faNum(walletBalance - finalPrice)} تومان`} />
           ) : (
-            <Line label="کسری" value={`${faNum(shortBy)} تومان`} ember />
+            <Line label="کسری کیف‌پول" value={`${faNum(shortBy)} تومان`} ember />
           )}
         </div>
 
-        {enough ? (
-          <button onClick={buy} disabled={busy} className="w-full mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors disabled:opacity-40">
-            {busy && <Spinner size={13} />}
-            تأیید و {isRenew ? "تمدید" : "خرید"}
-          </button>
-        ) : (
-          <Link href="/settings/profile" className="w-full mt-4 inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors">
-            شارژ کیف‌پول از پروفایل
-          </Link>
+        {/* روش ۱ — کیف‌پول */}
+        <button
+          onClick={buyWithWallet}
+          disabled={busy || !enough}
+          className="w-full mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors disabled:opacity-40"
+        >
+          {busyWallet && <Spinner size={13} />}
+          {isRenew ? "تمدید" : "خرید"} با کیف‌پول
+        </button>
+        {!enough && (
+          <p className="text-[10px] text-fog/70 text-center mt-1.5 leading-relaxed">
+            موجودی کافی نیست —{" "}
+            <Link href="/settings/profile" className="text-ember hover:underline">شارژ کیف‌پول</Link>
+            {" "}یا پرداخت مستقیم آنلاین.
+          </p>
         )}
+
+        {/* روش ۲ — درگاه مستقیم */}
+        <button
+          onClick={buyWithGateway}
+          disabled={busy}
+          className="w-full mt-3 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-black/12 text-ink text-sm hover:bg-black/4 transition-colors disabled:opacity-40"
+        >
+          {busyGateway && <Spinner size={13} />}
+          پرداخت مستقیم از درگاه آنلاین
+        </button>
+        <p className="text-[10px] text-fog/70 text-center mt-2 leading-relaxed">
+          در پرداخت مستقیم، مبلغ از کیف‌پول کم نمی‌شود — به درگاه امن هدایت می‌شوی.
+        </p>
       </div>
     </div>,
     document.body

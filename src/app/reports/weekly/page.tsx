@@ -196,7 +196,13 @@ export default async function WeeklyReportPage({ searchParams }: PageProps) {
           <>
             {pageSlots.map((slot) =>
               slot.report ? (
-                <WeeklyReportCard key={slot.weekStart} report={slot.report} userPlan={userPlan} planPaidSince={planPaidSince} />
+                <WeeklyReportCard
+                  key={slot.weekStart}
+                  report={slot.report}
+                  userPlan={userPlan}
+                  planPaidSince={planPaidSince}
+                  defaultExpanded={false}
+                />
               ) : (
                 <GhostCard key={slot.weekStart} slot={slot} />
               )

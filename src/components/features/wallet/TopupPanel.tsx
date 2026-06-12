@@ -42,9 +42,44 @@ export function TopupPanel({
   const [amount, setAmount] = useState(suggestedAmount ? String(suggestedAmount) : "");
   const [selectedSlot, setSelectedSlot] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
+  const [busyGateway, setBusyGateway] = useState(false);
+  const [showCard, setShowCard] = useState(false);
   const [created, setCreated] = useState<CreatedTopup | null>(null);
 
   const hasTwoCards = Boolean(cardNumber && cardNumber2);
+
+  function validAmount(): number | null {
+    const amt = parseInt(onlyDigits(amount), 10);
+    if (!amt || amt < 10000) {
+      toast.error("حداقل مبلغ شارژ ۱۰٬۰۰۰ تومان است.");
+      return null;
+    }
+    return amt;
+  }
+
+  // پرداختِ آنلاین — مسیرِ اصلی (نیازی به کارتِ ثبت‌شده ندارد)
+  async function payOnline() {
+    const amt = validAmount();
+    if (amt === null) return;
+    setBusyGateway(true);
+    try {
+      const res = await fetch("/api/wallet/topup/gateway", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: amt }),
+      });
+      const d = await res.json();
+      if (!res.ok || !d.startPayUrl) {
+        toast.error(d.error ?? "اتصال به درگاه پرداخت ناموفق بود.");
+        return;
+      }
+      window.location.href = d.startPayUrl; // هدایت به درگاه
+    } catch {
+      toast.error("اتصال برقرار نشد.");
+    } finally {
+      setBusyGateway(false);
+    }
+  }
 
   async function submit() {
     const amt = parseInt(onlyDigits(amount), 10);
@@ -92,39 +127,6 @@ export function TopupPanel({
 
         {!created ? (
           <>
-            {!hasCard && (
-              <div className="rounded-xl bg-ember/8 border border-ember/20 px-3 py-2.5 text-[12px] text-ember mb-3 leading-relaxed">
-                اول باید شماره کارتی که با آن واریز می‌کنی را در پروفایل ثبت کنی.
-              </div>
-            )}
-
-            {/* انتخاب کارت — فقط اگر ۲ کارت داشت */}
-            {hasTwoCards && (
-              <div className="mb-3">
-                <div className="text-[12px] font-medium text-stone mb-1.5">واریز از کدام کارت؟</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {[1, 2].map((s) => {
-                    const cn = s === 1 ? cardNumber : cardNumber2;
-                    const active = selectedSlot === s;
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => setSelectedSlot(s as 1 | 2)}
-                        className={`rounded-xl border px-3 py-2.5 text-right transition-colors ${
-                          active ? "border-sage bg-sage/8" : "border-bone bg-white/40 hover:border-stone/30"
-                        }`}
-                      >
-                        <div className="text-[10px] text-fog mb-0.5">کارت {s === 1 ? "اول" : "دوم"}</div>
-                        <div dir="ltr" className="text-xs font-semibold text-ink num-latin">
-                          {cn ? groupCard(cn) : "—"}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             <label className="text-[12px] font-medium text-stone">مبلغ شارژ (تومان)</label>
             <input
               value={amount}
@@ -140,14 +142,74 @@ export function TopupPanel({
                 {Number(onlyDigits(amount)).toLocaleString("fa-IR")} تومان
               </p>
             )}
+
+            {/* مسیرِ اصلی: پرداختِ آنلاین — بدونِ نیاز به کارتِ ثبت‌شده */}
             <button
-              onClick={submit}
-              disabled={busy || !hasCard}
+              onClick={payOnline}
+              disabled={busyGateway}
               className="w-full mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors disabled:opacity-40"
             >
-              {busy && <Spinner size={13} />}
-              ادامه و دریافت شناسه
+              {busyGateway && <Spinner size={13} />}
+              پرداخت آنلاین
             </button>
+            <p className="text-[11px] text-fog mt-1.5 text-center leading-relaxed">
+              به درگاهِ بانکی هدایت می‌شوی؛ پس از پرداخت، کیف‌پولت بلافاصله شارژ می‌شود.
+            </p>
+
+            {/* گزینهٔ دوم: واریزِ کارت‌به‌کارت (نیازمندِ کارتِ ثبت‌شده + تأییدِ پشتیبانی) */}
+            {!showCard ? (
+              <button
+                onClick={() => setShowCard(true)}
+                className="w-full mt-3 text-[12px] text-stone hover:text-ink transition-colors"
+              >
+                یا واریز کارت‌به‌کارت
+              </button>
+            ) : (
+              <div className="mt-4 pt-4 border-t border-black/8">
+                <div className="text-[12px] font-medium text-stone mb-2">واریز کارت‌به‌کارت</div>
+                {!hasCard && (
+                  <div className="rounded-xl bg-ember/8 border border-ember/20 px-3 py-2.5 text-[12px] text-ember mb-3 leading-relaxed">
+                    اول باید شماره کارتی که با آن واریز می‌کنی را در پروفایل ثبت کنی.
+                  </div>
+                )}
+
+                {/* انتخاب کارت — فقط اگر ۲ کارت داشت */}
+                {hasTwoCards && (
+                  <div className="mb-3">
+                    <div className="text-[12px] font-medium text-stone mb-1.5">واریز از کدام کارت؟</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[1, 2].map((s) => {
+                        const cn = s === 1 ? cardNumber : cardNumber2;
+                        const active = selectedSlot === s;
+                        return (
+                          <button
+                            key={s}
+                            onClick={() => setSelectedSlot(s as 1 | 2)}
+                            className={`rounded-xl border px-3 py-2.5 text-right transition-colors ${
+                              active ? "border-sage bg-sage/8" : "border-bone bg-white/40 hover:border-stone/30"
+                            }`}
+                          >
+                            <div className="text-[10px] text-fog mb-0.5">کارت {s === 1 ? "اول" : "دوم"}</div>
+                            <div dir="ltr" className="text-xs font-semibold text-ink num-latin">
+                              {cn ? groupCard(cn) : "—"}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={submit}
+                  disabled={busy || !hasCard}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-bone text-ink text-sm hover:border-stone/40 transition-colors disabled:opacity-40"
+                >
+                  {busy && <Spinner size={13} />}
+                  ادامه و دریافت شناسه
+                </button>
+              </div>
+            )}
           </>
         ) : (
           <div className="space-y-3">

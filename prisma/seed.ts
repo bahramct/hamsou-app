@@ -202,6 +202,26 @@ async function main() {
     console.log(`  ✓ ${cardCount} کارت مرجع از قبل موجود است — دست‌نخورده ماند.`);
   }
 
+  // ۴.۷ درگاهِ پرداختِ آنلاین (DECISION-071) — فقط اگر هیچ درگاهی وجود ندارد.
+  // merchantId اختیاری از env؛ در dev آداپترِ Mock استفاده می‌شود (پس بدونِ merchantId هم کار می‌کند).
+  // در prod مالک کدِ درگاه را از پنل ادمین وارد/ویرایش می‌کند.
+  const gatewayCount = await prisma.paymentGateway.count();
+  if (gatewayCount === 0) {
+    const merchantId = (process.env.ZARINPAL_MERCHANT_ID ?? "").trim() || null;
+    // پیش‌فرض = سندباکس (تستِ بدونِ پولِ واقعی روی sandbox.zarinpal.com).
+    // برای رفتن به تولید، از پنل ادمین «حالت آزمایشیِ سندباکس» را خاموش و merchantId واقعی را وارد کن.
+    await prisma.paymentGateway.create({
+      data: { label: "زرین‌پال", provider: "zarinpal", merchantId, isSandbox: true, isActive: true, isDefault: true },
+    });
+    console.log(
+      merchantId
+        ? "  ✓ درگاهِ پرداخت (زرین‌پال، سندباکس) با merchantId از env ساخته شد."
+        : "  ⚠ درگاهِ پرداخت (زرین‌پال، سندباکس) ساخته شد بدونِ merchantId — سندباکس با UUIDِ تست کار می‌کند؛ برای تولید از پنل واردش کن."
+    );
+  } else {
+    console.log(`  ✓ ${gatewayCount} درگاهِ پرداخت از قبل موجود است — دست‌نخورده ماند.`);
+  }
+
   // ۵. پلن‌ها + ماتریس امکانات (DECISION-040) — فقط اگر هیچ پلنی وجود ندارد.
   const planCount = await prisma.plan.count();
   if (planCount === 0) {

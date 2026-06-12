@@ -11,6 +11,7 @@ import { USER_PLANS, type UserPlan } from "@/constants/plans";
 import { toFaDigits } from "@/lib/utils/digits";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { countCommitmentsBulk } from "@/lib/stats/commitments";
 
 export const dynamic = "force-dynamic";
 
@@ -91,13 +92,15 @@ export default async function AdminUsersPage({
         avatarImage: true,
         _count: {
           select: {
-            entries: true,
             supportTickets: true,
           },
         },
       },
     }),
   ]);
+
+  // «تعهد» = روزهای دارای تعهد، بدون روزهای داخل بازه‌های فاصله (DECISION-074)
+  const commitmentByUser = await countCommitmentsBulk(users.map((u) => u.id));
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const ac = AVATAR_COLOR;
@@ -227,7 +230,7 @@ export default async function AdminUsersPage({
                   {/* ردیف دوم: آمار + دکمه */}
                   <div className="flex items-center border-t border-black/5 pt-2.5">
                     <div className="flex-1 flex items-center gap-3">
-                      <Stat value={u._count.entries} label="تعهد" />
+                      <Stat value={commitmentByUser.get(u.id) ?? 0} label="تعهد" />
                       <Stat value={u._count.supportTickets} label="تیکت" />
                       <span className="text-[10px] text-fog/70 fa-num">{faDate(u.createdAt)}</span>
                     </div>

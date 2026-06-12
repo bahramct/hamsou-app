@@ -71,7 +71,9 @@ export const CMS_PAGES: PageConfig[] = [
     key: "contact",
     label: "تماس با ما",
     path: "/contact",
-    defaultSectionTypes: ["contact-hero", "contact-card", "contact-existing"],
+    // فرم تماس (با کپچا) جایگزین کارتِ رنگیِ راه‌های ارتباط شد (DECISION-072)؛
+    // «contact-card» همچنان در رجیستری هست و از پنل قابل افزودن است.
+    defaultSectionTypes: ["contact-hero", "contact-form", "contact-existing"],
     enabled: true,
   },
   {

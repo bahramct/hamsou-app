@@ -8,9 +8,12 @@ import { DisableAutofill } from "@/components/system/DisableAutofill";
 import { ThemeScript } from "@/components/theme/ThemeScript";
 import { ToastHost } from "@/components/notifications/ToastHost";
 import { getSessionUser } from "@/lib/utils/auth-server";
+import { getAppBaseUrl } from "@/lib/utils/app-url";
 import { prisma } from "@/lib/db/client";
 
 export const metadata: Metadata = {
+  // پایهٔ resolve لینک‌های مطلق OG/توییتر (هشدار metadataBase در صفحات مقاله)
+  metadataBase: new URL(getAppBaseUrl()),
   title: "همسو — برای واقعی‌تر زندگی کردن",
   description: "یک تعهد در روز. یک پرسش آرام فردا. همسو، آینه‌ای برای صادق ماندن با خود.",
   icons: { icon: "/logo.png" },
@@ -27,9 +30,11 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let companionName: string | null = null;
+  let isAuthenticated = false;
   try {
     const session = await getSessionUser();
     if (session) {
+      isAuthenticated = true;
       const user = await prisma.user.findUnique({
         where: { id: session.userId },
         select: { companionName: true },
@@ -37,7 +42,7 @@ export default async function RootLayout({
       companionName = user?.companionName ?? null;
     }
   } catch {
-    // fallback به نام پیش‌فرض — layout هرگز throw نمی‌کند
+    // fallback — layout هرگز throw نمی‌کند
   }
 
   return (
@@ -50,7 +55,7 @@ export default async function RootLayout({
         {children}
         {/* لایهٔ گذرای toast — روی سایت و پنل (DECISION-046) */}
         <ToastHost />
-        <ChatFAB companionName={companionName} />
+        <ChatFAB companionName={companionName} isAuthenticated={isAuthenticated} />
         {/* ابزارهای dev — در prod هیچ‌چیز رندر نمی‌شود (CLAUDE.md §۱۳) */}
         <DevModeBadge />
         <DevResetPanel />

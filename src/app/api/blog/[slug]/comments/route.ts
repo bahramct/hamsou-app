@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     if (!parent) return NextResponse.json({ error: "کامنتِ مرجع نامعتبر است." }, { status: 400 });
   }
 
-  await prisma.blogComment.create({
+  const created = await prisma.blogComment.create({
     data: {
       postId: post.id,
       parentId,
@@ -59,11 +59,20 @@ export async function POST(req: NextRequest, { params }: Ctx) {
       body: text,
       status: "pending",
     },
+    select: { id: true, authorName: true, body: true, parentId: true, createdAt: true },
   });
 
   return NextResponse.json({
     ok: true,
     pending: true,
     message: "کامنتت ثبت شد و پس از تأیید نمایش داده می‌شود.",
+    // برای نمایشِ gray-out نزدِ خودِ نویسنده تا تأیید ادمین
+    comment: {
+      id: created.id,
+      authorName: created.authorName,
+      body: created.body,
+      parentId: created.parentId,
+      createdAtIso: created.createdAt.toISOString(),
+    },
   });
 }
