@@ -164,6 +164,32 @@ export async function getPostBySlug(slug: string): Promise<PostFull | null> {
   };
 }
 
+/** یک مقاله با هر وضعیتی — برای پیش‌نمایشِ ادمین (بدون فیلترِ status). */
+export async function getPostBySlugAdmin(slug: string): Promise<PostFull | null> {
+  const p = await prisma.blogPost.findFirst({
+    where: { slug },
+    select: {
+      ...CARD_SELECT,
+      id: true,
+      shortCode: true,
+      content: true,
+      metaTitle: true,
+      metaDescription: true,
+      tags: { select: { tag: { select: { name: true, slug: true } } } },
+    },
+  });
+  if (!p) return null;
+  return {
+    ...toCard(p),
+    id: p.id,
+    shortCode: p.shortCode,
+    content: p.content,
+    metaTitle: p.metaTitle,
+    metaDescription: p.metaDescription,
+    tags: p.tags.map((t) => ({ name: t.tag.name, slug: t.tag.slug })),
+  };
+}
+
 /** مقالاتِ مرتبط (هم‌دسته) — به‌جز خودِ مقاله. */
 export async function getRelatedPosts(
   slug: string,

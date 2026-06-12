@@ -254,12 +254,16 @@ export function BlogPostEditor({ mode, categories, initial }: Props) {
 
           {mode === "edit" && initial && (
             <a
-              href={`/blog/${initial.slug}`}
+              href={
+                initial.status === "published"
+                  ? `/blog/${initial.slug}`
+                  : `/admin/blog/preview/${initial.slug}`
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="block text-center text-xs text-sage-deep hover:underline"
             >
-              نمایش در سایت ↗
+              {initial.status === "published" ? "نمایش در سایت ↗" : "پیش‌نمایش ↗"}
             </a>
           )}
         </div>

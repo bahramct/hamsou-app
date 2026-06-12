@@ -47,9 +47,11 @@ export default async function RootLayout({
 
   return (
     <html lang="fa" dir="rtl" className="h-full" suppressHydrationWarning>
-      <body className="min-h-full font-pelak antialiased">
-        {/* تمِ روشن/تاریک — قبل از paint روی <html> می‌نشیند (بدون فلش، DECISION-067) */}
+      {/* تمِ روشن/تاریک — در <head> قبل از paint روی <html> می‌نشیند (بدون فلش، DECISION-067) */}
+      <head>
         <ThemeScript />
+      </head>
+      <body className="min-h-full font-pelak antialiased">
         {/* قانون سراسری: بدون حباب پیشنهاد/autofill در هیچ ورودی (سایت + پنل) */}
         <DisableAutofill />
         {children}
