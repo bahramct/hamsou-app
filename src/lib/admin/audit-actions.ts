@@ -41,11 +41,14 @@ export const AUDIT_ACTIONS: Record<string, AuditActionDef> = {
   "admin.password.change": { label: "تغییر رمز عبور",             category: "auth",   tone: "security" },
 
   // ── ادمین‌ها ────────────────────────────────────────────────────────────
-  "admin.create":        { label: "ساخت ادمین",                  category: "admins", tone: "create" },
-  "admin.role.change":   { label: "تغییر نقش ادمین",              category: "admins", tone: "security" },
-  "admin.profile.update": { label: "ویرایش پروفایل",             category: "admins", tone: "update" },
-  "admin.activate":      { label: "فعال‌سازی ادمین",             category: "admins", tone: "create" },
-  "admin.deactivate":    { label: "غیرفعال‌سازی ادمین",           category: "admins", tone: "danger" },
+  "admin.create":             { label: "ساخت ادمین",              category: "admins", tone: "create" },
+  "admin.role.change":        { label: "تغییر نقش ادمین",         category: "admins", tone: "security" },
+  "admin.profile.update":     { label: "ویرایش پروفایل ادمین",    category: "admins", tone: "update" },
+  "admin.activate":           { label: "فعال‌سازی ادمین",         category: "admins", tone: "create" },
+  "admin.deactivate":         { label: "غیرفعال‌سازی ادمین",      category: "admins", tone: "danger" },
+  "admin.delete":             { label: "حذف حساب ادمین",          category: "admins", tone: "danger" },
+  "admin.password.reset":     { label: "بازنشانی رمز ادمین (مالک)", category: "admins", tone: "security" },
+  "admin.ownership.transfer": { label: "انتقال مالکیت سایت",      category: "admins", tone: "security" },
 
   // ── نقش‌ها و دسترسی‌ها ──────────────────────────────────────────────────
   "role.create":         { label: "ساخت نقش",                    category: "roles",  tone: "create" },

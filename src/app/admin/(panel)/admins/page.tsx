@@ -2,7 +2,7 @@
 // /admin/admins — مدیریت ادمین‌ها (enforce: admins.manage) — DECISION-038
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { requirePermission } from "@/lib/admin/auth-server";
+import { requirePermission, isOwner } from "@/lib/admin/auth-server";
 import { prisma } from "@/lib/db/client";
 import { AdminsManager } from "@/components/admin/admins/AdminsManager";
 import type { AdminRow, RoleOption } from "@/components/admin/admins/AdminsManager";
@@ -14,8 +14,13 @@ function faDateTime(d: Date | null): string | null {
   return d.toLocaleString("fa-IR", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Tehran" });
 }
 
+function faDate(d: Date): string {
+  return d.toLocaleString("fa-IR", { dateStyle: "short", timeZone: "Asia/Tehran" });
+}
+
 export default async function AdminsPage() {
   const ctx = await requirePermission("admins.manage");
+  const ownerViewing = isOwner(ctx);
 
   const [adminRows, roles] = await Promise.all([
     prisma.adminUser.findMany({
@@ -24,8 +29,12 @@ export default async function AdminsPage() {
         id: true,
         username: true,
         displayName: true,
+        phone: true,
+        avatarImage: true,
+        mustChangePassword: true,
         isActive: true,
         lastLoginAt: true,
+        createdAt: true,
         role: { select: { key: true } },
       },
     }),
@@ -38,11 +47,15 @@ export default async function AdminsPage() {
     id: a.id,
     username: a.username,
     displayName: a.displayName,
+    phone: a.phone ?? null,
+    avatarImage: a.avatarImage ?? null,
+    mustChangePassword: a.mustChangePassword,
     roleKey: a.role.key,
     roleLabel: roleLabelByKey.get(a.role.key) ?? a.role.key,
     isOwner: a.role.key === "owner",
     isActive: a.isActive,
     lastLoginLabel: faDateTime(a.lastLoginAt),
+    createdLabel: faDate(a.createdAt),
     isSelf: a.id === ctx.admin.id,
   }));
 
@@ -51,5 +64,5 @@ export default async function AdminsPage() {
     .filter((r) => r.key !== "owner")
     .map((r) => ({ key: r.key, label: r.label }));
 
-  return <AdminsManager admins={admins} roles={roleOptions} />;
+  return <AdminsManager admins={admins} roles={roleOptions} isOwnerViewing={ownerViewing} />;
 }

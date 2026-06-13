@@ -59,6 +59,7 @@ export const ADMIN_PERMISSIONS = [
 
   { key: "support.read", label: "مشاهده تیکت‌ها", group: "support" },
   { key: "support.respond", label: "پاسخ به تیکت‌ها", group: "support" },
+  { key: "support.chat", label: "مدیریت چت آنلاین", group: "support" },
 
   { key: "content.read", label: "مشاهده محتوا", group: "content" },
   { key: "content.write", label: "ویرایش محتوا و اعلان‌ها", group: "content" },
@@ -120,7 +121,7 @@ export const SYSTEM_ROLES: SystemRoleDef[] = [
     key: "support",
     label: "پشتیبان",
     description: "پاسخ به تیکت‌ها و مشاهده کاربران (بدون تغییر پلن یا مسدودسازی).",
-    permissions: ["dashboard.view", "support.read", "support.respond", "users.read"],
+    permissions: ["dashboard.view", "support.read", "support.respond", "support.chat", "users.read"],
   },
 ];
 
