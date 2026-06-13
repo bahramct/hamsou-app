@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // /api/goal/[id]/story — افزودنِ استوریِ روایی به مسیرِ هدف (DECISION-082)
 //   POST { content, mood?, dateIso? } — date پیش‌فرض امروز؛ در بازهٔ [شروع, امروز].
-// چند استوری در یک روز مجاز است. استوری قابل‌ویرایش است (برخلاف DailyEntry).
+// هر روز فقط یک استوری مجاز است — استوری موجود قابل‌ویرایش است (برخلاف DailyEntry که قفل می‌شود).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
@@ -51,6 +51,17 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     return NextResponse.json(
       { ok: false, message: "تاریخ باید در بازهٔ هدف و حداکثر تا امروز باشد." },
       { status: 400 }
+    );
+
+  // هر روز فقط یک استوری مجاز است
+  const existing = await prisma.goalStory.findFirst({
+    where: { goalId: goal.id, date },
+    select: { id: true },
+  });
+  if (existing)
+    return NextResponse.json(
+      { ok: false, message: "برای این روز استوری ثبت شده — می‌توانی همان را ویرایش کنی." },
+      { status: 409 }
     );
 
   const story = await prisma.goalStory.create({

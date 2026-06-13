@@ -1,6 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /api/goal/[id] — ویرایش/پایان/رهاکردنِ هدف (DECISION-082)
-//   PATCH { action }: "edit" (title/endIso) | "complete" | "abandon"
+// /api/goal/[id] — ویرایش/رها/حذفِ هدف (DECISION-082)
+//   PATCH { action: "edit", title?, endIso? } — فقط روزِ اول (dayNumber ≤ ۱)
+//   PATCH { action: "abandon" }              — نگه‌داری در تاریخچه با وضعیتِ abandoned
+//   DELETE                                   — حذفِ کامل (cascade همهٔ استوری/بینش/یادآوری)
 // مالکیت با userId تضمین می‌شود.
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -8,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
 import { isoToDbDate } from "@/lib/goal/server";
-import { goalToday } from "@/lib/goal/dates";
+import { goalToday, currentDayNumber } from "@/lib/goal/dates";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -31,17 +33,28 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
   }
   const action = body?.action;
 
-  if (action === "complete" || action === "abandon") {
+  // ── رها کردن (نگه‌داری در تاریخچه با وضعیتِ abandoned) ─────────────────────
+  if (action === "abandon") {
+    if (goal.status !== "active")
+      return NextResponse.json({ ok: false, message: "هدفِ فعال نیست." }, { status: 400 });
     await prisma.goal.update({
       where: { id },
-      data: { status: action === "complete" ? "completed" : "abandoned" },
+      data: { status: "abandoned" },
     });
     return NextResponse.json({ ok: true });
   }
 
+  // ── ویرایش (فقط روزِ اول) ────────────────────────────────────────────────
   if (action === "edit") {
     if (goal.status !== "active")
       return NextResponse.json({ ok: false, message: "فقط هدفِ فعال قابل ویرایش است." }, { status: 400 });
+
+    const dayNum = currentDayNumber(goal.startDate, goalToday());
+    if (dayNum > 1)
+      return NextResponse.json(
+        { ok: false, message: "پس از روزِ اول، هدف قابل ویرایش نیست." },
+        { status: 403 }
+      );
 
     const data: { title?: string; endDate?: Date } = {};
 
@@ -71,4 +84,18 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
   }
 
   return NextResponse.json({ ok: false, message: "اکشن نامعتبر." }, { status: 400 });
+}
+
+// ── حذفِ کامل — cascade تمامِ استوری/بینش/یادآوریِ هدف را پاک می‌کند ──────────
+export async function DELETE(_request: NextRequest, { params }: Ctx) {
+  const user = await getSessionUser();
+  if (!user) return NextResponse.json({ ok: false }, { status: 401 });
+
+  const { id } = await params;
+  const goal = await prisma.goal.findUnique({ where: { id }, select: { id: true, userId: true } });
+  if (!goal || goal.userId !== user.userId)
+    return NextResponse.json({ ok: false, message: "هدف یافت نشد." }, { status: 404 });
+
+  await prisma.goal.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
 }

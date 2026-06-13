@@ -46,7 +46,7 @@ export interface GoalCompanionState {
   usedToday: boolean; // امروز یک‌بار مصرف شده
   dayNumber: number;
   totalDays: number;
-  reason?: "before_day_3" | "ended" | "last_day";
+  reason?: "before_day_2" | "ended" | "last_day";
 }
 
 export interface GoalReminderConfig {

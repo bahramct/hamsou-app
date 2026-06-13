@@ -26,11 +26,13 @@ export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; today
   const slots = buildDaySlots(goal.startIso, goal.endIso, todayIso, view.stories, view.insights);
   const openSlot = openIso ? slots.find((s) => s.iso === openIso) ?? null : null;
   const todayInsight = view.insights.find((i) => i.dayKey === todayIso) ?? null;
+  const todayStory = slots[0]?.iso === todayIso ? (slots[0]?.stories[0] ?? null) : null;
 
   return (
     <div className="space-y-5 animate-fade-up">
       <GoalHeader
         goal={goal}
+        todayIso={todayIso}
         hasReminder={view.reminder.enabled}
         onOpenReminder={() => setReminderOpen(true)}
       />
@@ -43,11 +45,12 @@ export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; today
         </div>
       ) : (
         <>
-          {/* نوشتنِ امروز — slots[0] جدیدترین روز (امروز) است */}
+          {/* نوشتن/ویرایشِ استوریِ امروز — slots[0] = امروز */}
           <StoryComposer
             goalId={goal.id}
             todayLabel={slots[0]?.dayLabel ?? goal.startLabel}
             weekdayLabel={slots[0]?.weekdayLabel ?? ""}
+            todayStory={todayStory}
           />
 
           {/* همراه */}

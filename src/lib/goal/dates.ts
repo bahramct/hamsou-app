@@ -58,18 +58,18 @@ export interface CompanionAvailability {
   dayNumber: number;
   totalDays: number;
   /** دلیلِ عدم‌دسترسی برای پیامِ کاربر */
-  reason?: "before_day_3" | "ended" | "last_day";
+  reason?: "before_day_2" | "ended" | "last_day";
 }
 
 /**
- * قاعدهٔ ساختاریِ «همراه» (DECISION-082):
- * از روزِ سوم به بعد، تا روزِ قبل از پایان (یعنی dayNumber در بازهٔ [۳, totalDays-۱]).
- * اهدافِ ≤۳ روز اصلاً همراه ندارند («اهداف بیشتر از سه روز»).
+ * قاعدهٔ ساختاریِ «همراه» (DECISION-082 — اصلاح‌شده):
+ * از روزِ دوم به بعد، تا روزِ قبل از پایان (یعنی dayNumber در بازهٔ [۲, totalDays-۱]).
+ * اهدافِ ۲ روزه همراه ندارند (روزِ ۱ = before, روزِ ۲ = last_day).
  */
 export function companionWindow(start: Date, end: Date, ref: Date = goalToday()): CompanionAvailability {
   const total = totalDays(start, end);
   const day = currentDayNumber(start, ref);
-  if (day < 3) return { available: false, dayNumber: day, totalDays: total, reason: "before_day_3" };
+  if (day < 2) return { available: false, dayNumber: day, totalDays: total, reason: "before_day_2" };
   if (day > total - 1) {
     // روزِ پایان یا بعد از آن
     return {

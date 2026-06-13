@@ -111,8 +111,8 @@ export function ReminderSettingsModal({
         onClick={close}
         className="fixed inset-0 z-50"
         style={{
-          background: "rgba(26,26,31,0.22)",
-          backdropFilter: visible ? "blur(6px)" : "none",
+          background: "rgba(26,26,31,0.28)",
+          backdropFilter: visible ? "blur(8px)" : "none",
           opacity: visible ? 1 : 0,
           transition: "opacity 220ms ease, backdrop-filter 220ms ease",
         }}
@@ -122,7 +122,7 @@ export function ReminderSettingsModal({
           className="pointer-events-auto w-full max-w-md overflow-hidden rounded-3xl border border-black/8 shadow-[0_20px_60px_rgba(26,26,31,0.18),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
           style={{
             background: "rgba(var(--rgb-paper),0.94)",
-            backdropFilter: "blur(24px) saturate(140%)",
+            backdropFilter: "blur(28px) saturate(150%)",
             opacity: visible ? 1 : 0,
             transform: visible ? "scale(1)" : "scale(0.94)",
             transition: "opacity 220ms ease, transform 280ms cubic-bezier(0.19,1,0.22,1)",
@@ -137,7 +137,7 @@ export function ReminderSettingsModal({
             </button>
           </div>
 
-          <div className="max-h-[64vh] space-y-5 overflow-y-auto px-5 py-5 [&::-webkit-scrollbar]:hidden">
+          <div className="space-y-5 px-5 py-5">
             {/* فعال/غیرفعال */}
             <label className="flex cursor-pointer items-center justify-between">
               <span className="text-sm text-ink">یادآوری فعال باشد</span>

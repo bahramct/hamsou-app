@@ -91,8 +91,8 @@ export function CompanionPanel({ goalId, companion, todayInsight }: Props) {
   // ── پنجره باز نیست ───────────────────────────────────────────────────────────
   if (!companion.windowOpen && !todayInsight) {
     const msg =
-      companion.reason === "before_day_3"
-        ? "راهنماییِ «همراه» از روزِ سومِ مسیر در دسترس می‌شود."
+      companion.reason === "before_day_2"
+        ? "راهنماییِ «همراه» از روزِ دومِ مسیر در دسترس می‌شود."
         : "مسیرِ این هدف رو به پایان است — راهنماییِ تازه‌ای نیست.";
     return (
       <div className="rounded-3xl border border-bone bg-white/40 p-5">

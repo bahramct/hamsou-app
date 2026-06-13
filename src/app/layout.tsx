@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { DevModeBadge } from "@/components/dev/DevModeBadge";
 import { DevResetPanel } from "@/components/dev/DevResetPanel";
-import { DevDataPanel } from "@/components/dev/DevDataPanel";
 import { ChatFAB } from "@/components/features/chat/ChatFAB";
 import { DisableAutofill } from "@/components/system/DisableAutofill";
 import { ThemeScript } from "@/components/theme/ThemeScript";
@@ -61,7 +60,6 @@ export default async function RootLayout({
         {/* ابزارهای dev — در prod هیچ‌چیز رندر نمی‌شود (CLAUDE.md §۱۳) */}
         <DevModeBadge />
         <DevResetPanel />
-        <DevDataPanel />
       </body>
     </html>
   );
