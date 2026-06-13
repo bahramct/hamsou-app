@@ -203,7 +203,7 @@ WeeklyReport (گزارش هفتگی)
 Consumer (API Route / Server Component)
      ↓ invokeAI(roleId, input, ctx)
 Layer 5: Orchestrator     ← validation، routing، logging، parse JSON
-Layer 4: Registry + Roles ← weekly-report (فاز ۱)، chat، plan-suggestion (آینده)
+Layer 4: Registry + Roles ← weekly-report، weekly-reflection، chat-companion (همدم)، goal-companion (همراه — DECISION-082)، plan-suggestion (آینده)
 Layer 3: Prompt Loader    ← /prompts/<role>/v<n>.<locale>.md
 Layer 2: ProviderRouter   ← انتخاب Provider بر اساس user.locale
 Layer 1: AIAdapter        ← OpenAI-compatible (GapGPT و…)، (آینده) Gemini — بدون Mock (DECISION-048)
@@ -270,7 +270,8 @@ const result = await invokeAI("role-id", input, {
 - معماری Registry با generic `AIRole<TInput, TOutput>` ساخته شده — هر نقش schema مخصوص خودش را تعریف می‌کند
 - نمونه‌ها:
   - `weekly-report`: input = یک هفته داده، output = خلاصه + completionRate + highlights + reflection
-  - `chat-companion` (آینده، DECISION-031): input = messages history + context snapshot، output = reply + suggestedExit
+  - `chat-companion` (همدم، DECISION-031): input = messages history + context snapshot، output = reply
+  - `goal-companion` (همراه، DECISION-082): input = هدف + استوری‌ها + تعهدهای اخیر + سیگنال هفتگی + چتِ اخیر، output = reflection + observations + suggestions (Pro، روزِ ۳ تا قبل از پایان، روزی یک‌بار)
   - `plan-suggestion` (آینده): input = پلن فعال + تعهدهای اخیر، output = پیشنهاد تعهد روزانه
 - هر نقش schema خود، prompt خود، meta خود را دارد — هیچ‌گاه «یک schema کلی» برای همه نقش‌ها نیست
 - چت‌بات یک نقش ساختاری است (مثل گزارش هفتگی)، نه یک سرویس جداگانه — به همان معماری وصل می‌شود

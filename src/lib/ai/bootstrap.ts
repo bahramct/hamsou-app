@@ -16,6 +16,7 @@ import { aiRegistry } from "@/lib/ai/registry";
 import { weeklyReportRole } from "@/lib/ai/roles/weekly-report";
 import { weeklyReflectionRole } from "@/lib/ai/roles/weekly-reflection";
 import { chatCompanionRole } from "@/lib/ai/roles/chat-companion";
+import { goalCompanionRole } from "@/lib/ai/roles/goal-companion";
 
 const globalForBootstrap = globalThis as unknown as {
   __hamsoo_ai_bootstrapped?: boolean;
@@ -27,6 +28,7 @@ export function ensureRolesRegistered(): void {
   aiRegistry.register(weeklyReportRole);
   aiRegistry.register(weeklyReflectionRole);
   aiRegistry.register(chatCompanionRole);
+  aiRegistry.register(goalCompanionRole);
   // aiRegistry.register(planSuggestionRole);
 
   globalForBootstrap.__hamsoo_ai_bootstrapped = true;

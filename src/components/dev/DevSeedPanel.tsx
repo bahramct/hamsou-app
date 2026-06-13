@@ -109,6 +109,11 @@ function DevSeedPanelInner() {
     if (ok) { setStatus("✓ داده‌های seed پاک شدند"); startTransition(() => router.refresh()); }
   }
 
+  async function handleReminderTick() {
+    const ok = await callAPI("/api/dev/goal/reminder-tick");
+    if (ok) { setStatus("✓ تیکِ یادآوری اجرا شد (ساعتِ فعلیِ ایران را چک کرد)"); startTransition(() => router.refresh()); }
+  }
+
   return (
     <div className="flex flex-col gap-3" dir="rtl">
       {/* هدر + toggle راهنما */}
@@ -211,6 +216,22 @@ function DevSeedPanelInner() {
           روز تعهد (با بازخورد)
         </button>
       </div>
+
+      {/* اجرای دستیِ یادآوریِ هدف (DECISION-082) — با time-travel تستِ کاملِ یادآوری */}
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={handleReminderTick}
+        className="
+          w-full px-3 py-1.5 rounded-lg text-[11px] font-medium
+          bg-white/10 text-bone border border-white/20
+          hover:bg-ember/20 hover:text-ember hover:border-ember/40
+          active:scale-[0.97] disabled:opacity-40
+          transition-all duration-150
+        "
+      >
+        ⏰ اجرای یادآوری‌های هدف (الان)
+      </button>
 
       {/* خط جدا */}
       <div className="border-t border-white/15" />

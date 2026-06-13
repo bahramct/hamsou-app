@@ -94,6 +94,7 @@ model User {
   ticketMessages TicketMessage[] @relation("UserTicketMessages")
   notifications  Notification[]
   supportChatSessions SupportChatSession[]
+  goals          Goal[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -894,4 +895,93 @@ model PageContent {
   publishedAt   DateTime  @default(now())
   publishedById String? // AdminUser.id
   updatedAt     DateTime  @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// فیچر «برنامه‌ریزی» — سفرِ یک‌هدفی روایی + کوچ «همراه» (DECISION-082؛ جایگزینِ DECISION-024)
+//
+// گاردهای ساختاریِ ضدِ Task Manager: یک هدفِ فعال در لحظه (enforce در کد، نه DB unique چون
+//   اهدافِ تمام‌شده می‌مانند)، بدون sub-task/priority/استریک/درصد، استوری = نوشتهٔ روایی قابل‌ویرایش.
+// هستهٔ روزانه (DailyEntry/Feedback/WeeklyReport) دست‌نخورده؛ این بخش موازی است.
+// همهٔ مدل‌ها devSeed?‌دار (DECISION-021) و cascade از User/Goal.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Goal — یک هدفِ بازه‌ای (تنها یک فعال per کاربر). تاریخ‌ها begin-of-day (مبنای جلالی).
+// status: "active" | "completed" (به پایان رسید) | "abandoned" (رهاشده).
+model Goal {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String // تنها یک هدف — بدون sub-task
+  startDate DateTime // startDate ≥ امروز هنگام ساخت
+  endDate   DateTime // > startDate
+  status    String   @default("active") // active | completed | abandoned
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  devSeed   Boolean? // فقط dev (DECISION-021)
+
+  user     User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stories  GoalStory[]
+  insights GoalCompanionInsight[]
+  reminder GoalReminder?
+
+  @@index([userId, status])
+}
+
+// GoalStory — نوشتهٔ روایی/تأملیِ روزانه دربارهٔ هدف («استوری»). قابل‌ویرایش (برخلاف DailyEntry).
+// چند استوری در یک روز مجاز است؛ واحدِ نمایشِ استوری‌بورد = «روز».
+// mood اختیاری و سبک (بدون نمره‌دهی). visibility فعلاً private؛ shareToken برای لینکِ آینده.
+model GoalStory {
+  id         String   @id @default(cuid())
+  goalId     String
+  userId     String
+  date       DateTime // روزِ مرتبط (begin-of-day)
+  content    String
+  mood       String? // "good" | "neutral" | "hard" (اختیاری)
+  visibility String   @default("private") // private | shared
+  shareToken String?  @unique // لینکِ عمومیِ تک‌استوری (فاز اختیاری)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  devSeed    Boolean?
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId, date])
+}
+
+// GoalCompanionInsight — راهنماییِ «همراه» (کوچ AI). سقفِ ساختاری: یکتا per (goal, dayKey) =
+//   روزی یک‌بار. dayNumber = روزِ k اُمِ سفر (۱-ایندکس). aiContent = JSON خروجیِ نقش goal-companion.
+model GoalCompanionInsight {
+  id          String   @id @default(cuid())
+  goalId      String
+  userId      String
+  dayKey      String // "YYYY-MM-DD" به وقت ایران
+  dayNumber   Int // روزِ k اُمِ سفر
+  aiContent   String // JSON: { reflection, observations[], suggestions[] }
+  generatedAt DateTime @default(now())
+  devSeed     Boolean?
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@unique([goalId, dayKey])
+  @@index([goalId, generatedAt])
+}
+
+// GoalReminder — کانفیگِ یادآوریِ اختیاریِ هر هدف (یک ردیف per goal). opt-in (DECISION-023).
+// times: CSV از "HH:mm" به وقت ایران (حداکثر ۳). channel: inapp | email | both.
+// lastFiredKey: "YYYY-MM-DD#HH:mm" آخرین شلیک — ضدِ ارسالِ تکراری در یک اسلات.
+model GoalReminder {
+  id            String   @id @default(cuid())
+  goalId        String   @unique
+  userId        String
+  enabled       Boolean  @default(false)
+  times         String   @default("") // CSV از "HH:mm"
+  channel       String   @default("inapp") // inapp | email | both
+  customMessage String? // متنِ شخصیِ کاربر (لحنِ آرام)
+  lastFiredKey  String? // ضدِ تکرار
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([userId, enabled])
 }

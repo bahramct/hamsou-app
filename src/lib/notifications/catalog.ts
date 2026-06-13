@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type NotificationTone = "info" | "success" | "neutral";
-export type NotificationIcon = "support" | "plan" | "report" | "info" | "wallet";
+export type NotificationIcon = "support" | "plan" | "report" | "info" | "wallet" | "goal";
 
 export interface NotificationDescriptor {
   title: string;
@@ -120,6 +120,49 @@ const CATALOG: Record<string, CatalogEntry> = {
             ? `${daysLeft.toLocaleString("fa-IR")} روز تا پایان پلن «${label}». برای تمدید اقدام کن.`
             : "پلن شما به‌زودی منقضی می‌شود. برای تمدید اقدام کن.",
         link: "/plans",
+      };
+    },
+  },
+
+  // یادآوریِ هدف (producer: زمان‌بندِ یادآوری) — DECISION-082. لحنِ آرام، بدون فشار.
+  "goal.reminder": {
+    tone: "neutral",
+    icon: "goal",
+    describe: (d) => {
+      const custom = str(d.customMessage);
+      const title = str(d.goalTitle);
+      return {
+        title: custom ?? "یادآوریِ مسیرت",
+        body: title ? `هدف: «${title}»` : undefined,
+        link: "/goal",
+      };
+    },
+  },
+
+  // راهنماییِ تازهٔ «همراه» در دسترس است (رزرو — برای نوتیفِ زمان‌محورِ آینده) — DECISION-082
+  "goal.companion.ready": {
+    tone: "info",
+    icon: "goal",
+    describe: (d) => {
+      const title = str(d.goalTitle);
+      return {
+        title: "راهنماییِ تازهٔ «همراه»",
+        body: title ? `برای مسیرِ «${title}» می‌توانی راهنماییِ امروز را بگیری.` : "می‌توانی راهنماییِ امروزِ «همراه» را بگیری.",
+        link: "/goal",
+      };
+    },
+  },
+
+  // مسیرِ هدف به پایان رسید (producer: lazy-completion در goal/server) — DECISION-082
+  "goal.completed": {
+    tone: "success",
+    icon: "goal",
+    describe: (d) => {
+      const title = str(d.goalTitle);
+      return {
+        title: "مسیرِ هدفت به پایان رسید",
+        body: title ? `«${title}» تمام شد. می‌توانی به استوری‌هایش نگاه کنی یا هدفِ تازه‌ای شروع کنی.` : "هدفت به پایان رسید.",
+        link: "/goal",
       };
     },
   },

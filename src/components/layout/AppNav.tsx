@@ -13,6 +13,7 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "داشبورد" },
+  { href: "/goal", label: "برنامه‌ریزی" },
   { href: "/history", label: "تاریخچه" },
   { href: "/reports/weekly", label: "گزارش هفتگی" },
   { href: "/plans", label: "پلن‌ها" },

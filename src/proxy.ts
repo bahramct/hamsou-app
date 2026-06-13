@@ -29,6 +29,8 @@ const PUBLIC_PATHS = [
   "/api/auth",
   "/api/dev",
   "/api/blog",
+  // زمان‌بندِ یادآوریِ هدف (DECISION-082) — با هدرِ x-cron-secret خودگارد است
+  "/api/cron",
   // فرم تماس + کپچای اختصاصی (DECISION-072) — عمومی؛ خودش honeypot/کپچا/سقف نرخ دارد
   "/api/contact",
   // بازگشتِ درگاهِ پرداخت (DECISION-071/073): کوکی سشن SameSite=Strict در redirectِ

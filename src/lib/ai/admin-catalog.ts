@@ -61,6 +61,23 @@ export const AI_ROLES_ADMIN: AiRoleAdminMeta[] = [
       { name: "USER_MESSAGE", desc: "پیام فعلی کاربر" },
     ],
   },
+  {
+    key: "goal-companion",
+    label: "همراه (کوچ هدف — Pro)",
+    locales: ["fa"],
+    serviceKind: "text",
+    variables: [
+      { name: "GOAL_TITLE", desc: "عنوان هدف" },
+      { name: "START_JALALI", desc: "تاریخ شروع (شمسی)" },
+      { name: "END_JALALI", desc: "تاریخ پایان (شمسی)" },
+      { name: "DAY_NUMBER", desc: "روزِ چندمِ مسیر" },
+      { name: "TOTAL_DAYS", desc: "کلِ روزهای مسیر" },
+      { name: "STORIES_JSON", desc: "استوری‌های مسیر (JSON)" },
+      { name: "COMMITMENTS_JSON", desc: "تعهدهای روزانهٔ اخیر (JSON)" },
+      { name: "WEEKLY_SIGNAL", desc: "سیگنالِ گزارش هفتگیِ اخیر" },
+      { name: "RECENT_CHAT", desc: "چند جملهٔ اخیرِ گفتگو با همدم" },
+    ],
+  },
 ];
 
 /** مناطق سرویس‌دهی — مبنای دو-سطلی owner (ایران / غیرایران). */

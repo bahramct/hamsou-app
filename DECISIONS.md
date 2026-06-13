@@ -354,7 +354,7 @@
 
 ### DECISION-024 | Planning System ≠ Task Manager
 - **تاریخ:** ۲۰۲۶-۰۵-۲۷
-- **وضعیت:** ⏳ در بررسی (تعارض صریح با §۱ «همسو Task Manager نیست»)
+- **وضعیت:** 🔄 جایگزین‌شده با DECISION-082 (۲۰۲۶-۰۶-۱۳) — اصلِ «برنامه‌ریزی ≠ Task Manager» و گاردهای ساختاری در DECISION-082 حفظ و عملی شد.
 - **زمینه:** صاحب پروژه «سیستم برنامه‌ریزی» را خواسته (مثال: «این هفته ۳۰ صفحه کتاب بخوانم»). مانیفست §۱ صریحاً می‌گوید همسو Task Manager نیست. این مرز باید روشن باشد.
 - **مرز کلیدی — تفاوت با Task Manager:**
   | Plan در همسو (✅) | Task Manager (❌ خط قرمز) |
@@ -1676,6 +1676,29 @@
 - تأیید حذف: تایپ نام کاربری؛ تأیید انتقال: تایپ عبارت «مالکیت را منتقل کن»
 
 *Audit actions جدید:* `admin.delete` (danger)، `admin.password.reset` (security)، `admin.ownership.transfer` (security)
+
+---
+
+### DECISION-082 | فیچر «برنامه‌ریزی» — سفرِ یک‌هدفی روایی + کوچِ «همراه»
+- **تاریخ:** ۲۰۲۶-۰۶-۱۳
+- **وضعیت:** ✅ تأیید شده (پیاده‌سازی‌شده)
+- **زمینه:** صاحب پروژه یکی از فیچرهای محوری را خواست: برنامه‌ریزی حولِ **یک هدفِ بازه‌ای** با نوشته‌های روایی روزانه («استوری») و یک کوچِ AI به نام **«همراه»**. این از DECISION-024 سرچشمه می‌گیرد اما بسیار غنی‌تر است. خطرِ اصلی: نقضِ مانیفست §۱ («Task Manager / Habit Tracker نیست»).
+- **تصمیم‌های قفل‌شده (پرسشِ ویژوال از مالک):**
+  - یک هدفِ **فعال در لحظه** (قوی‌ترین گاردِ ساختاری). اهدافِ تمام‌شده/رهاشده در تاریخچه می‌مانند.
+  - **زمان‌بندِ سبک همین حالا ساخته شد** تا یادآوری‌ها واقعاً ارسال شوند (درون‌برنامه + ایمیل).
+  - **ساختِ هدف + استوری برای همهٔ پلن‌ها**؛ **«همراه» فقط پرو** (قابلِ روشن‌کردن per پلن از پنل).
+  - المان مرکزی: **استوری‌بوردِ کارتیِ افقی** + خطِ زمانیِ ظریفِ متصل‌کننده. بدون نوار درصد/استریک/گیمیفیکیشن.
+- **گاردهای ساختاریِ ضدِ Task Manager (حفظِ DECISION-024):** بدون sub-task/priority/dependency/چک‌باکس؛ بدون درصد تکمیل/استریک/امتیاز؛ تنها نمایشِ زمانی «روز k از n» و «N روز مانده» (موقعیتِ تقویمی، نه نمره)؛ استوری = نوشتهٔ روایی قابل‌ویرایش (نه واحدِ کار)؛ یادآوری opt-in و ضدفشار (DECISION-023)؛ «همراه» بدون «باید/نباید»، پیشنهادها دعوتی‌اند. هستهٔ روزانه (DailyEntry/Feedback/WeeklyReport) دست‌نخورده.
+- **دو ایجنتِ متمایز:** «همدم» (`chat-companion`، چتِ عمومی، همهٔ پلن‌ها) ≠ «همراه» (`goal-companion`، تارگت‌منیجر/کوچِ هدف، Pro، از روزِ سوم تا قبل از پایان، روزی یک‌بار).
+- **مدل داده (db push، تأییدِ مالک):** `Goal`, `GoalStory`, `GoalCompanionInsight` (یکتا per goal+dayKey)، `GoalReminder` (یک per goal). همه cascade از User/Goal + `devSeed?`.
+- **نقشِ AI:** `goal-companion` (prompt `prompts/goal-companion/v1.fa.md`، Zod schema، register در bootstrap، ردیف در `AI_ROLES_ADMIN` → ویرایشِ پرامپت/روتینگ/مدل از پنل). خطای سرویس → ۵۰۳ محترمانه (بدون mock، DECISION-048).
+- **پلن:** کلیدهای `goal.planning` (پیش‌فرض همه true) و `goal.companion` (پیش‌فرض فقط PRO) در `plans/features.ts`؛ enforce با `planAllows` + `getEffectivePlanKey`؛ خودکار در `/admin/plans` (هم‌ترازی).
+- **یادآوری/زمان‌بند:** `lib/goal/reminder-scheduler.ts::runReminderTick()` (با `getNow`/`iranClock` → time-travel)، route `POST/GET /api/cron/reminders` (محافظِ `CRON_SECRET`: Bearer یا `x-cron-secret` یا `?secret`)، `vercel.json` هر ۱۵ دقیقه، دکمهٔ dev `/api/dev/goal/reminder-tick` در DevDataPanel (§۱۳). کاتالوگِ نوتیف: `goal.reminder`/`goal.companion.ready`/`goal.completed` (آیکنِ `goal`). تولید اعلان فقط با `createNotification`.
+- **هم‌ترازیِ پنل:** کنترلِ دسترسی از `/admin/plans` (تغییرِ پلن→دسترسی فوری) + مدیریتِ نقشِ همراه از `/admin/ai`. **نمای هدفِ کاربر در `/admin/users/[id]` عمداً اضافه نشد** — برای پایبندی به قاعدهٔ حریم‌خصوصی §۷ (محتوای تعهد/استوریِ کاربر هرگز در پنل نمایش داده نمی‌شود).
+- **بُعد عمومیِ استوری:** فعلاً خصوصی؛ ستون `visibility`+`shareToken` آماده است؛ اشتراکِ لینکیِ تک‌استوری و فیدِ عمومی به فازِ شبکهٔ اجتماعی موکول شد (`social.network` هنوز comingSoon).
+- **lazy-completion:** هدفِ active که امروز از `endDate` گذشته باشد، هنگام خواندنِ نما به `completed` تبدیل و اعلانِ `goal.completed` ارسال می‌شود (بدون cronِ جدا).
+- **مسیر/UI:** `/goal` (و `/goal/history`)، آیتمِ «برنامه‌ریزی» در `AppNav`. کامپوننت‌ها در `src/components/features/goal/*`. قانونِ متنِ دکمه (DECISION-053) و ارقام/تاریخِ فارسی (DECISION-042/044) رعایت شد.
+- **سند تکمیلی:** `docs/features/goal-planning.md`.
 
 ---
 

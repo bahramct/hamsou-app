@@ -257,6 +257,34 @@ async function main() {
     console.log(`  ✓ ${planCount} پلن از قبل موجود است — دست‌نخورده ماند.`);
   }
 
+  // ۵.۱ پُرکردنِ idempotentِ ردیف‌های امکانِ غایب (مثلاً featureهای جدیدِ کاتالوگ مثل goal.*).
+  //     enforcement حتی بدونِ این هم با fallbackِ کاتالوگ کار می‌کند؛ این فقط برای نمایشِ صریح
+  //     در پنل /admin/plans است. هیچ ردیفِ موجودی را تغییر نمی‌دهد (فقط createهای غایب).
+  {
+    let filled = 0;
+    for (const key of PLAN_KEYS) {
+      const existing = await prisma.planFeatureValue.findMany({
+        where: { planKey: key },
+        select: { featureKey: true },
+      });
+      const have = new Set(existing.map((r) => r.featureKey));
+      const missing = PLAN_FEATURES.filter((f) => !have.has(f.key));
+      if (missing.length === 0) continue;
+      await prisma.planFeatureValue.createMany({
+        data: missing.map((f) => {
+          const comingSoon = Boolean(f.comingSoon);
+          if (f.type === "quota") {
+            return { planKey: key, featureKey: f.key, visible: true, comingSoon, disabled: false, value: defaultQuota(f.key, key) };
+          }
+          const included = defaultBool(f.key, key);
+          return { planKey: key, featureKey: f.key, visible: true, comingSoon, disabled: !included, value: null };
+        }),
+      });
+      filled += missing.length;
+    }
+    if (filled > 0) console.log(`  ✓ ${filled} ردیفِ امکانِ غایب (featureهای جدید) پُر شد.`);
+  }
+
   console.log("✓ بذرکاری کامل شد.");
 }
 

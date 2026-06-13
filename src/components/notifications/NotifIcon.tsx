@@ -43,6 +43,14 @@ export function NotifIcon({ icon, className = "" }: { icon: NotificationIcon; cl
           <path d="M11 8h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         </svg>
       );
+    case "goal":
+      // پرچمِ مسیر — نشانِ هدف
+      return (
+        <svg {...common}>
+          <path d="M4 2v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+          <path d="M4 2.75h7l-1.4 2.25L11 7.25H4Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>

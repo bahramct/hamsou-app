@@ -20,6 +20,7 @@ export type PlanKey = (typeof PLAN_KEYS)[number];
 export const PLAN_FEATURE_GROUPS = {
   chat: "همدم و چت",
   reports: "گزارش و تحلیل",
+  goal: "برنامه‌ریزی",
   support: "پشتیبانی",
   social: "اجتماعی",
 } as const;
@@ -76,6 +77,24 @@ export const PLAN_FEATURES: PlanFeatureDef[] = [
     type: "boolean",
     // فقط پرو (خواستهٔ مالک). قابل روشن‌کردن برای هر پلن از پنل — به‌محض روشن‌شدن،
     // enforcement همین‌جا دسترسی می‌دهد (هم‌ترازی پنل↔پروژه).
+    defaults: { FREE: false, PLUS: false, PRO: true },
+  },
+  {
+    key: "goal.planning",
+    label: "برنامه‌ریزیِ هدف و استوری روزانه",
+    description: "تعریفِ یک هدفِ بازه‌ای و نوشتنِ استوریِ روایی روزانه دربارهٔ مسیر.",
+    group: "goal",
+    type: "boolean",
+    // برای همهٔ پلن‌ها باز است (journaling پایه قفل نمی‌شود) — اما owner می‌تواند از پنل کنترل کند.
+    defaults: { FREE: true, PLUS: true, PRO: true },
+  },
+  {
+    key: "goal.companion",
+    label: "راهنماییِ «همراه» (کوچ هدف)",
+    description: "تحلیلِ روند و راهنماییِ روزانهٔ کوچِ AI «همراه» در مسیرِ هدف (از روزِ سوم، روزی یک‌بار).",
+    group: "goal",
+    type: "boolean",
+    // فقط پرو (خواستهٔ مالک). قابل روشن‌کردن برای هر پلن از پنل — به‌محض روشن‌شدن enforcement همین‌جا.
     defaults: { FREE: false, PLUS: false, PRO: true },
   },
   {

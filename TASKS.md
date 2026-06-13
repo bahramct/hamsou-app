@@ -44,6 +44,7 @@
 | ۲۱ | خرید مستقیم پلن از درگاه | فیچر ✨ | 🔴 Critical | ✅ تمام | DECISION-071 ✅ | — | DECISION-073 — checkout/callback مستقل از کیف‌پول + مودال دو روشه + PlanReturnToast؛ متن‌های «به‌زودی» حذف — ۲۰۲۶-۰۶-۱۲ |
 | ۲۲ | شمارش تعهد بدون روزهای گپ | اصلاح | 🟠 High | ✅ تمام | — | — | DECISION-074 — helper مشترک `lib/stats/commitments` در پروفایل + لیست/جزئیات کاربر پنل؛ گیت تیکت/چت پنل با planAllows — ۲۰۲۶-۰۶-۱۲ |
 | ۲۳ | بستهٔ اصلاحات UI/UX سراسری | بهبود ✨ | 🟠 High | ✅ تمام | — | — | DECISION-075 — nav یکدست + تم چپ-بالا + فوتر ۴ستونه (e-Namad/زرین‌پال هم‌سایز) + بلاگ کاشی/لیستی + کامنت کارتی gray-out + لاگین نرم + badge زنگوله + مودال «اشتراک‌گذاری و دانلود» — ۲۰۲۶-۰۶-۱۲ |
+| ۲۴ | برنامه‌ریزی (هدف + همراه) | فیچر ✨ | 🔴 Critical | ✅ تمام | AI-arch ✅ | — | DECISION-082 — سفرِ یک‌هدفی + استوریِ روایی + استوری‌بوردِ افقی + کوچِ AI «همراه» (Pro، نقش goal-companion) + زمان‌بندِ یادآوری (cron + dev) + گیت پلن + هم‌ترازی پنل — ۲۰۲۶-۰۶-۱۳ |
 
 ---
 
@@ -108,6 +109,35 @@
 - [x] مودال گزارش: «اشتراک‌گذاری و دانلود» + قفل کامل اسکرول پس‌زمینه
 - [x] آمار تعهد بدون روزهای گپ (DECISION-074) + گیت تیکت/چت پنل با `planAllows` (هم‌ترازی)
 - `tsc` ✅ · `build` ✅
+
+---
+
+### TASK-GOAL-PLANNING | فیچر «برنامه‌ریزی» — سفرِ یک‌هدفی + کوچِ «همراه» (DECISION-082) — ✅ تمام (۲۰۲۶-۰۶-۱۳)
+
+- **منبع:** خواستِ صاحب پروژه (فیچرِ محوری) + پرسشِ ویژوال. جایگزینِ DECISION-024. migration با `db push` (تأییدِ مالک).
+- **گاردهای ضدِ Task Manager:** یک هدفِ فعال، بدون sub-task/استریک/درصد؛ استوری = روایتِ قابل‌ویرایش؛ هستهٔ روزانه دست‌نخورده.
+- **فاز A — مدل + گیت:**
+  - [x] schema: `Goal`/`GoalStory`/`GoalCompanionInsight`/`GoalReminder` + relation `goals` روی User + `db push`
+  - [x] feature keys `goal.planning`(همه)/`goal.companion`(Pro) در `plans/features.ts` + گروهِ «برنامه‌ریزی» + seed idempotentِ ردیف‌های غایب
+- **فاز B — نقشِ همراه:**
+  - [x] `prompts/goal-companion/v1.fa.md` (jsonMode، خط‌قرمزهای §۸) + schema/index + register در bootstrap + ردیف در `AI_ROLES_ADMIN`
+- **فاز C — API:**
+  - [x] `/api/goal` (GET/POST، یک فعال، شروع≥امروز) · `/api/goal/[id]` (edit/complete/abandon) · `/story` + `/story/[id]` · `/companion` (Pro+پنجره+روزی‌یک‌بار، ۵۰۳ محترمانه) · `/reminder` (PUT)
+  - [x] `lib/goal/dates.ts` (روزشماری/پنجرهٔ همراه) + `lib/goal/server.ts` (نمای فعال + lazy-completion)
+- **فاز D — زمان‌بند:**
+  - [x] `lib/goal/reminder-scheduler.ts::runReminderTick` (getNow/iranClock) + `/api/cron/reminders` (CRON_SECRET، GET/POST، Bearer/header/query) + `vercel.json` + `/api/dev/goal/reminder-tick` + دکمه در DevSeedPanel
+  - [x] کاتالوگِ نوتیف: `goal.reminder`/`goal.companion.ready`/`goal.completed` + آیکنِ `goal` در NotifIcon + ایمیلِ `sendGoalReminderEmail`
+- **فاز E — UI:**
+  - [x] `/goal` (CreateForm یا Storyboard) + `/goal/history` + آیتمِ «برنامه‌ریزی» در AppNav
+  - [x] کامپوننت‌ها: `GoalCreateForm`/`GoalHeader`/`StoryComposer`/`CompanionPanel`/`DayCard`/`DayDetailModal`/`ReminderSettingsModal`/`GoalStoryboard` + `lib/goal/storyboard.ts`
+  - [x] استوری‌بوردِ افقی + خطِ زمانیِ ظریف؛ JalaliDatePicker؛ متنِ دکمه ثابت + Spinner + toast (DECISION-053)
+- **فاز F — هم‌ترازی + مستندات:**
+  - [x] `/admin/plans` (گیتِ goal.*) + `/admin/ai` و `/admin/ai/prompts/goal-companion` خودکار (کاتالوگ‌محور)
+  - [x] نمای هدفِ کاربر در پنل عمداً اضافه نشد (حریم‌خصوصی §۷)
+  - [x] DECISIONS-082 + docs/features/goal-planning.md + CLAUDE §۸ + PROGRESS
+  - [x] `tsc --noEmit` ✅ · `next build` ✅
+- **هم‌ترازی:** تغییرِ پلن به PRO → دسترسیِ «همراه» فوری؛ روشن/خاموش‌کردنِ goal.* از پنل بلافاصله enforce می‌شود.
+- **خارج از scope (آینده):** اشتراکِ لینکیِ تک‌استوری + فیدِ عمومی (موکول به شبکهٔ اجتماعی)؛ ویرایشِ عنوان/تمدیدِ هدف از UI (API آماده است).
 
 ---
 

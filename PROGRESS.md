@@ -6,6 +6,17 @@
 
 ## آخرین تغییرات
 
+### فیچر «برنامه‌ریزی» — سفرِ یک‌هدفی روایی + کوچِ «همراه» (۲۰۲۶-۰۶-۱۳) — DECISION-082
+- **جوهر:** یک هدفِ بازه‌ای + استوریِ روایی روزانه + استوری‌بوردِ افقیِ کارتی با خطِ زمانیِ ظریف + کوچِ AI «همراه». جایگزینِ DECISION-024 با حفظِ گاردهای ضدِ Task Manager (یک هدفِ فعال، بدون sub-task/استریک/درصد؛ استوری قابل‌ویرایش؛ هستهٔ روزانه دست‌نخورده).
+- **مدل داده (`db push`):** `Goal` / `GoalStory` (mood اختیاری، visibility) / `GoalCompanionInsight` (یکتا per goal+dayKey = روزی‌یک‌بار) / `GoalReminder` (opt-in). relation `goals` روی User. seed idempotentِ ردیف‌های امکانِ غایب (۶ ردیف برای goal.*).
+- **نقشِ AI «همراه» (`goal-companion`):** متمایز از «همدم» — تارگت‌منیجر/کوچِ حرفه‌ای. `prompts/goal-companion/v1.fa.md` (jsonMode، خط‌قرمزهای §۸: بدون باید/استریک/قضاوت) + Zod schema + register در bootstrap + ردیف در `AI_ROLES_ADMIN` (ویرایشِ پرامپت/روتینگ از پنل). فقط Pro؛ از روزِ سوم تا قبل از پایان؛ خطا → ۵۰۳ محترمانه.
+- **پلن:** کلیدهای `goal.planning` (همه) و `goal.companion` (فقط PRO) در `plans/features.ts` (گروهِ «برنامه‌ریزی») — خودکار در `/admin/plans`؛ enforce با `planAllows` + `getEffectivePlanKey`.
+- **API:** `/api/goal` (GET/POST، یک فعال، شروع≥امروز) · `/api/goal/[id]` (edit/complete/abandon) · `/story` + `/story/[id]` · `/companion` (Pro+پنجره+روزی‌یک‌بار) · `/reminder` (PUT). منطق در `lib/goal/dates.ts` + `lib/goal/server.ts` (نمای فعال + lazy-completion).
+- **زمان‌بندِ یادآوری:** `lib/goal/reminder-scheduler.ts::runReminderTick` (با `getNow`/`iranClock` → time-travel، پنجرهٔ تحملِ ۲۰دقیقه، ضدِ تکرار با `lastFiredKey`). `GET/POST /api/cron/reminders` (محافظِ `CRON_SECRET`: Bearer/`x-cron-secret`/`?secret`) + `vercel.json` هر ۱۵دقیقه + `/api/dev/goal/reminder-tick` + دکمه در DevSeedPanel (§۱۳). کانال درون‌برنامه (`createNotification`) + ایمیل (`sendGoalReminderEmail`). کاتالوگِ نوتیف: `goal.reminder`/`goal.companion.ready`/`goal.completed` + آیکنِ `goal`.
+- **UI:** `/goal` (CreateForm یا Storyboard) + `/goal/history` + آیتمِ «برنامه‌ریزی» در AppNav. کامپوننت‌ها در `src/components/features/goal/*`؛ استوری‌بوردِ افقی (انتخابِ مالک) با خطِ زمانیِ متصل‌کننده، بدون درصد/استریک. JalaliDatePicker؛ متنِ دکمه ثابت + Spinner + toast (DECISION-053).
+- **هم‌ترازی:** تغییرِ پلن به PRO → دسترسیِ «همراه» فوری؛ روشن/خاموش goal.* از پنل بلافاصله enforce. نمای هدفِ کاربر در `/admin/users/[id]` عمداً اضافه نشد (حریم‌خصوصی §۷ — محتوای کاربر در پنل دیده نمی‌شود).
+- `db push` ✅ · `seed` ✅ · `tsc --noEmit` ✅ · `next build` ✅
+
 ### بستهٔ بزرگ اصلاحات UI/UX + فرم تماس + خرید مستقیم پلن (۲۰۲۶-۰۶-۱۲) — DECISION-072/073/074/075
 - **ناوبری و برند (DECISION-075):** لینک‌های قبل از ورود در همهٔ صفحات یکدست شد (صفحه اصلی · درباره ما · تماس با ما · بلاگ، با حالت active)؛ دکمهٔ تم در هر سه nav آخرین آیتم گوشهٔ چپ-بالا؛ لوگو بزرگ‌تر (nav ۴۴px / AppNav ۳۸px / فوتر ۵۰px) با ابعاد درست next/image (هشدار logo.png رفع شد).
 - **فوتر ۴ ستونه:** برند + «آیینه‌ای، برای واقعی‌تر کردن زندگی» + سوشال مونوکروم (`SocialLinks` — X/اینستاگرام/واتساپ/تلگرام، آدرس‌ها بعداً) · محصول (anchors لندینگ + کاربران) · لینک‌های مفید · مجوزها: e-Namad و زرین‌پال در کادرهای هم‌سایز (`TrustBadges` — رندر مستقیم خروجی TrustCode چون document.write در React اجرا نمی‌شود).
