@@ -10,7 +10,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { DevOnly } from "@/components/dev/DevOnly";
 import { AmbientField } from "@/components/layout/AmbientField";
 import { Spinner } from "@/components/ui/Spinner";
 
@@ -21,7 +20,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [devLink, setDevLink] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +32,6 @@ export default function ForgotPasswordPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
-      if (typeof data.devLink === "string") setDevLink(data.devLink);
       setStep("sent");
     } catch {
       setError("اتصال به سرور برقرار نشد.");

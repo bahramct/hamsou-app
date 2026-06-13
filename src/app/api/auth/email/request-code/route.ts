@@ -47,13 +47,14 @@ export async function POST(req: NextRequest) {
 
     const now = getNow();
 
-    // rate limit ساده: اگر توکنِ معتبرِ فعالی برای این ایمیل هست، همان را برگردان
+    // rate limit ساده: اگر توکنِ معتبرِ فعالی هست، همان را بازارسال کن (توکن جدید نساز)
     const activeRecord = await prisma.emailCode.findFirst({
       where: { email, purpose: "signup", isUsed: false, expiresAt: { gt: now } },
       orderBy: { createdAt: "desc" },
     });
     if (activeRecord) {
       const link = `${getAppBaseUrl()}/verify-email?token=${activeRecord.code}`;
+      await sendVerificationLinkEmail(email, link);
       return NextResponse.json({
         ok: true,
         ...devOnlyPayload({ devToken: activeRecord.code, devLink: link }),

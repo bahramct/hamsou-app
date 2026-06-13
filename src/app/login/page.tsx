@@ -364,7 +364,6 @@ function EmailSignup() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [devLink, setDevLink] = useState<string | null>(null);
 
   async function requestLink(e: React.FormEvent) {
     e.preventDefault();
@@ -377,7 +376,6 @@ function EmailSignup() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
-      if (typeof data.devLink === "string") setDevLink(data.devLink);
       setStep("waiting");
     } catch {
       setError("اتصال به سرور برقرار نشد.");
@@ -387,13 +385,11 @@ function EmailSignup() {
   async function resend() {
     setError(""); setLoading(true);
     try {
-      const res = await fetch("/api/auth/email/request-code", {
+      await fetch("/api/auth/email/request-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
-      if (typeof data.devLink === "string") setDevLink(data.devLink);
     } catch {
       setError("ارسال مجدد ناموفق بود.");
     } finally { setLoading(false); }
@@ -453,12 +449,13 @@ function EmailSignup() {
         <span className="text-fog">·</span>
         <button
           type="button"
-          onClick={() => { setStep("form"); setError(""); setDevLink(null); }}
+          onClick={() => { setStep("form"); setError(""); }}
           className="text-stone hover:text-ink transition-colors"
         >
           تغییر ایمیل
         </button>
       </div>
+
     </div>
   );
 }
