@@ -14,6 +14,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { FreezePill } from "@/components/features/freeze/FreezePill";
 
 const MIN_CHARS = 5;
 const MAX_CHARS = 500;
@@ -70,9 +71,14 @@ export function EntryForm({ todayLabel, weekdayLabel }: Props) {
   return (
     <div className="w-full max-w-lg animate-fade-up">
       {/* تاریخ امروز */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-6">
         <p className="text-xs text-fog mb-1 fa-num">{weekdayLabel}</p>
         <p className="text-sm text-stone fa-num">{todayLabel}</p>
+      </div>
+
+      {/* فریز کردن مسیر */}
+      <div className="flex justify-center mb-4">
+        <FreezePill />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">

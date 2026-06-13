@@ -25,7 +25,7 @@ const SCENARIOS: Scenario[] = [
     note: "۷ روز فعال · رادار پر روی ۶ بُعد",
     metrics: {
       totalDays: 7, activeDays: 7, doneCount: 5, notDoneCount: 2, pendingCount: 0,
-      gapDays: 0, emptyDays: 0, doneOfCommitted: 71,
+      gapDays: 0, freezeDays: 0, emptyDays: 0, doneOfCommitted: 71,
     },
     categories: [
       { label: "پروژهٔ کاری", doneCount: 3, notDoneCount: 0, total: 3, dimension: "work" },
@@ -40,7 +40,7 @@ const SCENARIOS: Scenario[] = [
     note: "۲ روز فعال · فقط ۱ دسته — رادار باز هم ۶ محور",
     metrics: {
       totalDays: 7, activeDays: 2, doneCount: 2, notDoneCount: 0, pendingCount: 0,
-      gapDays: 2, emptyDays: 3, doneOfCommitted: 100,
+      gapDays: 2, freezeDays: 0, emptyDays: 3, doneOfCommitted: 100,
     },
     categories: [
       { label: "تماس با خانواده", doneCount: 1, notDoneCount: 0, total: 1, dimension: "relationships" },
@@ -51,7 +51,7 @@ const SCENARIOS: Scenario[] = [
     note: "بدون تعهد · رادار شبکه‌ایِ ۶ محور (خالی)",
     metrics: {
       totalDays: 7, activeDays: 0, doneCount: 0, notDoneCount: 0, pendingCount: 0,
-      gapDays: 0, emptyDays: 7, doneOfCommitted: 0,
+      gapDays: 0, freezeDays: 0, emptyDays: 7, doneOfCommitted: 0,
     },
     categories: [],
   },

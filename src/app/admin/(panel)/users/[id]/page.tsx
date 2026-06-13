@@ -78,7 +78,8 @@ export default async function AdminUserDetailPage({
   if (!user) notFound();
 
   // آخرین تیکت‌ها + آخرین سشن‌های چت + دسترسی پلن (همان planAllows سایت — هم‌ترازی)
-  const [recentTickets, recentChatAll, commitmentCount, ticketingAllowed, liveChatAllowed] =
+  const now = getNow();
+  const [recentTickets, recentChatAll, commitmentCount, ticketingAllowed, liveChatAllowed, activeFreeze] =
     await Promise.all([
       prisma.supportTicket.findMany({
         where: { userId: id },
@@ -96,6 +97,16 @@ export default async function AdminUserDetailPage({
       countCommitments(id),
       planAllows(user.plan, TICKETING_FEATURE_KEY),
       planAllows(user.plan, LIVE_CHAT_FEATURE_KEY),
+      // فریز فعال (DECISION-083)
+      prisma.gapRecord.findFirst({
+        where: {
+          userId: id,
+          type: "freeze",
+          fromDate: { lte: now },
+          toDate: { gte: now },
+        },
+        select: { id: true, fromDate: true, toDate: true, note: true },
+      }),
     ]);
 
   const recentChats = liveChatAllowed ? recentChatAll : [];
@@ -111,7 +122,6 @@ export default async function AdminUserDetailPage({
   const initLetter = user.displayName?.trim()?.[0] ?? user.phone?.[0] ?? user.email?.[0] ?? "؟";
 
   // روزهای باقیمانده پلن (فقط برای نمایش در ادمین)
-  const now = getNow();
   let adminDaysLeft: number | null = null;
   if (user.plan !== "FREE" && user.planExpiresAt) {
     const msLeft = user.planExpiresAt.getTime() - now.getTime();
@@ -207,6 +217,26 @@ export default async function AdminUserDetailPage({
           </div>
         </div>
       </div>
+
+      {/* ─── فریز فعال ───────────────────────────────────────────────────────── */}
+      {activeFreeze && (
+        <div className="rounded-2xl border border-sky-200/60 bg-sky-50/60 px-4 py-3 flex items-center gap-3">
+          <span className="text-sky-500">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <rect x="6" y="4" width="4" height="16" rx="1.5" fill="currentColor" />
+              <rect x="14" y="4" width="4" height="16" rx="1.5" fill="currentColor" />
+            </svg>
+          </span>
+          <div>
+            <p className="text-[12px] font-medium text-sky-700">
+              فریز فعال تا {activeFreeze.toDate.toLocaleDateString("fa-IR")}
+            </p>
+            {activeFreeze.note && (
+              <p className="text-[11px] text-sky-600/80 mt-0.5">{activeFreeze.note}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ─── آمار ───────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-4 gap-3">

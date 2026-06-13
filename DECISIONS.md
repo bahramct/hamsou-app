@@ -1706,5 +1706,36 @@
 
 ---
 
+### DECISION-083 | فیچر «فریز» — قابلیت توقف موقتِ مسیرِ روزانه
+- **تاریخ:** ۲۰۲۶-۰۶-۱۳
+- **وضعیت:** ✅ تأیید شده (پیاده‌سازی‌شده)
+- **زمینه:** کاربر ممکن است بازه‌ای از پیش بداند که تعهد روزانه برایش ممکن نیست (مسافرت، امتحانات، …). مدلِ فعلی این بازه را به‌عنوانِ «گپ» (شکست) ثبت می‌کرد — که ناعادلانه بود و با مانیفستِ «بدون قضاوت» تعارض داشت.
+- **تصمیم:** توسعهٔ مدلِ `GapRecord` با فیلدِ `type: "gap" | "freeze"`:
+  - **gap:** واکنشی، سرور بعد از شناسایی فاصله ایجاد می‌کند، با فرمِ توضیح.
+  - **freeze:** پیشگیرانه، کاربر از قبل بازه می‌دهد (از امروز تا حداکثر ۶۰ روز آینده)، با دلیلِ اختیاری.
+- **پیاده‌سازی:**
+  - `prisma/schema.prisma` — فیلدِ `type String @default("gap")` + ایندکسِ `[userId, type]` روی `GapRecord`. `db push` ✅.
+  - `src/types/gap.ts` — اینترفیسِ `ActiveFreeze` و `CreateFreezeInput`.
+  - `src/types/weekly-report.ts` — `DayState` += `"freeze"`؛ `WeeklyMetrics` += `freezeDays: number`.
+  - `src/lib/reports/weekly-analysis.ts` — `RawFreeze`، `isFreezeDay()`، اسکلتِ هفته و متریک‌ها از freeze آگاهند.
+  - `src/lib/ai/roles/weekly-report/schema.ts` — `freeze` به enum افزوده شد.
+  - `src/lib/notifications/catalog.ts` — نوعِ `"freeze.ended"` اضافه شد (بدون migration).
+  - `src/app/api/freeze/route.ts` + `src/app/api/freeze/[id]/route.ts` — GET/POST/DELETE.
+  - `src/components/features/freeze/` — `FreezeModal`, `FreezeActiveBanner`, `FreezePill`.
+  - `src/app/dashboard/page.tsx` — تشخیصِ freeze فعال + lazy end-notification + gap-detection هوشمند (truncate تا قبل از freeze).
+  - `src/app/api/reports/weekly/route.ts` — gap و freeze جداگانه کوئری می‌شوند.
+  - `src/app/admin/(panel)/users/[id]/page.tsx` — نمایشِ freeze فعال (admin parity).
+  - `prompts/weekly-report/v3.fa.md` — توضیحِ وضعیتِ `freeze` برای AI.
+  - همهٔ `Record<DayState, ...>` در کامپوننت‌های گزارش به `freeze` گسترش یافتند.
+- **رفتارِ هوشمند:**
+  - **لغوِ زودهنگام:** اگر freeze هنوز شروع نشده → حذفِ کامل. اگر فعال → `toDate = دیروز` (روزهای گذشتهٔ freeze حفظ می‌شوند).
+  - **تشخیصِ gap آگاه از freeze:** اگر freeze‌ای در بازهٔ gap احتمالی شروع شود، gap تا قبل از freeze کوتاه می‌شود.
+  - **Lazy end-notification:** روزِ بعد از پایانِ freeze، اولین بارِ باز کردنِ داشبورد اعلانِ `freeze.ended` ایجاد می‌کند (dedup با کوئریِ notification).
+  - **AI:** روزهای freeze با دلیل → اشاره‌ٔ کوتاه؛ بدون دلیل → کاملاً نادیده گرفته می‌شوند.
+- **محدودیت‌ها:** از امروز به بعد، max ۶۰ روز، بدون overlap با freeze فعال دیگر.
+- **مانیفستِ همسو:** روزهای freeze نه در گپ‌ها حساب می‌شوند نه در streak/score. بدون قضاوت.
+
+---
+
 *هر تصمیم جدید باید به این فایل اضافه شود — نه به TASKS.md یا CLAUDE.md*
 

@@ -36,6 +36,13 @@ export interface RawGap {
   note: string | null;
 }
 
+/** فریز پیشگیرانه (type="freeze") */
+export interface RawFreeze {
+  fromDate: Date;
+  toDate: Date;
+  note: string | null;
+}
+
 // ─── اسکلت ۷ روز هفته ─────────────────────────────────────────────────────────
 
 /** آیا این روز در بازهٔ یک گپ ثبت‌شده است؟ (مقایسه با نیمروز برای مقاومت به offset) */
@@ -43,10 +50,21 @@ function gapNoteForDay(dayStartMs: number, gaps: RawGap[]): string | null | unde
   const mid = dayStartMs + MS_PER_DAY / 2;
   for (const g of gaps) {
     if (mid >= g.fromDate.getTime() && mid <= g.toDate.getTime() + MS_PER_DAY) {
-      return g.note; // undefined یعنی «گپ نیست» — اینجا null هم یک گپِ بی‌توضیح است
+      return g.note; // undefined یعنی «گپ نیست» — null هم یک گپِ بی‌توضیح است
     }
   }
   return undefined;
+}
+
+/** آیا این روز در بازهٔ یک فریز پیشگیرانه است؟ */
+function isFreezeDay(dayStartMs: number, freezes: RawFreeze[]): boolean {
+  const mid = dayStartMs + MS_PER_DAY / 2;
+  for (const f of freezes) {
+    if (mid >= f.fromDate.getTime() && mid <= f.toDate.getTime() + MS_PER_DAY) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export interface WeekSkeleton {
@@ -57,7 +75,8 @@ export interface WeekSkeleton {
 export function buildWeekSkeleton(
   weekStart: Date,
   entries: RawEntry[],
-  gaps: RawGap[]
+  gaps: RawGap[],
+  freezes: RawFreeze[] = []
 ): WeekSkeleton {
   // نگاشت تعهدها بر اساس کلید روزِ جلالی (یکتا per روز)
   const entryByDay = new Map<string, RawEntry>();
@@ -85,6 +104,8 @@ export function buildWeekSkeleton(
           ? "done"
           : "not_done"
         : "pending";
+    } else if (isFreezeDay(dayMs, freezes)) {
+      state = "freeze";
     } else {
       const gapNote = gapNoteForDay(dayMs, gaps);
       if (gapNote !== undefined) {
@@ -110,6 +131,7 @@ export function computeMetrics(days: WeeklyDayInput[]): WeeklyMetrics {
   const notDoneCount = count("not_done");
   const pendingCount = count("pending");
   const gapDays = count("gap");
+  const freezeDays = count("freeze");
   const emptyDays = count("empty");
   const activeDays = doneCount + notDoneCount + pendingCount;
   const committed = doneCount + notDoneCount;
@@ -122,6 +144,7 @@ export function computeMetrics(days: WeeklyDayInput[]): WeeklyMetrics {
     notDoneCount,
     pendingCount,
     gapDays,
+    freezeDays,
     emptyDays,
     doneOfCommitted,
   };

@@ -167,6 +167,22 @@ const CATALOG: Record<string, CatalogEntry> = {
     },
   },
 
+  // پایانِ دوره فریز (producer: lazy در dashboard — DECISION-083)
+  "freeze.ended": {
+    tone: "info",
+    icon: "info",
+    describe: (d) => {
+      const toDate = str(d.toDateLabel);
+      return {
+        title: "دورهٔ فریز به پایان رسید",
+        body: toDate
+          ? `فریز تا ${toDate} پایان یافت. مسیر روزانه‌ات دوباره فعال است.`
+          : "دورهٔ فریز پایان یافت. مسیر روزانه‌ات دوباره فعال است.",
+        link: "/dashboard",
+      };
+    },
+  },
+
   // گزارش هفتگی آماده شد (رزرو — producer در موج بعد، با زمان‌بندی)
   "report.ready": {
     tone: "info",

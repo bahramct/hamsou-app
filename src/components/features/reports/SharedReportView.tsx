@@ -45,6 +45,7 @@ function normalize(c: WeeklyReportContent): ReportView {
         notDoneCount: notDone,
         pendingCount: pending,
         gapDays: 0,
+        freezeDays: 0,
         emptyDays: Math.max(0, 7 - active),
         doneOfCommitted: c.completionRate ?? 0,
       };
@@ -264,6 +265,10 @@ const DAY_STYLE: Record<DayState, { cls: string; label: string }> = {
     cls: "bg-transparent text-fog border border-dashed border-fog/50",
     label: "گپ",
   },
+  freeze: {
+    cls: "bg-sky-50/60 text-sky-400 border border-sky-200/60",
+    label: "فریز",
+  },
   empty: {
     cls: "bg-transparent text-fog/40 border border-fog/15",
     label: "خالی",
@@ -275,6 +280,7 @@ const DAY_GLYPH: Record<DayState, string> = {
   not_done: "−",
   pending: "?",
   gap: "·",
+  freeze: "⏸",
   empty: "",
 };
 

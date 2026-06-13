@@ -27,7 +27,7 @@ export const weeklyEntryItemSchema = z.object({
 export const weeklyDayInputSchema = z.object({
   jalaliDate: z.string(),
   weekday: z.string(),
-  state: z.enum(["done", "not_done", "pending", "gap", "empty"]),
+  state: z.enum(["done", "not_done", "pending", "gap", "freeze", "empty"]),
   content: z.string().nullable(),
   note: z.string().nullable(),
 });

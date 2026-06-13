@@ -34,6 +34,7 @@ import {
   expandCategories,
   type RawEntry,
   type RawGap,
+  type RawFreeze,
 } from "@/lib/reports/weekly-analysis";
 import type {
   WeeklyReportInput,
@@ -132,15 +133,29 @@ export async function POST(request: NextRequest) {
     orderBy: { date: "asc" },
   })) as RawEntry[];
 
-  // ② گپ‌های همپوشان با هفته
-  const gaps = (await prisma.gapRecord.findMany({
-    where: {
-      userId: user.userId,
-      fromDate: { lte: range.weekEnd },
-      toDate: { gte: range.weekStart },
-    },
-    orderBy: { fromDate: "asc" },
-  })) as RawGap[];
+  // ② گپ‌ها و فریزهای همپوشان با هفته (جداسازی type — DECISION-083)
+  const [gapsRaw, freezesRaw] = await Promise.all([
+    prisma.gapRecord.findMany({
+      where: {
+        userId: user.userId,
+        type: "gap",
+        fromDate: { lte: range.weekEnd },
+        toDate: { gte: range.weekStart },
+      },
+      orderBy: { fromDate: "asc" },
+    }),
+    prisma.gapRecord.findMany({
+      where: {
+        userId: user.userId,
+        type: "freeze",
+        fromDate: { lte: range.weekEnd },
+        toDate: { gte: range.weekStart },
+      },
+      orderBy: { fromDate: "asc" },
+    }),
+  ]);
+  const gaps = gapsRaw as RawGap[];
+  const freezes = freezesRaw as RawFreeze[];
 
   // ③ دادهٔ تاریخی ۴ هفتهٔ گذشته (قبل از این هفته)
   const historyStart = new Date(range.weekStart.getTime() - HISTORY_WEEKS * 7 * MS_PER_DAY);
@@ -156,7 +171,7 @@ export async function POST(request: NextRequest) {
   ]);
 
   // ── محاسبات قطعی ──
-  const { days, strip } = buildWeekSkeleton(range.weekStart, entries, gaps);
+  const { days, strip } = buildWeekSkeleton(range.weekStart, entries, gaps, freezes);
   const metrics = computeMetrics(days);
   const gapInputs = buildGapInputs(gaps);
   const history = computeHistory(

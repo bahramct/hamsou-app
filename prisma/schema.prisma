@@ -169,12 +169,14 @@ model GapRecord {
   fromDate  DateTime
   toDate    DateTime
   note      String?
+  type      String   @default("gap") // "gap" (واکنشی) | "freeze" (پیشگیرانه — DECISION-083)
   createdAt DateTime @default(now())
   devSeed   Boolean? // فقط در dev — داده seed را از داده واقعی جدا می‌کند (DECISION-021)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, fromDate])
+  @@index([userId, type])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -9,7 +9,7 @@
 // رندر شوند؛ نرمال‌سازی نهایی در WeeklyReportCard انجام می‌شود.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type DayState = "done" | "not_done" | "pending" | "gap" | "empty";
+export type DayState = "done" | "not_done" | "pending" | "gap" | "freeze" | "empty";
 
 /** یک خانه از نوار ۷‌روزهٔ هفته (قطعی — از DB). */
 export interface WeeklyDayCell {
@@ -36,8 +36,9 @@ export interface WeeklyMetrics {
   doneCount: number;
   notDoneCount: number;
   pendingCount: number;
-  gapDays: number; // روزهای پوشش‌داده‌شده با GapRecord (بدون تعهد)
-  emptyDays: number; // روزهای بدون تعهد و بدون گپ
+  gapDays: number; // روزهای پوشش‌داده‌شده با GapRecord type=gap (بدون تعهد)
+  freezeDays: number; // روزهای فریز‌شده (DECISION-083)
+  emptyDays: number; // روزهای بدون تعهد، بدون گپ، بدون فریز
   doneOfCommitted: number; // ٪ انجام از ثبت‌شده‌های دارای بازخورد (متریک ثانویه، نه سرآیند)
 }
 

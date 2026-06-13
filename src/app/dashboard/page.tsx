@@ -6,9 +6,12 @@
 //   ● تعهد امروز را مستقیماً از Prisma می‌خواند (بدون HTTP round-trip)
 //   ● داده را Serialize می‌کند و به Client Components پاس می‌دهد
 //
-// حالت‌های صفحه:
-//   ● بدون تعهد → EntryForm نمایش داده می‌شود
-//   ● تعهد دارد  → EntryCard نمایش داده می‌شود (با منطق lock/edit درون خودش)
+// حالت‌های صفحه (به ترتیب اولویت):
+//   ● freeze فعال → FreezeActiveBanner (بدون فرم تعهد)
+//   ● بازخورد pending → FeedbackForm
+//   ● gap pending → GapForm (با آگاهی از freeze)
+//   ● تعهد دارد → EntryCard
+//   ● بدون تعهد → EntryForm + FreezePill
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { redirect } from "next/navigation";
@@ -20,24 +23,64 @@ import { EntryForm } from "@/components/features/entry/EntryForm";
 import { EntryCard } from "@/components/features/entry/EntryCard";
 import { FeedbackForm } from "@/components/features/feedback/FeedbackForm";
 import { GapForm } from "@/components/features/gap/GapForm";
+import { FreezeActiveBanner } from "@/components/features/freeze/FreezeActiveBanner";
 import { RecentHistoryButton } from "@/components/features/history/RecentHistoryModal";
+import { createNotification } from "@/lib/notifications/server";
 import type { RecentEntry } from "@/components/features/history/RecentHistoryModal";
 import type { SerializedEntry } from "@/types/entry";
 import type { PendingFeedbackEntry } from "@/types/feedback";
-import type { PendingGap } from "@/types/gap";
+import type { PendingGap, ActiveFreeze } from "@/types/gap";
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export default async function DashboardPage() {
-  // ۱. بررسی session (دفاع در عمق — middleware هم محافظت می‌کند)
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  // ۲. محاسبه تاریخ امروز برای نمایش و کوئری
   const todayDate = getTodayDateForDB();
   const todayLabel = formatJalali(todayDate);
   const weekdayLabel = formatWeekday(todayDate);
 
-  // ۳. چک تعهد قبلی بدون بازخورد (جدیدترین تعهد قبل از امروز که هنوز feedback ندارد)
-  //    اگر موجود باشد، قبل از هر چیز دیگری بازخورد گرفته می‌شود.
+  // ─── بررسی فریز فعال (امروز در بازه فریز) ────────────────────────────────
+  const activeGapFreeze = await prisma.gapRecord.findFirst({
+    where: {
+      userId: user.userId,
+      type: "freeze",
+      fromDate: { lte: todayDate },
+      toDate: { gte: todayDate },
+    },
+    select: { id: true, fromDate: true, toDate: true, note: true },
+  });
+
+  // ─── اعلانِ پایان فریز (lazy — فقط اگر فریزی دیروز تمام شده) ────────────
+  const yesterday = new Date(todayDate.getTime() - MS_PER_DAY);
+  const endedFreeze = await prisma.gapRecord.findFirst({
+    where: {
+      userId: user.userId,
+      type: "freeze",
+      toDate: { gte: new Date(yesterday.getTime() - MS_PER_DAY), lt: todayDate },
+    },
+    select: { id: true, toDate: true },
+  });
+  if (endedFreeze) {
+    const recentEndNotif = await prisma.notification.findFirst({
+      where: {
+        userId: user.userId,
+        type: "freeze.ended",
+        createdAt: { gte: new Date(todayDate.getTime() - 2 * MS_PER_DAY) },
+      },
+      select: { id: true },
+    });
+    if (!recentEndNotif) {
+      await createNotification({
+        type: "freeze.ended",
+        userId: user.userId,
+        data: { toDateLabel: formatJalali(endedFreeze.toDate) },
+      });
+    }
+  }
+
+  // ─── بازخورد تعهد قبلی ────────────────────────────────────────────────────
   const pendingFeedbackRow = await prisma.dailyEntry.findFirst({
     where: {
       userId: user.userId,
@@ -56,19 +99,16 @@ export default async function DashboardPage() {
       }
     : null;
 
-  // ۴. خواندن تعهد امروز از DB
+  // ─── تعهد امروز ───────────────────────────────────────────────────────────
   const entry = await prisma.dailyEntry.findUnique({
     where: { userId_date: { userId: user.userId, date: todayDate } },
   });
 
-  // ۵. تشخیص فاصله غیرفعالی — فقط اگر بازخورد pending نیست و تعهد امروز هم نیست
-  //    شرط: آخرین تعهد کاربر مربوط به قبل از دیروز باشد و GapRecord برای آن وجود نداشته باشد
+  // ─── تشخیص فاصله غیرفعالی (با آگاهی از freeze) ─────────────────────────
   let pendingGap: PendingGap | null = null;
 
-  if (!pendingFeedbackEntry && !entry) {
-    const MS_PER_DAY = 24 * 60 * 60 * 1000;
-    const yesterday = new Date(todayDate.getTime() - MS_PER_DAY);
-
+  // اگر freeze فعال نیست، بازخورد pending نیست، تعهد امروز ندارد → چک gap
+  if (!activeGapFreeze && !pendingFeedbackEntry && !entry) {
     const lastEntry = await prisma.dailyEntry.findFirst({
       where: { userId: user.userId },
       orderBy: { date: "desc" },
@@ -78,29 +118,46 @@ export default async function DashboardPage() {
     if (lastEntry && lastEntry.date < yesterday) {
       const dayAfterLastEntry = new Date(lastEntry.date.getTime() + MS_PER_DAY);
 
+      // چک اینکه آیا gap قبلاً ثبت شده
       const existingGap = await prisma.gapRecord.findFirst({
         where: { userId: user.userId, fromDate: dayAfterLastEntry },
         select: { id: true },
       });
 
       if (!existingGap) {
-        const gapDays = Math.round(
-          (todayDate.getTime() - lastEntry.date.getTime()) / MS_PER_DAY
-        ) - 1;
+        // اگر freeze‌ای در بازه gap شروع می‌شود، gap را تا قبل از freeze محدود کن
+        const overlapFreeze = await prisma.gapRecord.findFirst({
+          where: {
+            userId: user.userId,
+            type: "freeze",
+            fromDate: { gt: dayAfterLastEntry, lte: yesterday },
+          },
+          orderBy: { fromDate: "asc" },
+          select: { fromDate: true },
+        });
 
-        pendingGap = {
-          fromDateLabel: formatJalali(dayAfterLastEntry),
-          toDateLabel: formatJalali(yesterday),
-          days: gapDays,
-        };
+        const gapToDate = overlapFreeze
+          ? new Date(overlapFreeze.fromDate.getTime() - MS_PER_DAY)
+          : yesterday;
+
+        const gapDays = Math.round(
+          (gapToDate.getTime() - dayAfterLastEntry.getTime()) / MS_PER_DAY,
+        ) + 1;
+
+        if (gapDays > 0) {
+          pendingGap = {
+            fromDateLabel: formatJalali(dayAfterLastEntry),
+            toDateLabel: formatJalali(gapToDate),
+            days: gapDays,
+          };
+        }
       }
     }
   }
 
-  // ۶. آخرین ۷ تعهد برای دکمه تاریخچه (فقط در حالت عادی — نه در gates)
-  //    gap ها skip می‌شوند چون فقط رکوردهای موجود خوانده می‌شود
+  // ─── تاریخچه آخرین ۷ تعهد ────────────────────────────────────────────────
   const recentEntries: RecentEntry[] = [];
-  if (!pendingFeedbackEntry && !pendingGap) {
+  if (!activeGapFreeze && !pendingFeedbackEntry && !pendingGap) {
     const recentRows = await prisma.dailyEntry.findMany({
       where: { userId: user.userId },
       orderBy: { date: "desc" },
@@ -121,11 +178,11 @@ export default async function DashboardPage() {
         feedbackStatus: r.feedback
           ? (r.feedback.status as "DONE" | "NOT_DONE")
           : null,
-      }))
+      })),
     );
   }
 
-  // ۷. Serialize برای Client Components (Date → ISO string)
+  // ─── Serialize ───────────────────────────────────────────────────────────
   const serializedEntry: SerializedEntry | null = entry
     ? {
         id: entry.id,
@@ -138,12 +195,33 @@ export default async function DashboardPage() {
       }
     : null;
 
+  const activeFreeze: ActiveFreeze | null = activeGapFreeze
+    ? {
+        id: activeGapFreeze.id,
+        fromDateLabel: formatJalali(activeGapFreeze.fromDate),
+        toDateLabel: formatJalali(activeGapFreeze.toDate),
+        fromIso: activeGapFreeze.fromDate.toISOString(),
+        toIso: activeGapFreeze.toDate.toISOString(),
+        note: activeGapFreeze.note,
+        daysLeft: Math.max(
+          1,
+          Math.round((activeGapFreeze.toDate.getTime() - todayDate.getTime()) / MS_PER_DAY) + 1,
+        ),
+      }
+    : null;
+
   return (
     <AppShell>
-      {/* ───── ناحیه اصلی — flex-1 کل فضا را می‌گیرد، center دقیق حفظ می‌شود ───── */}
       <div className="flex-1 relative flex items-center justify-center px-5 pt-12 pb-28 sm:pt-16 sm:pb-32">
         <div className="w-full flex justify-center">
-          {pendingFeedbackEntry ? (
+          {activeFreeze ? (
+            // گیت فریز: فریز فعال — بدون فرم تعهد
+            <FreezeActiveBanner
+              freeze={activeFreeze}
+              todayLabel={todayLabel}
+              weekdayLabel={weekdayLabel}
+            />
+          ) : pendingFeedbackEntry ? (
             // گیت ۱: بازخورد تعهد قبلی — پیش از هر چیز
             <FeedbackForm
               pendingEntry={pendingFeedbackEntry}
@@ -151,7 +229,7 @@ export default async function DashboardPage() {
               weekdayLabel={weekdayLabel}
             />
           ) : pendingGap ? (
-            // گیت ۲: توضیح فاصله غیرفعالی — بعد از بازخورد، قبل از تعهد امروز
+            // گیت ۲: توضیح فاصله غیرفعالی
             <GapForm
               pendingGap={pendingGap}
               todayLabel={todayLabel}
@@ -168,7 +246,6 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* دکمه تاریخچه — absolute در پایین؛ روی flex-1 overlay می‌شود تا center کارت تغییر نکند */}
         {recentEntries.length > 0 && (
           <div className="absolute bottom-6 sm:bottom-8 inset-x-0 flex justify-center">
             <RecentHistoryButton entries={recentEntries} />

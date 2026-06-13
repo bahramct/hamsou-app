@@ -28,3 +28,24 @@ export interface CreateGapResult {
   error?: string;
   message?: string;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// فریز — DECISION-083
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** فریز فعال کاربر (type="freeze" در GapRecord که امروز در بازه‌اش است) */
+export interface ActiveFreeze {
+  id: string;
+  fromDateLabel: string;
+  toDateLabel: string;
+  fromIso: string;
+  toIso: string;
+  note: string | null;
+  daysLeft: number; // شامل امروز
+}
+
+export interface CreateFreezeInput {
+  fromIso: string; // begin-of-day ISO
+  toIso: string;
+  note?: string;
+}

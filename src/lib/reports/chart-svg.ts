@@ -27,6 +27,7 @@ export const STATE_HEX: Record<DayState, string> = {
   not_done: CHART_K.ember,
   pending: CHART_K.gold,
   gap: CHART_K.mist,
+  freeze: CHART_K.mist,
   empty: CHART_K.fog,
 };
 

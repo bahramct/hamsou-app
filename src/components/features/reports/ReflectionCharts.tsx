@@ -52,6 +52,7 @@ const STATE_COLOR: Record<DayState, string> = {
   not_done: "var(--color-ember)",
   pending: "var(--color-gold)",
   gap: "var(--color-mist)",
+  freeze: "var(--color-mist)",
   empty: "var(--color-fog)",
 };
 
@@ -60,6 +61,7 @@ const STATE_LABEL: Record<DayState, string> = {
   not_done: "نشد",
   pending: "بی‌بازخورد",
   gap: "گپ",
+  freeze: "فریز",
   empty: "خالی",
 };
 

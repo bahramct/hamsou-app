@@ -96,6 +96,7 @@ export function buildShareImageData(
         notDoneCount: notDone,
         pendingCount: pending,
         gapDays: 0,
+        freezeDays: 0,
         emptyDays: Math.max(0, 7 - active),
         doneOfCommitted: content.completionRate ?? 0,
       };
@@ -305,6 +306,7 @@ const DAY_BG: Record<DayState, { bg: string; border: string }> = {
   not_done: { bg: "rgba(199,93,60,0.16)", border: "rgba(199,93,60,0.45)" },
   pending: { bg: "rgba(189,182,167,0.22)", border: "rgba(189,182,167,0.5)" },
   gap: { bg: "rgba(155,180,199,0.14)", border: "rgba(155,180,199,0.5)" },
+  freeze: { bg: "rgba(125,195,230,0.12)", border: "rgba(125,195,230,0.45)" },
   empty: { bg: "rgba(0,0,0,0)", border: "rgba(189,182,167,0.3)" },
 };
 
