@@ -442,17 +442,6 @@ function EmailSignup() {
 
       {error && <p className="text-xs text-ember animate-fade-in">{error}</p>}
 
-      <DevOnly>
-        {devLink && (
-          <a
-            href={devLink}
-            className="text-xs px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors block text-center"
-          >
-            [DEV] باز کردن لینک تأیید
-          </a>
-        )}
-      </DevOnly>
-
       <div className="flex items-center justify-center gap-3 text-xs">
         <button
           type="button" onClick={resend} disabled={loading}

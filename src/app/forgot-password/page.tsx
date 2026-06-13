@@ -107,17 +107,6 @@ export default function ForgotPasswordPage() {
                 </p>
               </div>
 
-              <DevOnly>
-                {devLink && (
-                  <a
-                    href={devLink}
-                    className="text-xs px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors block"
-                  >
-                    [DEV] باز کردن لینک بازیابی
-                  </a>
-                )}
-              </DevOnly>
-
               <Link href="/login" className="text-xs text-stone hover:text-ink transition-colors">
                 بازگشت به ورود
               </Link>
