@@ -4,12 +4,17 @@
 // FreezeModal — ایجاد فریز پیشگیرانه (DECISION-083)
 // الگوی مودال: fixed inset-0، مرکز کامل صفحه، بدون اسکرول‌بار داخلی.
 // متنِ دکمه ثابت + Spinner + toast (DECISION-053).
+//
+// از <Portal> رندر می‌شود تا از containing-block‌های transform-دارِ والد فرار کند
+// (EntryForm با animate-fade-up یک transform دائمی نگه می‌داشت و مودال را در کادرِ
+// max-w-lg حبس می‌کرد) — DECISION-085.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
 import { JalaliDatePicker } from "@/components/ui/JalaliDatePicker";
+import { Portal } from "@/components/ui/Portal";
 import { toast } from "@/lib/notifications/toast";
 import { getTodayISO } from "@/lib/utils/date-client";
 
@@ -71,7 +76,7 @@ export function FreezeModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <>
+    <Portal>
       {/* پس‌زمینه */}
       <div
         aria-hidden
@@ -122,19 +127,20 @@ export function FreezeModal({ onClose }: { onClose: () => void }) {
             </button>
           </div>
 
-          {/* محتوا */}
-          <div className="space-y-4 px-5 py-5">
+          {/* محتوا — اسکرول‌پذیر (بدون نمایش اسکرول‌بار) تا تقویمِ inline درونِ کادر جا شود */}
+          <div className="space-y-4 px-5 py-5 max-h-[62vh] overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden scrollbar-none">
             {/* توضیح */}
             <p className="text-[13px] leading-relaxed text-stone">
               در این بازه نیازی به ثبت تعهد نیست. روزها به‌عنوان فریز (نه گپ)
               ثبت می‌شوند و در گزارش هفتگی جداگانه دیده می‌شوند.
             </p>
 
-            {/* بازه تاریخ */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* بازه تاریخ — عمودی تا تقویمِ تمام‌عرضِ inline درونِ مودال باز شود */}
+            <div className="space-y-3">
               <div>
                 <p className="mb-1.5 text-xs font-medium text-stone">از تاریخ</p>
                 <JalaliDatePicker
+                  inline
                   value={fromIso}
                   onChange={setFromIso}
                   placeholder="شروع فریز"
@@ -143,6 +149,7 @@ export function FreezeModal({ onClose }: { onClose: () => void }) {
               <div>
                 <p className="mb-1.5 text-xs font-medium text-stone">تا تاریخ</p>
                 <JalaliDatePicker
+                  inline
                   value={toIso}
                   onChange={setToIso}
                   placeholder="پایان فریز"
@@ -184,7 +191,7 @@ export function FreezeModal({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={submit}
               disabled={isPending || !toIso}
-              className="flex items-center gap-2 rounded-full bg-sky-500/85 px-5 py-2 text-sm font-medium text-paper transition-colors hover:bg-sky-600/85 disabled:opacity-40"
+              className="flex items-center gap-2 rounded-full bg-mist-deep px-5 py-2 text-sm font-medium text-paper transition-colors hover:opacity-90 disabled:opacity-40"
             >
               {isPending && <Spinner size={13} />}
               فریز کردن
@@ -192,6 +199,6 @@ export function FreezeModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       </div>
-    </>
+    </Portal>
   );
 }

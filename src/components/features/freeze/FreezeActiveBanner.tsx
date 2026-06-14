@@ -55,14 +55,14 @@ export function FreezeActiveBanner({
 
       {/* بدنه بنر */}
       <div
-        className="rounded-3xl border border-sky-200/60 px-6 py-7 text-center shadow-[0_2px_16px_rgba(14,165,233,0.06)]"
-        style={{ background: "rgba(14,165,233,0.05)" }}
+        className="rounded-3xl border border-mist/40 px-6 py-7 text-center shadow-[0_2px_16px_rgba(155,180,199,0.10)]"
+        style={{ background: "rgba(155,180,199,0.10)" }}
       >
         {/* آیکون */}
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-sky-100/80">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-mist/20">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <rect x="6" y="4" width="4" height="16" rx="1.5" fill="currentColor" className="text-sky-500" />
-            <rect x="14" y="4" width="4" height="16" rx="1.5" fill="currentColor" className="text-sky-500" />
+            <rect x="6" y="4" width="4" height="16" rx="1.5" fill="currentColor" className="text-mist-deep" />
+            <rect x="14" y="4" width="4" height="16" rx="1.5" fill="currentColor" className="text-mist-deep" />
           </svg>
         </div>
 

@@ -220,19 +220,19 @@ export default async function AdminUserDetailPage({
 
       {/* ─── فریز فعال ───────────────────────────────────────────────────────── */}
       {activeFreeze && (
-        <div className="rounded-2xl border border-sky-200/60 bg-sky-50/60 px-4 py-3 flex items-center gap-3">
-          <span className="text-sky-500">
+        <div className="rounded-2xl border border-mist/40 bg-mist/15 px-4 py-3 flex items-center gap-3">
+          <span className="text-mist-deep">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
               <rect x="6" y="4" width="4" height="16" rx="1.5" fill="currentColor" />
               <rect x="14" y="4" width="4" height="16" rx="1.5" fill="currentColor" />
             </svg>
           </span>
           <div>
-            <p className="text-[12px] font-medium text-sky-700">
+            <p className="text-[12px] font-medium text-mist-deep">
               فریز فعال تا {activeFreeze.toDate.toLocaleDateString("fa-IR")}
             </p>
             {activeFreeze.note && (
-              <p className="text-[11px] text-sky-600/80 mt-0.5">{activeFreeze.note}</p>
+              <p className="text-[11px] text-stone mt-0.5">{activeFreeze.note}</p>
             )}
           </div>
         </div>

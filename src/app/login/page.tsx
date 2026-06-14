@@ -7,6 +7,12 @@ import { DevOnly } from "@/components/dev/DevOnly";
 import { DevOtpPanel } from "@/components/dev/DevOtpPanel";
 import { AmbientField } from "@/components/layout/AmbientField";
 import { toFaDigits } from "@/lib/utils/digits";
+import {
+  isValidIranMobile,
+  isValidIdentifier,
+  isValidEmail,
+  VALIDATION_MSG,
+} from "@/lib/utils/validation";
 import { Spinner } from "@/components/ui/Spinner";
 import { TermsModal } from "@/components/features/auth/TermsModal";
 
@@ -126,6 +132,7 @@ function MobileFlow() {
 
   async function handleRequestOtp(e: React.FormEvent) {
     e.preventDefault();
+    if (!isValidIranMobile(phone)) { setError(VALIDATION_MSG.mobile); return; }
     setError(""); setLoading(true);
     try {
       const res = await fetch("/api/auth/request-otp", {
@@ -166,8 +173,9 @@ function MobileFlow() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "خطایی رخ داد."); return; }
+      // کاربرِ تازه‌وارد → سفرِ onboarding؛ بقیه → داشبورد (DECISION-085)
       // full page reload — layout با session جدید re-render می‌شود
-      window.location.href = "/dashboard";
+      window.location.href = data.isNew ? "/onboarding" : "/dashboard";
     } catch {
       setError("اتصال به سرور برقرار نشد.");
     } finally { setLoading(false); }
@@ -232,16 +240,19 @@ function MobileFlow() {
 
   return (
     <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6">
-      <p className="text-xs text-center text-stone -mt-2">
-        کد ارسال‌شده به{" "}
-        <span
-          className="font-medium text-ink cursor-pointer underline underline-offset-2 decoration-dotted"
+      <div className="text-center space-y-1">
+        <p className="text-xs text-stone">
+          کد ارسال‌شده به{" "}
+          <span className="font-medium text-ink fa-num" dir="ltr">{toFaDigits(phone)}</span>
+        </p>
+        <button
+          type="button"
           onClick={() => { setStep("phone"); setError(""); setOtp(["","","","","",""]); }}
-          title="تغییر شماره"
+          className="text-[11px] text-sage-deep hover:text-ink transition-colors"
         >
-          {toFaDigits(phone)}
-        </span>
-      </p>
+          تغییر شماره
+        </button>
+      </div>
 
       <div className="flex gap-2 justify-center" dir="ltr">
         {otp.map((digit, i) => (
@@ -307,6 +318,8 @@ function EmailLogin() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isValidIdentifier(identifier)) { setError(VALIDATION_MSG.identifier); return; }
+    if (!password) { setError(VALIDATION_MSG.passwordEmpty); return; }
     setError(""); setLoading(true);
     try {
       const res = await fetch("/api/auth/login-password", {
@@ -367,6 +380,7 @@ function EmailSignup() {
 
   async function requestLink(e: React.FormEvent) {
     e.preventDefault();
+    if (!isValidEmail(email)) { setError(VALIDATION_MSG.email); return; }
     setError(""); setLoading(true);
     try {
       const res = await fetch("/api/auth/email/request-code", {

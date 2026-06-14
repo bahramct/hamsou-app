@@ -42,6 +42,9 @@ interface DiscountResult {
 
 const faNum = (n: number) => n.toLocaleString("fa-IR");
 
+// رتبهٔ نمایشِ ویژگی برای مرتب‌سازی: فعال (تیک) → به‌زودی → غیرفعال (DECISION-087)
+const featureRank = (f: PublicFeature) => (f.disabled ? 2 : f.comingSoon ? 1 : 0);
+
 export function PlansPricing({
   plans, isLoggedIn, walletBalance = 0, currentPlanKey = "FREE", planDaysLeft = null,
   currentPlanBasePrice = 0,
@@ -179,9 +182,19 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
   const finalPrice = discount?.ok && discount.finalPrice !== undefined ? discount.finalPrice : basePrice;
   const priced = isPaid && basePrice > 0;
 
-  // محافظت قیمتی (DECISION-076): اگر قیمت این پلن کمتر از پلن فعال کاربر باشد، مسدود است
+  // محافظت قیمتی (DECISION-076): اگر قیمت این پلن کمتر از پلن فعال کاربر باشد، خریدش
+  // مجاز نیست. اما ساختارِ کارت هرگز تغییر نمی‌کند (DECISION-087) — فقط هنگامِ اکشن،
+  // با toast اطلاع‌رسانی می‌شود (enforcement واقعی همچنان سمتِ سرور است).
   const currentPlanActive = planDaysLeft != null && planDaysLeft > 0;
   const isBlockedDowngrade = isLoggedIn && currentPlanActive && isPaid && currentPlanBasePrice > 0 && basePrice < currentPlanBasePrice;
+
+  function handleBuyClick() {
+    if (isBlockedDowngrade) {
+      toast.info("پلنِ فعلیِ تو بالاتر است — پس از پایانِ دوره می‌توانی پلنِ پایین‌تر را انتخاب کنی.");
+      return;
+    }
+    setShowBuy(true);
+  }
 
   return (
     <div className={`rounded-2xl border p-6 flex flex-col gap-5 ${
@@ -200,15 +213,8 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
             )}
           </div>
         </div>
-        {/* زمان باقی‌مانده — فقط برای پلن فعال */}
-        {plan.isCurrent && planDaysLeft != null && (
-          <div className={`text-[11px] flex items-center gap-1 ${planDaysLeft <= 3 ? "text-ember" : "text-stone"}`}>
-            {planDaysLeft <= 3 && (
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-            )}
-            {planDaysLeft === 0 ? "امروز منقضی می‌شود" : `${planDaysLeft.toLocaleString("fa-IR")} روز مانده`}
-          </div>
-        )}
+        {/* زمانِ باقی‌مانده عمداً اینجا نمایش داده نمی‌شود — جای آن در پروفایل/کیف‌پول
+            است، نه صفحهٔ مقایسهٔ پلن‌ها (DECISION-087). */}
         {plan.description && <p className="text-[11px] text-fog leading-relaxed">{plan.description}</p>}
 
         {/* قیمت */}
@@ -234,18 +240,10 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
         )
       ) : !priced ? (
         <div className="py-2.5 px-4 text-center text-sm text-fog/50 border border-black/5 rounded-xl cursor-default select-none">به‌زودی</div>
-      ) : isBlockedDowngrade ? (
-        <div className="space-y-1.5">
-          <div className="py-2.5 px-4 text-center text-sm text-fog/50 border border-black/5 rounded-xl cursor-not-allowed select-none">
-            امکانپذیر نیست
-          </div>
-          <p className="text-[10px] text-center text-fog/60 leading-relaxed">
-            قیمت این پلن کمتر از پلن فعلی توست. پس از پایان دوره می‌توانی آن را انتخاب کنی.
-          </p>
-        </div>
       ) : (
+        // ساختارِ کارت همیشه یکسان است؛ محدودیتِ downgrade فقط هنگامِ کلیک با toast اعلام می‌شود
         <button
-          onClick={() => setShowBuy(true)}
+          onClick={handleBuyClick}
           className="py-2.5 px-4 text-center text-sm font-medium text-paper bg-ink rounded-xl hover:bg-charcoal transition-colors"
         >
           {plan.isCurrent ? "تمدید پلن" : "خرید پلن"}
@@ -267,9 +265,12 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
 
       <div className="h-px bg-black/6" />
 
-      {/* ویژگی‌ها (شامل قابلیت‌های کاتالوگ + سفارشی — همگی با همان منطق فلگ) */}
+      {/* ویژگی‌ها — مرتب‌شده تا تیک‌ها پشت‌سرهم از بالا باشند (DECISION-087):
+          ابتدا فعال‌ها، سپس «به‌زودی»، در انتها غیرفعال‌ها (خط‌خورده). مرتب‌سازی پایدار. */}
       <ul className="space-y-3.5">
-        {plan.features.map((f, i) => <FeatureRow key={i} feature={f} />)}
+        {[...plan.features]
+          .sort((a, b) => featureRank(a) - featureRank(b))
+          .map((f, i) => <FeatureRow key={i} feature={f} />)}
       </ul>
     </div>
   );

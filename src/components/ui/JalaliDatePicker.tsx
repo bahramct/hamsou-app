@@ -36,6 +36,12 @@ interface Props {
   disabled?: boolean;
   clearable?: boolean;
   className?: string;
+  /**
+   * inline=true → تقویم در جریانِ عادیِ صفحه (relative، تمام‌عرض) باز می‌شود و
+   * محتوا را پایین می‌راند، نه absolute شناور. برای مودال‌هایی که نباید تقویم از
+   * کادر بیرون بزند (مثل FreezeModal) — کانتینرِ اسکرول‌پذیر آن را در بر می‌گیرد.
+   */
+  inline?: boolean;
 }
 
 export function JalaliDatePicker({
@@ -47,6 +53,7 @@ export function JalaliDatePicker({
   disabled = false,
   clearable = true,
   className = "",
+  inline = false,
 }: Props) {
   const isControlled = value !== undefined;
   const [internal, setInternal] = useState(defaultValue);
@@ -171,7 +178,11 @@ export function JalaliDatePicker({
         <div
           role="dialog"
           aria-labelledby={labelId}
-          className="absolute z-50 mt-2 w-72 rounded-2xl border border-black/8 bg-white shadow-paper-md p-3 right-0"
+          className={
+            inline
+              ? "relative z-10 mt-2 w-full rounded-2xl border border-black/8 bg-white shadow-paper-md p-3"
+              : "absolute z-50 mt-2 w-72 rounded-2xl border border-black/8 bg-white shadow-paper-md p-3 right-0"
+          }
         >
           {/* ─── هدر ناوبری ─── */}
           <div className="flex items-center justify-between mb-2">

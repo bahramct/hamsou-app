@@ -16,7 +16,7 @@ export function FreezePill() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-black/8 bg-black/3 px-3 py-1 text-[11px] text-fog transition-colors hover:bg-sky-50 hover:border-sky-200/70 hover:text-sky-600"
+        className="inline-flex items-center gap-1.5 rounded-full border border-black/8 bg-black/3 px-3 py-1 text-[11px] text-fog transition-colors hover:bg-mist/12 hover:border-mist/50 hover:text-mist-deep"
       >
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden>
           <rect x="6" y="4" width="4" height="16" rx="1.5" fill="currentColor" />

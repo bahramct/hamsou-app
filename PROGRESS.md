@@ -6,6 +6,25 @@
 
 ## آخرین تغییرات
 
+### بستهٔ اصلاحاتِ ورود/پلن/فریز + هویتِ رنگیِ فریز (۲۰۲۶-۰۶-۱۴) — DECISION-087
+- **اعتبارسنجیِ regex:** ماژولِ `lib/utils/validation.ts` (موبایل/ایمیل/نام‌کاربری/OTP + پیام‌های فارسی) وصل به همهٔ ورودی‌های ورود/ثبت‌نام/فراموشی رمز.
+- **رنگِ فریز = دیزاین سیستم:** `sky-*` خام → توکنِ `mist` + توکنِ تازهٔ `--color-mist-deep`. اعمال در FreezePill/FreezeModal/FreezeActiveBanner + چیپ‌های گزارش + نمای فریزِ پنل ادمین (هم‌ترازی). تصاویرِ poster عمداً دست‌نخورده (تمایز از gap).
+- **تقویمِ مودالِ فریز:** propِ `inline` در `JalaliDatePicker` (پاپ‌اوورِ in-flow تمام‌عرض) + بدنهٔ مودال اسکرول‌پذیر با اسکرول‌بارِ پنهان + چیدمانِ عمودیِ تاریخ‌ها → تقویم دقیقاً درونِ کادر باز می‌شود.
+- **صفحهٔ پلن‌ها:** تیک‌ها پشت‌سرهم (مرتب‌سازیِ `featureRank`)؛ حذفِ «N روز مانده» از کارت؛ محافظتِ downgrade دیگر ساختارِ کارت را تغییر نمی‌دهد — فقط toast هنگامِ کلیک (enforcement سمتِ سرور ثابت).
+- **نمایشِ OTP:** «کد ارسال‌شده به X» درونِ کادر، بدونِ نقطه‌چین، با لینکِ مجزای «تغییر شماره».
+- **onboarding:** `loading.tsx` + موازی‌سازیِ awaitها (رفعِ کندی/قفلِ ظاهریِ ناشی از کامپایلِ dev).
+- `tsc --noEmit` ✅ · `next build` ✅
+
+### فیچر onboarding (سفرِ رواییِ تمام‌صفحه) + سه رفعِ ایراد (۲۰۲۶-۰۶-۱۴) — DECISION-086
+- **جوهر:** کاربرِ تازه‌وارد به‌جای ورودِ خام به داشبورد، یک سفرِ رواییِ تمام‌صفحه (۴ پرده، بنچ‌مارک Calm/Headspace) می‌بیند: روایتِ همسو → نامِ تو → نامِ همدم → هدایتِ نرم به اولین تعهد. تصمیم‌های طراحی با پرسشِ ویژوال قطعی شد (قالب رواییِ تمام‌صفحه، شخصی‌سازیِ فقط‌هویت، پایان با اولین تعهد). قابلِ رد شدن در هر پرده (بی‌فشار، on-brand).
+- **مدل داده (`db push`):** فیلدِ `User.onboardedAt DateTime?` + **backfillِ همهٔ کاربرانِ موجود به now** → فقط کاربرانِ واقعاً جدید (null) وارد سفر می‌شوند (بدونِ اخلالِ کاربرانِ قدیمی).
+- **فایل‌ها:** `app/onboarding/page.tsx` (سرور + گارد + پیش‌فرضِ همدم از configِ ادمین) · `components/features/onboarding/OnboardingFlow.tsx` (کلاینت، ۴ پرده، DECISION-053) · `api/onboarding/complete` (نام‌ها + onboardedAt).
+- **روتینگِ کاربرِ نو:** `verify-otp` → `isNew` (=onboardedAt null) → `/login` کاربرِ نو را به `/onboarding` می‌برد. مسیرِ ایمیل: `settings/profile` پس از ست‌شدنِ رمز و `onboardedAt==null` → `/onboarding`. راهنماییِ یک‌بارهٔ خوش‌آمد در `EntryForm` (sessionStorage).
+- **رفع ایراد ۱ — مودالِ فریز تمام‌صفحه:** ریشه = `animate-fade-up` (fill-mode both) یک transform دائمی روی wrapper نگه می‌داشت → `position:fixed` در کادرِ کارت حبس می‌شد. راه‌حل: کامپوننتِ `ui/Portal.tsx` (createPortal به body) + `FreezeModal` از Portal.
+- **رفع ایراد ۲ — نامِ کاربر در خوش‌آمدِ همدم:** placeholderِ `{{USER}}` (در `renderWelcome` + fallbackِ `ChatWindow` ← `ChatFAB` ← `layout`) با حذفِ آرامِ placeholder هنگامِ نبودِ نام. هم‌ترازیِ پنل: مستندِ placeholder در `AiSettingsForm` + `admin-catalog`.
+- **رفع ایراد ۳ — کاربرِ OTP نو → onboarding:** پوشش‌داده در روتینگِ بالا.
+- `db push` ✅ · backfill ✅ · `tsc --noEmit` ✅ · `next build` ✅
+
 ### فیچر «برنامه‌ریزی» — سفرِ یک‌هدفی روایی + کوچِ «همراه» (۲۰۲۶-۰۶-۱۳) — DECISION-082
 - **جوهر:** یک هدفِ بازه‌ای + استوریِ روایی روزانه + استوری‌بوردِ افقیِ کارتی با خطِ زمانیِ ظریف + کوچِ AI «همراه». جایگزینِ DECISION-024 با حفظِ گاردهای ضدِ Task Manager (یک هدفِ فعال، بدون sub-task/استریک/درصد؛ استوری قابل‌ویرایش؛ هستهٔ روزانه دست‌نخورده).
 - **مدل داده (`db push`):** `Goal` / `GoalStory` (mood اختیاری، visibility) / `GoalCompanionInsight` (یکتا per goal+dayKey = روزی‌یک‌بار) / `GoalReminder` (opt-in). relation `goals` روی User. seed idempotentِ ردیف‌های امکانِ غایب (۶ ردیف برای goal.*).

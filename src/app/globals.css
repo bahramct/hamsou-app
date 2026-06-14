@@ -34,6 +34,7 @@
   --color-sage-deep: #5C6555;
   --color-ember:     #C75D3C;
   --color-mist:      #9BB4C7;
+  --color-mist-deep: #5E7C93;  /* مِهِ عمیق — اکشن/اکسنتِ فریز با کنتراستِ کافی (DECISION-087) */
   --color-gold:      #C19A4A;
 
   /* فونت */
@@ -80,6 +81,7 @@
   --color-sage-deep: #ACB89C;  /* در دارک باید روشن‌تر از sage باشد (برای متن) */
   --color-ember:     #D08A68;
   --color-mist:      #A7BDCE;
+  --color-mist-deep: #8AA7BC;  /* در شب روشن‌تر — برای کنتراست با متنِ تیره (DECISION-087) */
   --color-gold:      #CFAE63;
 
   /* فلیپِ white/black تیلویند — bg-white/40 و border-black/6 خودکار دارک می‌شوند */

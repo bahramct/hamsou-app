@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { AmbientField } from "@/components/layout/AmbientField";
 import { Spinner } from "@/components/ui/Spinner";
+import { isValidEmail, VALIDATION_MSG } from "@/lib/utils/validation";
 
 type Step = "form" | "sent";
 
@@ -23,6 +24,7 @@ export default function ForgotPasswordPage() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!isValidEmail(email)) { setError(VALIDATION_MSG.email); return; }
     setError(""); setLoading(true);
     try {
       const res = await fetch("/api/auth/forgot-password", {

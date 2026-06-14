@@ -266,7 +266,7 @@ const DAY_STYLE: Record<DayState, { cls: string; label: string }> = {
     label: "گپ",
   },
   freeze: {
-    cls: "bg-sky-50/60 text-sky-400 border border-sky-200/60",
+    cls: "bg-mist/15 text-mist-deep border border-mist/40",
     label: "فریز",
   },
   empty: {
