@@ -37,6 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/livechat", label: "چت آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
   { href: "/admin/contact", label: "پیام‌های تماس", perm: "support.read", icon: "inbox", ready: true, badge: "contacts" },
   { href: "/admin/blog", label: "بلاگ", perm: "blog.read", icon: "book", ready: true, badge: "comments" },
+  { href: "/admin/settings", label: "تنظیمات سایت", perm: "settings.read", icon: "gear", ready: true },
   { href: "/admin/admins", label: "ادمین‌ها", perm: "admins.manage", icon: "shield", ready: true },
   { href: "/admin/roles", label: "نقش‌ها و دسترسی‌ها", perm: "roles.manage", icon: "key", ready: true },
   { href: "/admin/audit", label: "لاگ ممیزی", perm: "audit.read", icon: "list", ready: true },
@@ -286,4 +287,5 @@ const ICONS = {
   logout: <><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l-5-5 5-5M5 12h11" {...S} /></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16" {...S} /></>,
   close: <><path d="M6 6l12 12M18 6L6 18" {...S} /></>,
+  gear: <><circle cx="12" cy="12" r="3" {...S} /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" {...S} /></>,
 };

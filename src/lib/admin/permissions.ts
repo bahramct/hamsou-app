@@ -20,6 +20,7 @@ export const PERMISSION_GROUPS = {
   support: "پشتیبانی",
   content: "محتوا",
   blog: "بلاگ",
+  settings: "تنظیمات سایت",
   system: "سیستم",
 } as const;
 
@@ -67,6 +68,9 @@ export const ADMIN_PERMISSIONS = [
   { key: "blog.read", label: "مشاهده بلاگ", group: "blog" },
   { key: "blog.write", label: "نوشتن و ویرایش مقالات", group: "blog" },
   { key: "blog.moderate", label: "مدیریت کامنت‌ها", group: "blog" },
+
+  { key: "settings.read", label: "مشاهده تنظیمات سایت", group: "settings" },
+  { key: "settings.manage", label: "ویرایش تنظیمات سایت", group: "settings" },
 
   { key: "admins.manage", label: "مدیریت ادمین‌ها", group: "system" },
   { key: "roles.manage", label: "مدیریت نقش‌ها و دسترسی‌ها", group: "system" },

@@ -1,13 +1,14 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// OnboardingFlow — سفرِ رواییِ تمام‌صفحه برای کاربرِ تازه‌وارد (DECISION-085)
+// OnboardingFlow — سفرِ خوش‌آمدگوییِ کاربرِ تازه‌وارد (DECISION-085/088)
 //
-// چهار پرده، با گذارِ نرم و آرام (بنچ‌مارک: Headspace/Calm):
-//   ۰. روایت     — همسو چیست (لحنِ مانیفست، بدون فشار/قضاوت)
-//   ۱. نام تو     — displayName
-//   ۲. نام همدم   — companionName (پیش‌فرضِ ادمین)
-//   ۳. اولین قدم  — هدایت به اولین تعهد
+// طراحیِ سبکِ Notion: پنج پردهٔ تک‌تمرکز، پس‌زمینهٔ تمیز، گذارِ نرم و سریع:
+//   ۰. خوش‌آمد       — همسو چیست (لحنِ مانیفست، موجز)
+//   ۱. پرسشِ شخصی‌ساز — «چه چیزی تو را به همسو آورد؟» (اختیاری؛ امضای Notion)
+//   ۲. نام تو         — displayName
+//   ۳. نام همدم       — companionName (پیش‌فرضِ ادمین)
+//   ۴. اولین قدم      — هدایت به اولین تعهد (لحنِ متناسب با انگیزه)
 //
 // اصول: سکوت بصری، بدون گیمیفیکیشن، قابلِ رد شدن در هر پرده (بی‌فشار).
 // قانون متنِ دکمه (DECISION-053): متنِ دکمه ثابت می‌ماند؛ حین کار فقط Spinner.
@@ -17,20 +18,23 @@ import { useState } from "react";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast } from "@/lib/notifications/toast";
+import { ONBOARDING_MOTIVES } from "@/lib/onboarding/motives";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 const MAX_NAME = 50;
 const MAX_COMPANION = 30;
 
 interface Props {
   initialDisplayName: string;
   initialCompanionName: string;
+  initialMotive: string;
   defaultCompanionName: string;
 }
 
 export function OnboardingFlow({
   initialDisplayName,
   initialCompanionName,
+  initialMotive,
   defaultCompanionName,
 }: Props) {
   const [step, setStep] = useState(0);
@@ -38,22 +42,24 @@ export function OnboardingFlow({
   const [companionName, setCompanionName] = useState(
     initialCompanionName || defaultCompanionName
   );
+  const [motive, setMotive] = useState(initialMotive);
   const [saving, setSaving] = useState(false);
 
   function next() {
     if (step < TOTAL_STEPS - 1) setStep((s) => s + 1);
   }
 
-  // پایانِ سفر — ذخیرهٔ نام‌ها + onboardedAt، سپس هدایت به اولین تعهد.
+  // پایانِ سفر — ذخیرهٔ نام‌ها/انگیزه + onboardedAt، سپس هدایت به اولین تعهد.
   // skip=true یعنی کاربر رد کرده؛ باز هم onboardedAt ست می‌شود تا دوباره دیده نشود.
   async function finish(skip = false) {
     if (saving) return;
     setSaving(true);
     try {
-      const payload: { displayName?: string; companionName?: string } = {};
+      const payload: { displayName?: string; companionName?: string; motive?: string } = {};
       if (!skip) {
         if (displayName.trim()) payload.displayName = displayName.trim();
         if (companionName.trim()) payload.companionName = companionName.trim();
+        if (motive) payload.motive = motive;
       }
       const res = await fetch("/api/onboarding/complete", {
         method: "POST",
@@ -91,21 +97,16 @@ export function OnboardingFlow({
       <div key={step} className="w-full animate-fade-in min-h-64 flex flex-col items-center justify-center">
         {step === 0 && <StepIntro onNext={next} />}
         {step === 1 && (
-          <StepName
-            value={displayName}
-            onChange={setDisplayName}
-            onNext={next}
-          />
+          <StepMotive value={motive} onChange={setMotive} onNext={next} />
         )}
         {step === 2 && (
-          <StepCompanion
-            value={companionName}
-            onChange={setCompanionName}
-            onNext={next}
-          />
+          <StepName value={displayName} onChange={setDisplayName} onNext={next} />
         )}
         {step === 3 && (
-          <StepFirst saving={saving} onFinish={() => finish(false)} displayName={displayName} />
+          <StepCompanion value={companionName} onChange={setCompanionName} onNext={next} />
+        )}
+        {step === 4 && (
+          <StepFirst saving={saving} onFinish={() => finish(false)} displayName={displayName} motive={motive} />
         )}
       </div>
 
@@ -139,7 +140,7 @@ export function OnboardingFlow({
   );
 }
 
-// ─── پردهٔ ۰: روایت ──────────────────────────────────────────────────────────
+// ─── پردهٔ ۰: خوش‌آمد ─────────────────────────────────────────────────────────
 function StepIntro({ onNext }: { onNext: () => void }) {
   return (
     <div className="flex flex-col items-center gap-7">
@@ -157,7 +158,50 @@ function StepIntro({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ─── پردهٔ ۱: نام تو ─────────────────────────────────────────────────────────
+// ─── پردهٔ ۱: پرسشِ شخصی‌ساز ──────────────────────────────────────────────────
+function StepMotive({
+  value,
+  onChange,
+  onNext,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-7 w-full">
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold text-ink">چه چیزی تو را به همسو آورد؟</h2>
+        <p className="text-xs text-stone leading-relaxed max-w-xs">
+          هر چه باشد، اینجا جای توست. این فقط کمک می‌کند مسیرت کمی شخصی‌تر شروع شود.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-2.5 w-full max-w-xs">
+        {ONBOARDING_MOTIVES.map((m) => {
+          const on = value === m.slug;
+          return (
+            <button
+              key={m.slug}
+              type="button"
+              onClick={() => onChange(on ? "" : m.slug)}
+              aria-pressed={on}
+              className={`px-3 py-3 rounded-xl text-sm font-medium transition-all border ${
+                on
+                  ? "bg-ink text-paper border-ink"
+                  : "bg-white/60 text-stone border-bone hover:border-sage"
+              }`}
+            >
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+      <PrimaryButton onClick={onNext}>ادامه</PrimaryButton>
+    </div>
+  );
+}
+
+// ─── پردهٔ ۲: نام تو ─────────────────────────────────────────────────────────
 function StepName({
   value,
   onChange,
@@ -189,7 +233,7 @@ function StepName({
   );
 }
 
-// ─── پردهٔ ۲: نام همدم ───────────────────────────────────────────────────────
+// ─── پردهٔ ۳: نام همدم ───────────────────────────────────────────────────────
 function StepCompanion({
   value,
   onChange,
@@ -221,17 +265,28 @@ function StepCompanion({
   );
 }
 
-// ─── پردهٔ ۳: اولین قدم ──────────────────────────────────────────────────────
+// ─── پردهٔ ۴: اولین قدم ──────────────────────────────────────────────────────
+// لحنِ پایانی متناسب با انگیزهٔ انتخابی شخصی‌تر می‌شود (هم‌ترازی با پرسشِ پردهٔ ۱).
+const MOTIVE_CLOSING: Record<string, string> = {
+  "daily-rhythm": "امروز، اولین قدمِ کوچکِ نظم.",
+  calm: "امروز، یک قدمِ آرام برای خودت.",
+  "self-awareness": "امروز، یک قدم به سمتِ شناختِ خودت.",
+  "specific-change": "امروز، اولین قدم به سمتِ آن تغییر.",
+};
+
 function StepFirst({
   saving,
   onFinish,
   displayName,
+  motive,
 }: {
   saving: boolean;
   onFinish: () => void;
   displayName: string;
+  motive: string;
 }) {
   const who = displayName.trim() ? `${displayName.trim()}، ` : "";
+  const closing = MOTIVE_CLOSING[motive];
   return (
     <div className="flex flex-col items-center gap-7">
       <div className="space-y-3">
@@ -239,6 +294,7 @@ function StepFirst({
         <p className="text-sm text-stone leading-loose max-w-xs">
           {who}آماده‌ای؟ یک تعهدِ کوچک و واقعی برای امروزت بنویس — همین‌جا مسیرت شروع می‌شود.
         </p>
+        {closing && <p className="text-xs text-fog">{closing}</p>}
       </div>
       <PrimaryButton onClick={onFinish} loading={saving}>
         اولین تعهدم را بنویسم

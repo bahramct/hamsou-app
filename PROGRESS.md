@@ -6,6 +6,13 @@
 
 ## آخرین تغییرات
 
+### ریدیزاینِ Notion برای onboarding + toggle ادمین + تشخیصِ کندیِ Turbopack (۲۰۲۶-۰۶-۱۴) — DECISION-088
+- **تشخیصِ کندی (مهم):** گزارشِ «هر صفحه > ۳۰ ثانیه» باگِ کدِ onboarding نبود؛ ردیابی نشان داد `proxy.ts` فقط JWT را verify می‌کند (بدونِ DB)، layout/getAiConfig/AmbientField سبک‌اند. علتِ واقعی = **باگِ شناخته‌شدهٔ Turbopack در Next 16** (issueهای رسمیِ vercel/next.js #80357/#85744)، تشدیدشده با `db push` وسطِ اجرای dev (invalidate شدنِ کلِ کش). **در production وجود ندارد.** رفعِ ریشه: پاک‌کردنِ `.next` + ری‌استارتِ dev.
+- **ریدیزاینِ Notion:** پس‌زمینهٔ تمیز (حذفِ `AmbientField` از صفحهٔ onboarding + loading)، پنج پردهٔ تک‌تمرکز، کپیِ موجز.
+- **پرسشِ شخصی‌ساز (امضای Notion):** پردهٔ «چه چیزی تو را به همسو آورد؟» (۴ گزینهٔ اختیاری). کاتالوگِ `lib/onboarding/motives.ts` + فیلدِ `User.onboardingMotive String?` (`db push` ✅). استفاده: لحنِ پایانیِ سفر + نمایش در پنلِ ادمین.
+- **toggle ادمین (هم‌ترازی):** کلیدِ `onboarding.enabled` در `AppSetting` (resolverِ `isOnboardingEnabled()`); بخشِ تازهٔ `/admin/settings` («تنظیمات سایت») + `/api/admin/settings` + permissionهای `settings.read`/`settings.manage` (+ `npm run seed`). گِیتِ هم‌تراز در هر سه نقطهٔ ورود (onboarding page، verify-otp، settings/profile).
+- `tsc --noEmit` ✅
+
 ### بستهٔ اصلاحاتِ ورود/پلن/فریز + هویتِ رنگیِ فریز (۲۰۲۶-۰۶-۱۴) — DECISION-087
 - **اعتبارسنجیِ regex:** ماژولِ `lib/utils/validation.ts` (موبایل/ایمیل/نام‌کاربری/OTP + پیام‌های فارسی) وصل به همهٔ ورودی‌های ورود/ثبت‌نام/فراموشی رمز.
 - **رنگِ فریز = دیزاین سیستم:** `sky-*` خام → توکنِ `mist` + توکنِ تازهٔ `--color-mist-deep`. اعمال در FreezePill/FreezeModal/FreezeActiveBanner + چیپ‌های گزارش + نمای فریزِ پنل ادمین (هم‌ترازی). تصاویرِ poster عمداً دست‌نخورده (تمایز از gap).

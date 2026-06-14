@@ -20,6 +20,7 @@ import { planAllows } from "@/lib/plans/access";
 import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
 import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import { getNow } from "@/lib/dev/time";
+import { motiveLabel } from "@/lib/onboarding/motives";
 
 export const dynamic = "force-dynamic";
 
@@ -71,7 +72,7 @@ export default async function AdminUserDetailPage({
     select: {
       id: true, phone: true, email: true, emailVerifiedAt: true,
       username: true, passwordHash: true, displayName: true, bio: true,
-      avatarImage: true, plan: true, planCycle: true, planExpiresAt: true, isBanned: true, createdAt: true, companionName: true, birthDate: true,
+      avatarImage: true, plan: true, planCycle: true, planExpiresAt: true, isBanned: true, createdAt: true, companionName: true, birthDate: true, onboardingMotive: true,
       _count: { select: { gaps: true, weeklyReports: true, chatMessages: true } },
     },
   });
@@ -296,6 +297,7 @@ export default async function AdminUserDetailPage({
             <Meta label="پلن فعلی"      value={PLAN_LABELS[user.plan] ?? user.plan} />
             <Meta label="تاریخ عضویت"   value={faDateTime(user.createdAt)} />
             <Meta label="نام همدم"      value={user.companionName || "همدم"} />
+            <Meta label="انگیزهٔ ورود"  value={motiveLabel(user.onboardingMotive) || "—"} />
             <Meta label="بیو"           value={user.bio || "—"} />
           </section>
 

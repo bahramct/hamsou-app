@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db/client";
 import { normalizeIranPhone } from "@/lib/utils/otp";
 import { createSessionToken, SESSION_COOKIE } from "@/lib/utils/session";
 import { getNow } from "@/lib/dev/time";
+import { isOnboardingEnabled } from "@/lib/settings/site";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,9 +62,9 @@ export async function POST(req: NextRequest) {
       select: { id: true, phone: true, onboardedAt: true },
     });
 
-    // کاربرِ تازه‌وارد = هنوز سفرِ onboarding را ندیده (کاربرانِ قدیمی backfill شده‌اند).
-    // کلاینت او را به /onboarding می‌برد، نه /dashboard (DECISION-085).
-    const isNew = user.onboardedAt === null;
+    // کاربرِ تازه‌وارد = هنوز سفرِ onboarding را ندیده (کاربرانِ قدیمی backfill شده‌اند)
+    // و سفرِ onboarding از پنل روشن است (DECISION-085/088). کلاینت او را به /onboarding می‌برد.
+    const isNew = user.onboardedAt === null && (await isOnboardingEnabled());
 
     // ساخت JWT و ذخیره در cookie
     const token = await createSessionToken({ userId: user.id, phone: user.phone });

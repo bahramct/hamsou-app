@@ -22,6 +22,7 @@ import { toFaDigits } from "@/lib/utils/digits";
 import { getEffectivePlan } from "@/lib/plans/effective";
 import { countCommitments } from "@/lib/stats/commitments";
 import { getNow } from "@/lib/dev/time";
+import { isOnboardingEnabled } from "@/lib/settings/site";
 
 function formatMemberSince(date: Date): string {
   return date.toLocaleDateString("fa-IR", { year: "numeric", month: "long" });
@@ -90,8 +91,9 @@ export default async function ProfileSettingsPage() {
   const needsPassword = !!user.email && !!user.emailVerifiedAt && !user.passwordHash;
 
   // کاربرِ تازه‌وارد که رمزش را ست کرده اما هنوز onboarding ندیده → سفرِ onboarding.
+  // فقط اگر سفرِ onboarding از پنل روشن باشد (هم‌ترازی سایت↔پنل، DECISION-088).
   // کاربرانِ قدیمی backfill شده‌اند، پس بازدیدِ معمولِ پروفایل اینجا ریدایرکت نمی‌شود (DECISION-085).
-  if (!needsPassword && !user.onboardedAt) redirect("/onboarding");
+  if (!needsPassword && !user.onboardedAt && (await isOnboardingEnabled())) redirect("/onboarding");
 
   const color = AVATAR_COLOR;
   const initialLetter = user.displayName?.trim()?.[0] ?? "ه";
