@@ -95,6 +95,24 @@ const CATALOG: Record<string, CatalogEntry> = {
     },
   },
 
+  // اصلاحِ دستیِ کیف‌پول توسط ادمین (producer: admin wallet adjust) — DECISION-089
+  "wallet.adjusted": {
+    tone: "neutral",
+    icon: "wallet",
+    describe: (d) => {
+      const amount = typeof d.amount === "number" ? d.amount : Number(str(d.amount) ?? 0);
+      const abs = Math.abs(amount).toLocaleString("fa-IR");
+      return {
+        title: "تغییر در کیف‌پول",
+        body:
+          amount >= 0
+            ? `${abs} تومان به کیف‌پول شما اضافه شد.`
+            : `${abs} تومان از کیف‌پول شما کسر شد.`,
+        link: "/wallet",
+      };
+    },
+  },
+
   // انقضای پلن — بازگشت خودکار به رایگان (producer: getEffectivePlan) — DECISION-062
   "plan.expired": {
     tone: "neutral",

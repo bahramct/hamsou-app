@@ -1,6 +1,7 @@
 # فیچر onboarding — سفرِ خوش‌آمدگوییِ سبکِ Notion
 
-> منبع: DECISION-086 (نسخهٔ اول) + DECISION-088 (ریدیزاینِ Notion + toggle ادمین + پرسشِ شخصی‌ساز).
+> منبع: DECISION-086 (نسخهٔ اول) + DECISION-088 (ریدیزاینِ Notion + toggle ادمین + پرسشِ شخصی‌ساز)
+> + DECISION-089 (سازندهٔ کاملِ اسلایدها در پنل + حذفِ اسلایدِ همدم).
 > هدف: کاهشِ فاصلهٔ کاربرِ تازه‌وارد تا اولین تعهدِ معنادار، بدون نقضِ مانیفست
 > (سکوت بصری، بدون گیمیفیکیشن، بدون فشار).
 
@@ -13,23 +14,34 @@ Calm / Headspace (روایتِ آرام). best practice ۲۰۲۶: سفرِ کو�
 تصمیم‌های قطعی (پرسشِ ویژوال از صاحب پروژه):
 - **قالب:** سفرِ رواییِ تمام‌صفحه، سبکِ Notion — پس‌زمینهٔ **تمیز** (بدون `AmbientField`)، پرده‌های
   تک‌تمرکز، گذارِ نرم و سریع.
-- **شخصی‌سازی:** روایت + یک **پرسشِ شخصی‌سازِ راهبردی** + هویت (نامِ کاربر + نامِ همدم).
-- **پایان:** هدایتِ نرم به اولین تعهد (لحنِ متناسب با انگیزهٔ انتخابی).
-- **کنترلِ ادمین:** سفر از پنل (`/admin/settings`) قابلِ روشن/خاموش است (هم‌ترازی سایت↔پنل).
+- **شخصی‌سازی:** روایت + یک **پرسشِ شخصی‌سازِ راهبردی** + نامِ کاربر. (نامِ همدم دیگر در سفر نیست — DECISION-089.)
+- **پایان:** هدایتِ نرم به اولین تعهد.
+- **کنترلِ ادمین:** سفر از پنل (`/admin/settings`) قابلِ روشن/خاموش + **ساختِ کاملِ اسلایدها** (DECISION-089).
 
-## پنج پرده
+## اسلایدها — قابلِ مدیریت از پنل (DECISION-089)
 
-| # | پرده | محتوا |
-|---|------|-------|
-| ۰ | خوش‌آمد | «هر روز یک تعهدِ کوچک. فردا یک بازخوردِ صادق. در پایانِ هفته نگاهی عمیق.» — لحنِ مانیفست |
-| ۱ | پرسشِ شخصی‌ساز | «چه چیزی تو را به همسو آورد؟» — ۴ گزینه (نظمِ روزانه/آرامش/خودشناسی/تغییرِ مشخص)، **اختیاری** |
-| ۲ | نام تو | `displayName` (≤ ۵۰) |
-| ۳ | نام همدم | `companionName` (≤ ۳۰)، پیش‌فرض از تنظیماتِ ادمین |
-| ۴ | اولین قدم | CTA «اولین تعهدم را بنویسم» → ذخیره + هدایت به داشبورد |
+اسلایدها **هاردکد نیستند**؛ از `AppSetting` (کلید `onboarding.config`، JSON) خوانده و در پنل ساخته می‌شوند.
+انواعِ اسلاید:
 
-- هر پرده **قابلِ رد شدن** است (دکمهٔ آرامِ «رد شدن»). رد شدن هم `onboardedAt` را ست می‌کند.
-- نقطه‌های پیشرفت ساده (بدون درصد/امتیاز). قانونِ متنِ دکمه (DECISION-053) رعایت شده.
-- **گاردِ ضدِ Task Manager:** پرسشِ شخصی‌ساز «انگیزه» را می‌پرسد، نه «هدف/تسک»؛ کاملاً اختیاری.
+| نوع | کارکرد | محدودیت |
+|-----|--------|---------|
+| `narrative` | متنِ محض (عنوان/بدنه/زیرنویس/دکمه) | نامحدود — افزودن/حذف/جابجایی |
+| `name` | ورودیِ نامِ کاربر (`displayName`) | حداکثر یکی، قابلِ خاموش‌کردن |
+| `motive` | پرسشِ انگیزه (`onboardingMotive`) — برچسبِ گزینه‌ها ویرایش‌پذیر، slug ثابت | حداکثر یکی، قابلِ خاموش‌کردن |
+| `final` | دکمهٔ پایان → ذخیره + هدایت به داشبورد | **همیشه یکی، همیشه آخر، حذف‌ناپذیر** |
+
+- پیش‌فرض (`DEFAULT_ONBOARDING_CONFIG`): خوش‌آمد(روایی) → انگیزه → نام → پایان. **بدونِ اسلایدِ همدم.**
+- placeholderِ `{name}` در متن‌ها → نامِ کاربر (یا حذفِ نرم اگر نباشد).
+- هر پرده **قابلِ رد شدن** است؛ رد شدن هم `onboardedAt` را ست می‌کند. قانونِ متنِ دکمه (DECISION-053) رعایت شده.
+- **گاردِ ضدِ Task Manager:** پرسشِ انگیزه می‌پرسد نه «هدف/تسک»؛ کاملاً اختیاری.
+- نرمال‌سازیِ امن (`normalizeOnboardingConfig`): دقیقاً یک final (آخر)، حداکثر یک name/motive؛ ورودیِ نامعتبر → پیش‌فرض.
+
+## نامِ همدم — admin-controlled (DECISION-089)
+
+کاربر **هیچ‌جا** نمی‌تواند نامِ همدم را تغییر دهد: اسلایدِ همدم حذف شد، `companionName` از
+`onboarding/complete` و `PATCH /api/profile` برداشته شد. منبعِ حقیقت = `chat.companion.defaultName`
+(تنظیماتِ AI ادمین). `layout.tsx` هنگامِ null بودنِ `companionName` همان پیش‌فرضِ ادمین را می‌خواند
+(هم‌تراز با `api/chat/messages`) تا هدرِ FAB/ChatWindow و پیامِ خوش‌آمد یکی باشند.
 
 ## انگیزهٔ ورود (motive)
 
@@ -54,7 +66,7 @@ verify-otp (isNew = onboardedAt===null) ─┐
 email: profile (!needsPassword && !onboardedAt) ─┘            │
                                                               ▼
                                               POST /api/onboarding/complete
-                                              (displayName + companionName + onboardedAt)
+                                              (displayName + motive + onboardedAt)
                                                               │
                                                               ▼
                                               /dashboard (?hint از sessionStorage)
@@ -70,14 +82,16 @@ email: profile (!needsPassword && !onboardedAt) ─┘            │
 | نقش | فایل |
 |------|------|
 | صفحهٔ سرور + گارد + گِیتِ toggle | `src/app/onboarding/page.tsx` + `loading.tsx` |
-| فلوِ کلاینت (۵ پرده) | `src/components/features/onboarding/OnboardingFlow.tsx` |
-| کاتالوگِ انگیزه | `src/lib/onboarding/motives.ts` |
-| API پایان | `src/app/api/onboarding/complete/route.ts` (`displayName`/`companionName`/`motive`) |
+| فلوِ کلاینت (config-driven) | `src/components/features/onboarding/OnboardingFlow.tsx` |
+| پیکربندیِ اسلایدها (types/Zod/default/normalize/getOnboardingConfig) | `src/lib/onboarding/config.ts` |
+| کاتالوگِ slugهای انگیزه | `src/lib/onboarding/motives.ts` |
+| API پایان | `src/app/api/onboarding/complete/route.ts` (`displayName`/`motive` — بدونِ companionName) |
 | روتینگِ OTP | `src/app/api/auth/verify-otp/route.ts` (`isNew`) + `src/app/login/page.tsx` |
 | روتینگِ ایمیل | `src/app/settings/profile/page.tsx` (ریدایرکت) |
 | راهنماییِ داشبورد | `src/components/features/entry/EntryForm.tsx` (`hamsoo_welcome_hint`) |
-| toggle ادمین | `src/lib/settings/site.ts` + `/admin/settings` + `/api/admin/settings` |
-| نمایشِ انگیزه در پنل | `src/app/admin/(panel)/users/[id]/page.tsx` |
+| toggle + سازندهٔ اسلاید (ادمین) | `src/lib/settings/site.ts` + `/admin/settings` + `/api/admin/settings` + `OnboardingBuilder` |
+| نمایشِ انگیزه در پنل | `src/app/admin/(panel)/users/[id]/page.tsx` (`motiveLabelFromConfig`) |
+| شارژِ دستیِ کیف‌پول (هم‌ترازی) | `/api/admin/users/[id]/wallet` + `AdminWalletCharge` + `adjustBalance` + اعلانِ `wallet.adjusted` |
 
 ## رفع ایرادهای هم‌بسته (DECISION-086)
 

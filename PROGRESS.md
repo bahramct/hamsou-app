@@ -6,6 +6,12 @@
 
 ## آخرین تغییرات
 
+### سازندهٔ کاملِ onboarding + حذفِ اسلایدِ همدم + شارژِ دستیِ کیف‌پول (۲۰۲۶-۰۶-۱۴) — DECISION-089
+- **حذفِ اسلایدِ همدم + قفلِ نامِ همدم:** اسلایدِ نامِ همدم حذف شد؛ `companionName` از `onboarding/complete` و `PATCH /api/profile` برداشته شد (کاربر دیگر هیچ‌جا نمی‌تواند تغییرش دهد). `layout.tsx` اصلاح شد تا وقتی null است پیش‌فرضِ ادمین (`chat.companion.defaultName`) را بخواند — یکی‌شدنِ هدرِ چت با پیامِ خوش‌آمد (هم‌ترازی).
+- **سازندهٔ کاملِ onboarding (CMS سبک):** اسلایدها در `AppSetting` (`onboarding.config`، JSON، بدونِ migration). انواع: `narrative` (نامحدود add/remove/reorder)، `name`/`motive` (کارکردی، حداکثر یکی، قابلِ خاموش‌کردن)، `final` (همیشه آخر، حذف‌ناپذیر). `OnboardingFlow` کاملاً از config رندر می‌کند. پنل: `OnboardingBuilder` در «تنظیمات سایت» + `GET/POST /api/admin/settings` با اعتبارسنجیِ Zod. برچسبِ انگیزه در پنلِ کاربر از همان configِ زنده resolve می‌شود.
+- **شارژِ دستیِ کیف‌پول:** `adjustBalance` (موجود) به UI وصل شد: `POST /api/admin/users/[id]/wallet` (`payment.manage`) + کامپوننتِ `AdminWalletCharge` (شارژ/کسر، یادداشتِ اجباری) + اعلانِ `wallet.adjusted` + audit log.
+- `tsc --noEmit` ✅ · `next build` ✅
+
 ### ریدیزاینِ Notion برای onboarding + toggle ادمین + تشخیصِ کندیِ Turbopack (۲۰۲۶-۰۶-۱۴) — DECISION-088
 - **تشخیصِ کندی (مهم):** گزارشِ «هر صفحه > ۳۰ ثانیه» باگِ کدِ onboarding نبود؛ ردیابی نشان داد `proxy.ts` فقط JWT را verify می‌کند (بدونِ DB)، layout/getAiConfig/AmbientField سبک‌اند. علتِ واقعی = **باگِ شناخته‌شدهٔ Turbopack در Next 16** (issueهای رسمیِ vercel/next.js #80357/#85744)، تشدیدشده با `db push` وسطِ اجرای dev (invalidate شدنِ کلِ کش). **در production وجود ندارد.** رفعِ ریشه: پاک‌کردنِ `.next` + ری‌استارتِ dev.
 - **ریدیزاینِ Notion:** پس‌زمینهٔ تمیز (حذفِ `AmbientField` از صفحهٔ onboarding + loading)، پنج پردهٔ تک‌تمرکز، کپیِ موجز.

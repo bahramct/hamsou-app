@@ -9,6 +9,8 @@ import { ToastHost } from "@/components/notifications/ToastHost";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { getAppBaseUrl } from "@/lib/utils/app-url";
 import { prisma } from "@/lib/db/client";
+import { getAiConfig } from "@/lib/ai/config";
+import { AI_CONFIG_KEYS, DEFAULT_COMPANION_NAME } from "@/lib/ai/admin-catalog";
 
 export const metadata: Metadata = {
   // پایهٔ resolve لینک‌های مطلق OG/توییتر (هشدار metadataBase در صفحات مقاله)
@@ -39,7 +41,11 @@ export default async function RootLayout({
         where: { id: session.userId },
         select: { companionName: true, displayName: true },
       });
-      companionName = user?.companionName ?? null;
+      // نامِ همدم admin-controlled است (DECISION-089): اگر کاربر مقداری ندارد،
+      // پیش‌فرضِ ادمین خوانده می‌شود تا هدرِ FAB/ChatWindow با پیامِ خوش‌آمدِ چت یکی باشد.
+      companionName =
+        user?.companionName ??
+        (await getAiConfig(AI_CONFIG_KEYS.companionDefaultName, DEFAULT_COMPANION_NAME));
       userName = user?.displayName ?? null;
     }
   } catch {

@@ -63,10 +63,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
 
+  // نکته: companionName عمداً اینجا نیست — نامِ همدم admin-controlled است و کاربر
+  // اجازهٔ تغییرِ آن را ندارد (DECISION-089). پیش‌فرض از chat.companion.defaultName می‌آید.
   const data: {
     displayName?: string | null;
     bio?: string | null;
-    companionName?: string | null;
     avatarImage?: string | null;
     birthDate?: Date | null;
   } = {};
@@ -97,20 +98,6 @@ export async function PATCH(request: NextRequest) {
       );
     }
     data.bio = val;
-  }
-
-  // companionName
-  if ("companionName" in body) {
-    const raw = body.companionName;
-    const val =
-      raw === null || raw === undefined ? null : typeof raw === "string" ? raw.trim() : null;
-    if (val !== null && val.length > 30) {
-      return NextResponse.json(
-        { ok: false, error: "companion_name_too_long", message: "نام همدم حداکثر ۳۰ کاراکتر" },
-        { status: 422 }
-      );
-    }
-    data.companionName = val || null;
   }
 
   // birthDate — تاریخ تولد اختیاری (ISO "yyyy-mm-dd")

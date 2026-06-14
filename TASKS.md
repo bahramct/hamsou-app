@@ -24,7 +24,7 @@
 | ۱ | TASK-AUTH-RECOVERY | رفع گپ حیاتی | 🔴 Critical | ✅ تمام | multi-auth ✅ | روز ۱~ | تأیید ایمیل با لینک + بازیابی رمز؛ محصول بدون آن قابل عرضه نبود — ۲۰۲۶-۰۶-۰۸ |
 | ۲ | Email Provider واقعی | زیرساخت | 🔴 Critical | ✅ تمام | EmailAdapter ✅ | روز ۱~ | Resend + پنل /admin/email + مهاجرت ۵ route؛ Mock حذف شد — ۲۰۲۶-۰۶-۰۹ |
 | ۳ | درگاه پرداخت | فیچر | 🔴 Critical | ✅ تمام | wallet ✅ | — | ZarinPal (DECISION-071) — Adapter + کانفیگ DB/پنل + شارژِ اتمیک idempotent + Mock در dev؛ merchant_id در prod از پنل — ۲۰۲۶-۰۶-۱۲ |
-| ۴ | Onboarding Flow | فیچر جدید ✨ | 🟠 High | ✅ تمام | multi-auth ✅ | — | DECISION-086 — سفرِ رواییِ تمام‌صفحه + روتینگِ کاربرِ نو (OTP/ایمیل) + ۳ رفعِ ایراد. **DECISION-088** — ریدیزاینِ Notion (۵ پرده، پس‌زمینهٔ تمیز) + پرسشِ شخصی‌ساز (`onboardingMotive`) + toggleِ ادمین در «تنظیمات سایت» (`onboarding.enabled`) + تشخیصِ کندیِ Turbopack (نه باگِ کد) — ۲۰۲۶-۰۶-۱۴ |
+| ۴ | Onboarding Flow | فیچر جدید ✨ | 🟠 High | ✅ تمام | multi-auth ✅ | — | DECISION-086 — سفرِ رواییِ تمام‌صفحه + روتینگِ کاربرِ نو. **DECISION-088** — ریدیزاینِ Notion + پرسشِ شخصی‌ساز + toggleِ ادمین. **DECISION-089** — سازندهٔ کاملِ اسلایدها در پنل (`onboarding.config`، add/remove/reorder/ویرایشِ متن) + حذفِ اسلایدِ همدم (نامِ همدم admin-controlled) — ۲۰۲۶-۰۶-۱۴ |
 | ۵ | موبایل‌سازی + PWA | فیچر | 🟠 High | ⏳ شروع نشده | — | روز ۲~ | نصب روی گوشی ممکن نیست؛ PWA بازار ایران موبایل‌محور است؛ بدون وابستگی |
 | ۶ | یادآوری‌ها (موج ۲) | فیچر | 🟠 High | ⏳ شروع نشده | notifications-core ✅ | روز ۳~ | زیرساخت آماده است + scheduler باقی است؛ صفحه تنظیمات فقط |
 | ۷ | اشتراک گزارش هفتگی | فیچر | 🟡 Medium | ⏳ شروع نشده | weekly-v3 ✅ | روز ۱~ | برای جذب کاربر جدید؛ لینک عمومی با token؛ viral loop |

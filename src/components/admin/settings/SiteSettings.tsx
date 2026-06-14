@@ -1,27 +1,25 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SiteSettings — فرمِ تنظیماتِ عمومیِ سایت در پنل (DECISION-088)
-// فعلاً: روشن/خاموشِ سفرِ onboarding. ذخیره → POST /api/admin/settings.
-// قانونِ متنِ دکمه (DECISION-053): متنِ دکمه ثابت؛ حین کار فقط Spinner؛ نتیجه با toast.
+// SiteSettings — تنظیماتِ عمومیِ سایت در پنل (DECISION-088/089)
+// روشن/خاموشِ سفرِ onboarding + سازندهٔ کاملِ اسلایدها. ذخیره → POST /api/admin/settings.
+// قانونِ متنِ دکمه (DECISIONS-053): متنِ دکمه ثابت؛ حین کار فقط Spinner؛ نتیجه با toast.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
 import { toast } from "@/lib/notifications/toast";
 import { Spinner } from "@/components/ui/Spinner";
+import { OnboardingBuilder } from "@/components/admin/settings/OnboardingBuilder";
+import type { OnboardingConfig, OnboardingSlide } from "@/lib/onboarding/config";
 
 interface Initial {
   onboardingEnabled: boolean;
+  onboarding: OnboardingConfig;
 }
 
-export function SiteSettings({
-  initial,
-  canManage,
-}: {
-  initial: Initial;
-  canManage: boolean;
-}) {
+export function SiteSettings({ initial, canManage }: { initial: Initial; canManage: boolean }) {
   const [onboardingEnabled, setOnboardingEnabled] = useState(initial.onboardingEnabled);
+  const [slides, setSlides] = useState<OnboardingSlide[]>(initial.onboarding.slides);
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
@@ -31,7 +29,7 @@ export function SiteSettings({
       const res = await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ onboardingEnabled }),
+        body: JSON.stringify({ onboardingEnabled, onboarding: { slides } }),
       });
       const data = await res.json();
       if (!res.ok || !data?.ok) {
@@ -50,9 +48,7 @@ export function SiteSettings({
     <div className="space-y-6 max-w-2xl">
       <header>
         <h1 className="text-xl font-semibold text-ink">تنظیمات سایت</h1>
-        <p className="text-sm text-stone mt-1">
-          تنظیماتِ عمومیِ تجربهٔ کاربران در سمتِ سایت.
-        </p>
+        <p className="text-sm text-stone mt-1">تنظیماتِ عمومیِ تجربهٔ کاربران در سمتِ سایت.</p>
       </header>
 
       {/* سفرِ onboarding — روشن/خاموش */}
@@ -60,8 +56,8 @@ export function SiteSettings({
         <div>
           <h2 className="text-sm font-semibold text-ink">سفرِ خوش‌آمدگویی (Onboarding)</h2>
           <p className="text-xs text-fog mt-0.5 leading-relaxed max-w-md">
-            با ورودِ کاربرِ تازه‌وارد، یک سفرِ کوتاهِ آشنایی (روایت + نام + همدم) نمایش داده می‌شود.
-            خاموش‌کردن، کاربرانِ جدید را مستقیم به داشبورد می‌برد.
+            با ورودِ کاربرِ تازه‌وارد، سفرِ کوتاهِ آشنایی نمایش داده می‌شود. خاموش‌کردن،
+            کاربرانِ جدید را مستقیم به داشبورد می‌برد.
           </p>
         </div>
         <button
@@ -80,6 +76,9 @@ export function SiteSettings({
           />
         </button>
       </section>
+
+      {/* سازندهٔ اسلایدها */}
+      <OnboardingBuilder slides={slides} onChange={setSlides} disabled={!canManage} />
 
       {canManage && (
         <div className="flex justify-end">

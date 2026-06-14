@@ -20,7 +20,8 @@ import { planAllows } from "@/lib/plans/access";
 import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
 import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import { getNow } from "@/lib/dev/time";
-import { motiveLabel } from "@/lib/onboarding/motives";
+import { getOnboardingConfig, motiveLabelFromConfig } from "@/lib/onboarding/config";
+import { AdminWalletCharge } from "@/components/admin/users/AdminWalletCharge";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,7 @@ export default async function AdminUserDetailPage({
     select: {
       id: true, phone: true, email: true, emailVerifiedAt: true,
       username: true, passwordHash: true, displayName: true, bio: true,
-      avatarImage: true, plan: true, planCycle: true, planExpiresAt: true, isBanned: true, createdAt: true, companionName: true, birthDate: true, onboardingMotive: true,
+      avatarImage: true, plan: true, planCycle: true, planExpiresAt: true, isBanned: true, createdAt: true, companionName: true, birthDate: true, onboardingMotive: true, walletBalance: true,
       _count: { select: { gaps: true, weeklyReports: true, chatMessages: true } },
     },
   });
@@ -80,7 +81,7 @@ export default async function AdminUserDetailPage({
 
   // آخرین تیکت‌ها + آخرین سشن‌های چت + دسترسی پلن (همان planAllows سایت — هم‌ترازی)
   const now = getNow();
-  const [recentTickets, recentChatAll, commitmentCount, ticketingAllowed, liveChatAllowed, activeFreeze] =
+  const [recentTickets, recentChatAll, commitmentCount, ticketingAllowed, liveChatAllowed, activeFreeze, onbConfig] =
     await Promise.all([
       prisma.supportTicket.findMany({
         where: { userId: id },
@@ -108,6 +109,8 @@ export default async function AdminUserDetailPage({
         },
         select: { id: true, fromDate: true, toDate: true, note: true },
       }),
+      // پیکربندیِ onboarding — برای resolveِ برچسبِ انگیزهٔ ورود (هم‌ترازی، DECISION-089)
+      getOnboardingConfig(),
     ]);
 
   const recentChats = liveChatAllowed ? recentChatAll : [];
@@ -297,7 +300,7 @@ export default async function AdminUserDetailPage({
             <Meta label="پلن فعلی"      value={PLAN_LABELS[user.plan] ?? user.plan} />
             <Meta label="تاریخ عضویت"   value={faDateTime(user.createdAt)} />
             <Meta label="نام همدم"      value={user.companionName || "همدم"} />
-            <Meta label="انگیزهٔ ورود"  value={motiveLabel(user.onboardingMotive) || "—"} />
+            <Meta label="انگیزهٔ ورود"  value={motiveLabelFromConfig(onbConfig, user.onboardingMotive) || "—"} />
             <Meta label="بیو"           value={user.bio || "—"} />
           </section>
 
@@ -312,6 +315,13 @@ export default async function AdminUserDetailPage({
               canBan={can(ctx, "users.ban")}
             />
           </section>
+
+          {/* شارژ/اصلاحِ دستیِ کیف‌پول — فقط با دسترسیِ مالی (DECISION-089) */}
+          {can(ctx, "payment.manage") && (
+            <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
+              <AdminWalletCharge userId={user.id} balance={user.walletBalance} />
+            </section>
+          )}
 
           {/* اقدامات ایمیل */}
           {user.email && (
