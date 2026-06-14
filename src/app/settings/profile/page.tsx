@@ -52,6 +52,7 @@ export default async function ProfileSettingsPage() {
       emailVerifiedAt: true,
       username: true,
       passwordHash: true,
+      onboardedAt: true,
       displayName: true,
       bio: true,
       companionName: true,
@@ -87,6 +88,10 @@ export default async function ProfileSettingsPage() {
 
   // کاربرِ ایمیلی که هنوز رمز عبور ندارد → مودالِ قفل (DECISION-080)
   const needsPassword = !!user.email && !!user.emailVerifiedAt && !user.passwordHash;
+
+  // کاربرِ تازه‌وارد که رمزش را ست کرده اما هنوز onboarding ندیده → سفرِ onboarding.
+  // کاربرانِ قدیمی backfill شده‌اند، پس بازدیدِ معمولِ پروفایل اینجا ریدایرکت نمی‌شود (DECISION-085).
+  if (!needsPassword && !user.onboardedAt) redirect("/onboarding");
 
   const color = AVATAR_COLOR;
   const initialLetter = user.displayName?.trim()?.[0] ?? "ه";

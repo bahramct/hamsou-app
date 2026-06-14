@@ -25,6 +25,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   companionName: string | null;
+  userName: string | null;
 }
 
 // تبدیل ISO به کلید تاریخ شمسی (YYYY-MM-DD) و نمایش شمسی
@@ -69,16 +70,18 @@ function groupByDate(messages: ChatMsg[]): DateGroup[] {
   }));
 }
 
-export function ChatWindow({ isOpen, onClose, companionName }: Props) {
+export function ChatWindow({ isOpen, onClose, companionName, userName }: Props) {
   const name = companionName ?? "همدم";
+  const greetUser = userName?.trim() ? ` ${userName.trim()}` : "";
 
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [dailyCount, setDailyCount] = useState(0);
   const [dailyLimit, setDailyLimit] = useState(10);
   const [serverWelcome, setServerWelcome] = useState<string | null>(null);
+  // fallbackِ گذرا تا متنِ سرور برسد — سرور منبعِ حقیقتِ نهایی است (renderWelcome)
   const welcomeText =
     serverWelcome ??
-    `سلام! من ${name} هستم — همراهت در همسو.\nمی‌تونیم روزانه تا ${dailyLimit.toLocaleString("fa-IR")} پیام داشته باشیم و مکالمه‌هامون تا یک ماه می‌مونند.\nبگو، چه خبر؟`;
+    `سلام${greetUser}! من ${name} هستم — همراهت در همسو.\nمی‌تونیم روزانه تا ${dailyLimit.toLocaleString("fa-IR")} پیام داشته باشیم و مکالمه‌هامون تا یک ماه می‌مونند.\nبگو، چه خبر؟`;
   const [maxLength, setMaxLength] = useState(500);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);

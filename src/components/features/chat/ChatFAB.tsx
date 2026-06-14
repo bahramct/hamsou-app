@@ -11,10 +11,11 @@ import { ChatWindow } from "./ChatWindow";
 
 interface Props {
   companionName?: string | null;
+  userName?: string | null;
   isAuthenticated?: boolean;
 }
 
-export function ChatFAB({ companionName, isAuthenticated = false }: Props) {
+export function ChatFAB({ companionName, userName, isAuthenticated = false }: Props) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -48,6 +49,7 @@ export function ChatFAB({ companionName, isAuthenticated = false }: Props) {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         companionName={companionName ?? null}
+        userName={userName ?? null}
       />
     </>
   );

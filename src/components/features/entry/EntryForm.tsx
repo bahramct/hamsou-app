@@ -12,7 +12,7 @@
 // (Server Component داده جدید را از DB می‌خواند و EntryCard نمایش می‌دهد).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FreezePill } from "@/components/features/freeze/FreezePill";
 
@@ -30,7 +30,20 @@ export function EntryForm({ todayLabel, weekdayLabel }: Props) {
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  // راهنماییِ یک‌بارهٔ پس از onboarding (DECISION-085) — sessionStorage، فقط همان نشست
+  const [welcomeHint, setWelcomeHint] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem("hamsoo_welcome_hint") === "1") {
+        setWelcomeHint(true);
+        sessionStorage.removeItem("hamsoo_welcome_hint");
+      }
+    } catch {
+      /* بی‌اهمیت */
+    }
+  }, []);
 
   const remaining = MAX_CHARS - content.length;
   const isOverLimit = remaining < 0;
@@ -75,6 +88,15 @@ export function EntryForm({ todayLabel, weekdayLabel }: Props) {
         <p className="text-xs text-fog mb-1 fa-num">{weekdayLabel}</p>
         <p className="text-sm text-stone fa-num">{todayLabel}</p>
       </div>
+
+      {/* راهنماییِ یک‌بارهٔ خوش‌آمد — پس از onboarding، آرام و گذرا */}
+      {welcomeHint && (
+        <div className="mb-4 animate-fade-in text-center">
+          <p className="text-xs text-sage-deep leading-relaxed">
+            اولین قدمت همین‌جاست — یک کارِ کوچک و واقعی برای امروز.
+          </p>
+        </div>
+      )}
 
       {/* فریز کردن مسیر */}
       <div className="flex justify-center mb-4">

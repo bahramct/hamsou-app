@@ -58,7 +58,12 @@ export async function POST(req: NextRequest) {
       where: { phone },
       update: {},
       create: { phone },
+      select: { id: true, phone: true, onboardedAt: true },
     });
+
+    // کاربرِ تازه‌وارد = هنوز سفرِ onboarding را ندیده (کاربرانِ قدیمی backfill شده‌اند).
+    // کلاینت او را به /onboarding می‌برد، نه /dashboard (DECISION-085).
+    const isNew = user.onboardedAt === null;
 
     // ساخت JWT و ذخیره در cookie
     const token = await createSessionToken({ userId: user.id, phone: user.phone });
@@ -72,7 +77,7 @@ export async function POST(req: NextRequest) {
       maxAge: 60 * 60 * 24 * 30, // ۳۰ روز
     });
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, isNew });
   } catch (err) {
     console.error("[verify-otp]", err);
     return NextResponse.json(

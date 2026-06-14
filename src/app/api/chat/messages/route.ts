@@ -37,12 +37,29 @@ async function getDailyLimitForPlan(plan: string): Promise<number> {
   return planQuota(plan, "chat.dailyLimit");
 }
 
-// رندر متن خوش‌آمد از template (override پنل یا پیش‌فرض) با نام و سقف
-async function renderWelcome(name: string, limit: number): Promise<string> {
+// رندر متن خوش‌آمد از template (override پنل یا پیش‌فرض) با نام همدم، نام کاربر و سقف.
+// {{USER}} وقتی کاربر نام نگذاشته باشد به‌صورت آرام (همراه فاصلهٔ مجاور) حذف می‌شود
+// تا جمله‌ای مثل «سلام !» تولید نشود (DECISION-085).
+async function renderWelcome(
+  companionName: string,
+  userName: string | null,
+  limit: number
+): Promise<string> {
   const template = await getAiConfig(AI_CONFIG_KEYS.chatWelcome, DEFAULT_CHAT_WELCOME);
-  return template
-    .replace(/\{\{\s*NAME\s*\}\}/g, name)
+  let out = template
+    .replace(/\{\{\s*NAME\s*\}\}/g, companionName)
     .replace(/\{\{\s*LIMIT\s*\}\}/g, limit.toLocaleString("fa-IR"));
+
+  const trimmed = userName?.trim();
+  if (trimmed) {
+    out = out.replace(/\{\{\s*USER\s*\}\}/g, trimmed);
+  } else {
+    out = out
+      .replace(/\s*\{\{\s*USER\s*\}\}\s*/g, " ") // حذف placeholder + فاصله‌های مجاور
+      .replace(/\s+([!?.،])/g, "$1"); // اصلاح «سلام !» → «سلام!»
+  }
+  // پاک‌سازیِ فاصله‌های اضافی بدون آسیب به خطوط (\n)
+  return out.replace(/[ \t]{2,}/g, " ").trim();
 }
 
 // ─── GET — تاریخچه پیام‌ها ───────────────────────────────────────────────────
@@ -55,7 +72,7 @@ export async function GET() {
   const [dbUser, messages] = await Promise.all([
     prisma.user.findUnique({
       where: { id: user.userId },
-      select: { plan: true, companionName: true, chatClearedAt: true },
+      select: { plan: true, companionName: true, displayName: true, chatClearedAt: true },
     }),
     prisma.chatMessage.findMany({
       where: { userId: user.userId, expiresAt: { gt: now } },
@@ -89,7 +106,7 @@ export async function GET() {
     dailyCount,
     dailyLimit,
     maxMessageLength,
-    welcomeText: await renderWelcome(companionName, dailyLimit),
+    welcomeText: await renderWelcome(companionName, dbUser?.displayName ?? null, dailyLimit),
   });
 }
 

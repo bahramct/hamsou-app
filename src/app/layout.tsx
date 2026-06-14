@@ -29,6 +29,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   let companionName: string | null = null;
+  let userName: string | null = null;
   let isAuthenticated = false;
   try {
     const session = await getSessionUser();
@@ -36,9 +37,10 @@ export default async function RootLayout({
       isAuthenticated = true;
       const user = await prisma.user.findUnique({
         where: { id: session.userId },
-        select: { companionName: true },
+        select: { companionName: true, displayName: true },
       });
       companionName = user?.companionName ?? null;
+      userName = user?.displayName ?? null;
     }
   } catch {
     // fallback — layout هرگز throw نمی‌کند
@@ -56,7 +58,7 @@ export default async function RootLayout({
         {children}
         {/* لایهٔ گذرای toast — روی سایت و پنل (DECISION-046) */}
         <ToastHost />
-        <ChatFAB companionName={companionName} isAuthenticated={isAuthenticated} />
+        <ChatFAB companionName={companionName} userName={userName} isAuthenticated={isAuthenticated} />
         {/* ابزارهای dev — در prod هیچ‌چیز رندر نمی‌شود (CLAUDE.md §۱۳) */}
         <DevModeBadge />
         <DevResetPanel />

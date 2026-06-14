@@ -78,6 +78,7 @@ model User {
   // GET فقط پیام‌های بعد از این تاریخ برمی‌گرداند؛ داده‌ها برای AI context در DB حفظ می‌شوند.
   chatClearedAt DateTime?
   birthDate     DateTime? // تاریخ تولد اختیاری — برای پیامک تبریک و کد تخفیف روز میلاد
+  onboardedAt   DateTime? // زمان تکمیل/ردِ سفرِ onboarding (DECISION-085) — null یعنی هنوز ندیده
   planPaidSince DateTime? // زمان آخرین ارتقا به پلن پولی — برای gate تب تأمل/اشتراک‌گذاری گزارش
   planExpiresAt DateTime? // انقضای پلن مدت‌دار (DECISION-062)؛ null = بدون انقضا (FREE یا اعطای دستی ادمین)
   planCycle     String?   // "monthly" | "annual" — چرخهٔ آخرین پلن پولی (DECISION-080)

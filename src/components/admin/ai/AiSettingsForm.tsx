@@ -86,7 +86,7 @@ export function AiSettingsForm({ data }: { data: AiSettingsData }) {
       {/* همدم و چت */}
       <Section title="همدم و چت" hint="نام پیش‌فرض همدم (وقتی کاربر نام سفارشی نگذاشته) و متن خوش‌آمد.">
         <Guide tone="soft">
-          در «متن خوش‌آمد» می‌توانی از دو برچسب استفاده کنی: <code dir="ltr">{"{{NAME}}"}</code> (نام همدم) و <code dir="ltr">{"{{LIMIT}}"}</code> (سقف پیام همان کاربر).
+          در «متن خوش‌آمد» می‌توانی از سه برچسب استفاده کنی: <code dir="ltr">{"{{NAME}}"}</code> (نام همدم)، <code dir="ltr">{"{{USER}}"}</code> (نام کاربر) و <code dir="ltr">{"{{LIMIT}}"}</code> (سقف پیام همان کاربر).
           <br />
           <span className="text-fog">«سقف پیام روزانهٔ همدم» به‌ازای هر پلن، حالا در بخش «مدیریت پلن‌ها» تنظیم می‌شود.</span>
         </Guide>
@@ -102,7 +102,7 @@ export function AiSettingsForm({ data }: { data: AiSettingsData }) {
           />
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-stone">
-              متن خوش‌آمد چت <span className="text-fog">— می‌توانی از {"{{NAME}}"} و {"{{LIMIT}}"} استفاده کنی</span>
+              متن خوش‌آمد چت <span className="text-fog">— می‌توانی از {"{{NAME}}"}، {"{{USER}}"} و {"{{LIMIT}}"} استفاده کنی</span>
             </label>
             <textarea
               disabled={!canManage}
