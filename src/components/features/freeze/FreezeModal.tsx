@@ -16,6 +16,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { JalaliDatePicker } from "@/components/ui/JalaliDatePicker";
 import { Portal } from "@/components/ui/Portal";
 import { toast } from "@/lib/notifications/toast";
+import { toFaDigits } from "@/lib/utils/digits";
 import { getTodayISO } from "@/lib/utils/date-client";
 
 const MAX_NOTE = 300;
@@ -164,7 +165,7 @@ export function FreezeModal({ onClose }: { onClose: () => void }) {
               </p>
               <textarea
                 value={note}
-                onChange={(e) => setNote(e.target.value.slice(0, MAX_NOTE))}
+                onChange={(e) => setNote(toFaDigits(e.target.value).slice(0, MAX_NOTE))}
                 rows={2}
                 dir="rtl"
                 placeholder="مثلاً: مسافرت، امتحانات، یا هر دلیل دیگری…"

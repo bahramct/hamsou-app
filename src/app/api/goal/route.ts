@@ -10,11 +10,12 @@ import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
 import { planAllows } from "@/lib/plans/access";
 import { getEffectivePlanKey } from "@/lib/plans/effective";
-import { loadActiveGoalView, isoToDbDate } from "@/lib/goal/server";
+import { loadActiveGoalView, isoToDbDate, normalizeGoalType } from "@/lib/goal/server";
 import { goalToday, MS_PER_DAY } from "@/lib/goal/dates";
 
 const MAX_TITLE = 120;
-const MAX_RANGE_DAYS = 365;
+// بازهٔ یک هدف یا چالش حداکثر ۳۰ روز است (TASK-28 فاز ۲) — کوتاه و قابل‌نوشتن، ضدِ هدفِ بی‌پایان.
+const MAX_RANGE_DAYS = 30;
 
 export async function GET() {
   const user = await getSessionUser();
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
   }
 
   const title = typeof body?.title === "string" ? body.title.trim() : "";
+  const type = normalizeGoalType(body?.type);
   const startIso = typeof body?.startIso === "string" ? body.startIso : "";
   const endIso = typeof body?.endIso === "string" ? body.endIso : "";
 
@@ -70,7 +72,7 @@ export async function POST(request: NextRequest) {
   const rangeDays = Math.round((end.getTime() - start.getTime()) / MS_PER_DAY) + 1;
   if (rangeDays > MAX_RANGE_DAYS)
     return NextResponse.json(
-      { ok: false, message: "بازهٔ هدف بیش از حد طولانی است." },
+      { ok: false, message: "بازهٔ یک هدف یا چالش حداکثر ۳۰ روز است." },
       { status: 400 }
     );
 
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
   }
 
   const goal = await prisma.goal.create({
-    data: { userId: user.userId, title, startDate: start, endDate: end, status: "active" },
+    data: { userId: user.userId, title, type, startDate: start, endDate: end, status: "active" },
   });
 
   return NextResponse.json({ ok: true, goalId: goal.id });

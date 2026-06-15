@@ -10,8 +10,10 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
+import { Portal } from "@/components/ui/Portal";
 import { toast } from "@/lib/notifications/toast";
 import { MOOD_LABELS } from "@/lib/goal/storyboard";
+import { toFaDigits } from "@/lib/utils/digits";
 import type { DaySlot } from "@/lib/goal/storyboard";
 import type { SerializedStory } from "@/types/goal";
 import type { GoalMood } from "@/types/goal";
@@ -52,6 +54,7 @@ export function DayDetailModal({
   const story = slot.stories[0] ?? null;
 
   return (
+    <Portal>
     <>
       {/* پس‌زمینهٔ تاریک تمام‌صفحه */}
       <div
@@ -135,6 +138,7 @@ export function DayDetailModal({
         </div>
       </div>
     </>
+    </Portal>
   );
 }
 
@@ -196,7 +200,7 @@ function StoryBlock({ story, readOnly }: { story: SerializedStory; readOnly: boo
       <div className="rounded-2xl bg-black/3 p-4">
         <textarea
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => setDraft(toFaDigits(e.target.value))}
           rows={5}
           dir="rtl"
           disabled={isPending}

@@ -23,6 +23,11 @@ export interface DaySlot {
   insight: SerializedInsight | null;
 }
 
+/** گرهِ «ریلِ سفر» — مثل DaySlot ولی روزهای آینده را هم شامل می‌شود (isFuture). */
+export interface JourneyNode extends DaySlot {
+  isFuture: boolean;
+}
+
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function isoToUtc(iso: string): number {
@@ -86,4 +91,50 @@ export function buildDaySlots(
     });
   }
   return slots;
+}
+
+/**
+ * گره‌های «ریلِ سفر» از روزِ شروع تا روزِ پایان (همهٔ روزها، شاملِ آینده) — ترتیبِ
+ * زمانی (روز ۱ ابتدا). روزهای بعد از امروز با isFuture=true (هنوز نرسیده) علامت می‌خورند.
+ * مناسبِ JourneyRail که کلِ مسیر را نشان می‌دهد. منبعِ استوری/بینش مثل buildDaySlots.
+ */
+export function buildJourneyNodes(
+  startIso: string,
+  endIso: string,
+  todayIso: string,
+  stories: SerializedStory[],
+  insights: SerializedInsight[]
+): JourneyNode[] {
+  const startMs = isoToUtc(startIso);
+  const endMs = isoToUtc(endIso);
+  const todayMs = isoToUtc(todayIso);
+  if (endMs < startMs) return [];
+
+  const storiesByIso = new Map<string, SerializedStory[]>();
+  for (const s of stories) {
+    const arr = storiesByIso.get(s.dateIso) ?? [];
+    arr.push(s);
+    storiesByIso.set(s.dateIso, arr);
+  }
+  const insightByIso = new Map<string, SerializedInsight>();
+  for (const i of insights) {
+    if (!insightByIso.has(i.dayKey)) insightByIso.set(i.dayKey, i);
+  }
+
+  const nodes: JourneyNode[] = [];
+  for (let ms = startMs; ms <= endMs; ms += MS_PER_DAY) {
+    const iso = utcToIso(ms);
+    const dayNumber = Math.round((ms - startMs) / MS_PER_DAY) + 1;
+    nodes.push({
+      iso,
+      dayNumber,
+      dayLabel: formatJalaliFromISO(iso),
+      weekdayLabel: weekdayFromIso(iso),
+      isToday: ms === todayMs,
+      isFuture: ms > todayMs,
+      stories: storiesByIso.get(iso) ?? [],
+      insight: insightByIso.get(iso) ?? null,
+    });
+  }
+  return nodes;
 }

@@ -1,11 +1,12 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RecentHistoryModal — دکمه + modal تاریخچه اخیر در داشبورد
+// RecentHistoryModal — مودالِ «۳۰ روزِ اخیر» در داشبورد (TASK-28 / DECISION-092)
+// مودالِ controlled: والد (RecentTile) باز/بسته‌شدن را مدیریت می‌کند.
+// صفحهٔ /history حذف شده (DECISION-092)، پس هیچ لینکِ «مشاهده همه» نیست.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 
 export interface RecentEntry {
   id: string;
@@ -15,36 +16,7 @@ export interface RecentEntry {
   feedbackStatus: "DONE" | "NOT_DONE" | null;
 }
 
-interface Props {
-  entries: RecentEntry[];
-}
-
-export function RecentHistoryButton({ entries }: Props) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 rounded-full
-                   border border-black/10 bg-paper
-                   text-xs text-stone
-                   hover:border-black/20 hover:bg-black/3
-                   transition-all duration-200"
-      >
-        <HistoryIcon />
-        <span>تاریخچه اخیر</span>
-      </button>
-
-      {open && <HistoryModal entries={entries} onClose={() => setOpen(false)} />}
-    </>
-  );
-}
-
-// ─── modal ───────────────────────────────────────────────────────────────────
-
-function HistoryModal({
+export function RecentHistoryModal({
   entries,
   onClose,
 }: {
@@ -67,6 +39,11 @@ function HistoryModal({
     };
   }, []);
 
+  function handleClose() {
+    setVisible(false);
+    setTimeout(onClose, 220);
+  }
+
   // بستن با Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -76,11 +53,6 @@ function HistoryModal({
     return () => window.removeEventListener("keydown", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function handleClose() {
-    setVisible(false);
-    setTimeout(onClose, 220);
-  }
 
   return (
     <>
@@ -118,7 +90,7 @@ function HistoryModal({
         >
           {/* هدر */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-black/6">
-            <h2 className="text-sm font-semibold text-ink">تاریخچه اخیر</h2>
+            <h2 className="text-sm font-semibold text-ink">۳۰ روزِ اخیر</h2>
             <button
               type="button"
               onClick={handleClose}
@@ -126,41 +98,18 @@ function HistoryModal({
               className="w-7 h-7 rounded-full bg-black/6 hover:bg-black/10 flex items-center justify-center transition-colors"
             >
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path
-                  d="M1 1l10 10M11 1L1 11"
-                  stroke="currentColor"
-                  strokeWidth="1.75"
-                  strokeLinecap="round"
-                />
+                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
               </svg>
             </button>
           </div>
 
           {/* لیست تعهدها */}
           <div className="px-4 py-3 space-y-2 max-h-72 overflow-y-auto [&::-webkit-scrollbar]:hidden">
-            {entries.map((entry) => (
-              <EntryRow key={entry.id} entry={entry} />
-            ))}
-          </div>
-
-          {/* فوتر */}
-          <div className="px-5 py-3.5 border-t border-black/6 bg-black/2.5">
-            <Link
-              href="/history"
-              onClick={handleClose}
-              className="flex items-center justify-center gap-1.5 text-xs text-stone hover:text-ink transition-colors duration-200"
-            >
-              مشاهده همه تاریخچه
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path
-                  d="M8 6H4M4 6L6.5 3.5M4 6L6.5 8.5"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Link>
+            {entries.length === 0 ? (
+              <p className="py-8 text-center text-xs text-fog">هنوز تعهدی ثبت نکرده‌ای.</p>
+            ) : (
+              entries.map((entry) => <EntryRow key={entry.id} entry={entry} />)
+            )}
           </div>
         </div>
       </div>
@@ -182,7 +131,7 @@ function EntryRow({ entry }: { entry: RecentEntry }) {
   }
 
   return (
-    <div className="px-3 py-3 rounded-xl bg-black/3.5 hover:bg-black/5.5 transition-colors">
+    <div className="px-3 py-3 rounded-xl bg-black/[0.035] hover:bg-black/[0.055] transition-colors">
       <div className="flex items-center justify-between mb-1.5 gap-3">
         <p className="text-[10px] text-fog fa-num">
           {entry.weekdayLabel}،{" "}{entry.dateLabel}
@@ -191,22 +140,5 @@ function EntryRow({ entry }: { entry: RecentEntry }) {
       </div>
       <p className="text-xs text-stone leading-relaxed line-clamp-2">{entry.content}</p>
     </div>
-  );
-}
-
-// ─── آیکون ───────────────────────────────────────────────────────────────────
-
-function HistoryIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M12 7v5l3 3"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

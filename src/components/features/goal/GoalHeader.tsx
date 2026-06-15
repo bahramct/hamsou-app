@@ -12,6 +12,7 @@
 import { useState } from "react";
 import { GoalEditModal } from "@/components/features/goal/GoalEditModal";
 import { GoalDeleteModal } from "@/components/features/goal/GoalDeleteModal";
+import { GoalTypeBadge } from "@/components/features/goal/GoalTypeBadge";
 import type { SerializedGoal } from "@/types/goal";
 
 export function GoalHeader({
@@ -53,6 +54,7 @@ export function GoalHeader({
       <div className="glass-strong relative rounded-3xl p-5 shadow-paper">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
+            <GoalTypeBadge type={goal.type} size="sm" className="mb-1.5" />
             <h1 className="truncate text-lg font-semibold text-ink">{goal.title}</h1>
             <p className="mt-1 text-[12px] text-stone fa-num">
               {goal.startLabel} ← {goal.endLabel}

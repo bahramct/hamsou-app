@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ماکاپ — بالای داشبورد: تعهد امروز + کادر سبز (هفتگی · ساعتِ نقطه‌ای)</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31;
+  --glass-bg:rgba(255,255,255,.55); --glass-strong-bg:rgba(255,255,255,.72);
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1); color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218;
+  --glass-bg:rgba(41,36,30,.55); --glass-strong-bg:rgba(41,36,30,.72);
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:"PelakFA",Tahoma,sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; position:relative; overflow-x:hidden; font-feature-settings:"ss01" on; transition:background .4s,color .4s;}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 78% 8%, rgba(193,154,74,.10), transparent 60%),radial-gradient(55% 45% at 12% 22%, rgba(155,180,199,.10), transparent 60%),radial-gradient(50% 40% at 50% 100%, rgba(122,132,113,.08), transparent 65%);}
+[data-theme="dark"] body::before{background:radial-gradient(60% 50% at 78% 8%, rgba(207,174,99,.10), transparent 60%),radial-gradient(55% 45% at 12% 22%, rgba(138,167,188,.08), transparent 60%),radial-gradient(50% 40% at 50% 100%, rgba(151,162,138,.07), transparent 65%);}
+.glass{background:var(--glass-bg); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border:1px solid var(--line); box-shadow:0 12px 40px rgba(46,44,40,.08), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04);}
+.glass-strong{background:var(--glass-strong-bg); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); border:1px solid var(--line); box-shadow:0 18px 50px rgba(46,44,40,.10), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass-strong{box-shadow:0 18px 50px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.04);}
+
+.nav{position:sticky; top:0; z-index:40; background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1024px; margin:0 auto; height:64px; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.logo{font-weight:700; font-size:20px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.logo .dot{width:9px; height:9px; border-radius:50%; background:var(--ember);}
+.nav-items{display:flex; gap:4px; flex:1; justify-content:center;}
+.nav-items a{position:relative; padding:8px 16px; border-radius:12px; font-size:14px; color:var(--stone); text-decoration:none;}
+.nav-items a.active{color:var(--ink); font-weight:500;}
+.nav-items a.active::after{content:""; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); width:20px; height:2px; border-radius:2px; background:rgba(199,93,60,.7);}
+.icon-btn{width:38px; height:38px; border-radius:12px; border:none; background:transparent; color:var(--stone); cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.icon-btn:hover{background:rgba(var(--rgb-line),.05); color:var(--ink);}
+
+.wrap{position:relative; z-index:10; max-width:1024px; margin:0 auto; padding:40px 24px 60px;}
+.top-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; grid-template-areas:"today green"; align-items:stretch;}
+.today-col{grid-area:today;}
+.green-col{grid-area:green;}
+
+/* ▼ کادر آبی — کپیِ مو‌به‌موی داشبورد (دست‌نخورده) ▼ */
+.today-head{text-align:center; margin-bottom:18px;}
+.today-head .greet{font-size:13px; color:var(--fog);}
+.today-head .date{font-size:15px; color:var(--stone); margin-top:2px;}
+.hero{max-width:520px; margin:0 auto;}
+.hero-card{border-radius:28px; padding:26px;}
+.hero-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+.hero-label{font-size:13px; font-weight:500; color:var(--stone);}
+.chip{font-size:11px; padding:4px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:5px;}
+.chip-sage{color:var(--sage); background:rgba(122,132,113,.12);}
+.hero-text{font-size:15px; line-height:2.1; color:var(--ink); white-space:pre-wrap;}
+.hero-foot{margin-top:18px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--fog);}
+.freeze-pill{margin:14px auto 0; width:max-content; display:flex; align-items:center; gap:7px; font-size:12px; color:var(--mist-deep); background:rgba(94,124,147,.10); padding:7px 14px; border-radius:999px; cursor:pointer; border:1px solid rgba(94,124,147,.15);}
+
+/* ▼ کادر سبز — هفتگی · ساعتِ نقطه‌ای (پُرکنندهٔ ارتفاع) ▼ */
+.today-panel{height:100%; border-radius:28px; padding:22px; display:flex; flex-direction:column;}
+.tp-head{display:flex; align-items:baseline; justify-content:space-between;}
+.tp-lbl{font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--fog);}
+.tp-mon{font-size:12px; color:var(--stone);}
+/* ناحیهٔ ساعت — وسطِ عمودی، فضای باقی را پر می‌کند */
+.clock-zone{flex:1; display:flex; align-items:center; justify-content:center; gap:18px; padding:14px 2px;}
+.clock{position:relative; width:84px; height:84px; flex-shrink:0;}
+.mk{position:absolute; left:50%; top:0; transform-origin:50% 42px; z-index:1; width:3.5px; height:3.5px; border-radius:50%; background:var(--fog); opacity:.7;}
+.hand{position:absolute; left:50%; bottom:50%; transform-origin:bottom center; transform:translateX(-50%); border-radius:999px; z-index:3;}
+.hand.h{width:2.5px; height:21px; background:var(--ink); opacity:.8;}
+.hand.m{width:2px; height:29px; background:var(--stone);}
+.hand.s{width:1.5px; height:31px; background:var(--sage);}
+.hand.s::after{content:""; position:absolute; left:50%; bottom:-7px; transform:translateX(-50%); width:1.5px; height:7px; background:var(--sage); border-radius:999px;}
+.clock .pin{position:absolute; left:50%; top:50%; width:5px; height:5px; border-radius:50%; background:var(--sage); transform:translate(-50%,-50%); z-index:6; box-shadow:0 0 0 1.5px var(--glass-bg);}
+.time-block{text-align:right;}
+.digi{font-size:26px; font-weight:500; color:var(--ink); line-height:1; letter-spacing:.5px;}
+.digi .mer{font-size:12px; font-weight:400; color:var(--stone); margin-right:4px;}
+.jd{font-size:12px; color:var(--stone); margin-top:8px;}
+.gr{font-size:11px; color:var(--fog); margin-top:3px;}
+/* هفتگی — کف */
+.tp-rule{height:1px; background:var(--line); margin:0 2px 12px;}
+.cal-week{display:flex; gap:5px;}
+.wcell{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:7px 0 9px; border-radius:13px; cursor:default; position:relative;}
+.wcell .wd{font-size:9.5px; color:var(--fog);}
+.wcell .wn{font-size:13.5px; color:var(--stone);}
+.wcell.past .wn{color:var(--fog);}
+.wcell.future .wn{color:var(--fog); opacity:.45;}
+.wcell.has{cursor:pointer;}
+.wcell.has::after{content:""; position:absolute; bottom:4px; width:3.5px; height:3.5px; border-radius:50%; background:var(--sage);}
+.wcell.today{background:rgba(199,93,60,.09);}
+.wcell.today .wn{color:var(--ember); font-weight:700;}
+.wcell.today .wd{color:var(--ember);}
+
+.page-hint{font-size:11.5px; color:var(--fog); text-align:center; margin-top:14px;}
+.tip{position:fixed; z-index:80; max-width:220px; padding:9px 11px; border-radius:12px;
+  background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--line); box-shadow:0 16px 44px rgba(46,44,40,.22);
+  opacity:0; pointer-events:none; display:none; transform:translate(-50%,-100%) translateY(6px); transition:opacity .2s var(--ease-expo), transform .2s var(--ease-expo);}
+.tip.show{opacity:1; transform:translate(-50%,-100%) translateY(0);}
+.tip .d{font-size:10px; color:var(--fog); margin-bottom:3px;}
+.tip .s{font-size:11.5px; line-height:1.75; color:var(--stone);}
+.note{max-width:1024px; margin:26px auto 0; padding:0 24px;}
+.note .box{font-size:12px; color:var(--fog); line-height:1.9; border:1px dashed var(--line); border-radius:16px; padding:16px 18px;}
+.note b{color:var(--stone); font-weight:600;}
+.theme-fab{position:fixed; bottom:16px; left:16px; z-index:50; background:var(--glass-strong-bg); border:1px solid var(--line);}
+
+@media (max-width:760px){ .nav-items{display:none;} .wrap{padding:24px 16px 60px;} .top-grid{grid-template-columns:1fr; grid-template-areas:"today" "green";} }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="dot"></span>همسو</div>
+    <div class="nav-items"><a href="dashboard-unified.html" class="active">داشبورد</a><a href="goal-journey.html">برنامه‌ریزی و چالش</a><a href="#">گزارش هفتگی</a><a href="#">پلن‌ها</a></div>
+    <button class="icon-btn" id="themeToggle" title="تم"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="top-grid">
+
+    <!-- ▼ کادر آبی — عیناً از داشبورد (دست‌نخورده) ▼ -->
+    <div class="today-col">
+      <div class="today-head">
+        <p class="greet">صبحت آرام، بهرام</p>
+        <p class="date">پنجشنبه، ۲۴ خرداد ۱۴۰۵</p>
+      </div>
+      <div class="hero">
+        <div class="hero-card glass-strong">
+          <div class="hero-row">
+            <span class="hero-label">تعهد امروز</span>
+            <span class="chip chip-sage">تا ۱ ساعت و ۴۲ دقیقه ویرایش می‌شود</span>
+          </div>
+          <p class="hero-text">امروز نیم‌ساعت بدون گوشی می‌نویسم — فقط هرچه در ذهنم هست، بی‌ویرایش.</p>
+          <p class="hero-foot">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 20v-7" stroke="var(--sage)" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13c0-3 2.2-5.2 5.5-5.2C17.5 11 15.3 13 12 13Z" stroke="var(--sage)" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 14c0-3.4-2.4-5.8-6-5.8C6 11.6 8.4 14 12 14Z" stroke="var(--sage)" stroke-width="1.7" stroke-linejoin="round"/></svg>
+            فردا بازخوردش را می‌پرسم
+          </p>
+        </div>
+        <div class="freeze-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 7l14 10M19 7 5 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          مسیرم را موقتاً متوقف کن
+        </div>
+      </div>
+    </div>
+
+    <!-- ▼ کادر سبز — هفتگی · ساعتِ نقطه‌ای ▼ -->
+    <div class="green-col">
+      <div class="today-panel glass">
+        <div class="tp-head"><span class="tp-lbl">این هفته</span><span class="tp-mon">۱۹–۲۵ خرداد</span></div>
+
+        <div class="clock-zone">
+          <div class="clock" id="clock"><div class="pin"></div><div class="hand h" id="hH"></div><div class="hand m" id="hM"></div><div class="hand s" id="hS"></div></div>
+          <div class="time-block">
+            <div class="digi"><span id="digi">۸:۴۱</span><span class="mer" id="mer">عصر</span></div>
+            <div class="jd">پنجشنبه، ۲۴ خرداد ۱۴۰۵</div>
+            <div class="gr" id="greet">شب آرامی داشته باشی، بهرام</div>
+          </div>
+        </div>
+
+        <div class="tp-rule"></div>
+        <div class="cal-week" id="week"></div>
+      </div>
+    </div>
+  </div>
+
+  <p class="page-hint">کادر آبی عیناً همان داشبورد است. کادر سبز: هفتگی + ساعتِ نقطه‌ایِ شفاف (عقربهٔ ثانیه سبز) — هم‌قدِ ستونِ آبی. روی روزهای هفته هاور کنید.</p>
+</div>
+
+<div class="tip" id="tip"></div>
+<button class="icon-btn theme-fab" id="themeFab" title="تم"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+
+<div class="note">
+  <div class="box">
+    <b>بالای داشبورد — نسخهٔ نهاییِ کادر سبز.</b> چیدمان: «تعهد امروز» (آبی، دست‌نخورده) راست + کادرِ سبز چپ. کادر سبز با <code>.glass</code>ِ بقیهٔ کارت‌ها؛ ساعتِ نقطه‌ایِ شفاف و ریز با عقربهٔ ثانیهٔ سبز؛ تقویمِ هفتگی با هایلایتِ نرمِ امروز. ساعت با ناحیهٔ flex وسط‌چین، تا کادر هم‌قدِ ستونِ آبی پر شود (بدونِ فضای خالی). تاریخ/تقویم نمونه‌اند؛ در اپ از تقویمِ جلالیِ واقعی می‌آیند.
+  </div>
+</div>
+
+<script>
+  const root=document.documentElement;
+  function toggleTheme(){ root.setAttribute("data-theme", root.getAttribute("data-theme")==="dark"?"light":"dark"); }
+  document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+  document.getElementById("themeFab").addEventListener("click", toggleTheme);
+  const fa = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+
+  const TODAY=24;
+  const ACT={19:"به یک دوست زنگ زدم.",20:"بدون شبکهٔ اجتماعی گذراندم.",22:"صبح نوشتم.",23:"دیروز — قبل از کار قدم زدم.",24:"امروز نیم‌ساعت بدون گوشی می‌نویسم."};
+
+  const tip=document.getElementById("tip"); let tt=null;
+  function showTip(el, html){ clearTimeout(tt); tip.innerHTML=html; tip.style.display="block"; const r=el.getBoundingClientRect(); tip.style.left=(r.left+r.width/2)+"px"; tip.style.top=(r.top-8)+"px"; requestAnimationFrame(()=>tip.classList.add("show")); }
+  function hideTip(){ tip.classList.remove("show"); tt=setTimeout(()=>tip.style.display="none",170); }
+
+  const WEEK=[["ش",19],["ی",20],["د",21],["س",22],["چ",23],["پ",24],["ج",25]];
+  const week=document.getElementById("week");
+  week.innerHTML=WEEK.map(([wd,d])=>{ const today=d===TODAY,future=d>TODAY,has=!!ACT[d];
+    return `<div class="wcell ${today?'today':(future?'future':'past')}${has?' has':''}" data-day="${d}"><span class="wd">${wd}</span><span class="wn">${fa(d)}</span></div>`; }).join("");
+  week.querySelectorAll(".wcell").forEach(c=>{ const d=+c.dataset.day;
+    c.addEventListener("mouseenter", ()=>{ const txt=ACT[d]?`<div class="s">${ACT[d]}</div>`:`<div class="s" style="color:var(--fog)">آن روز تعهدی ثبت نشد.</div>`; showTip(c, `<div class="d">${fa(d)} خرداد${d===TODAY?' · امروز':''}</div>${txt}`); });
+    c.addEventListener("mouseleave", hideTip);
+  });
+
+  // ساعتِ نقطه‌ای (۴ نقطه)
+  const clock=document.getElementById("clock");
+  [0,3,6,9].forEach(i=>{ const m=document.createElement("div"); m.className="mk"; m.style.transform=`translateX(-50%) rotate(${i*30}deg)`; clock.insertBefore(m, clock.firstChild); });
+  const hH=document.getElementById("hH"), hM=document.getElementById("hM"), hS=document.getElementById("hS");
+  const digi=document.getElementById("digi"), mer=document.getElementById("mer"), greet=document.getElementById("greet");
+  function tick(){
+    const now=new Date(), ms=now.getMilliseconds()/1000;
+    const s=now.getSeconds()+ms, m=now.getMinutes()+s/60, hr=(now.getHours()%12)+m/60;
+    hS.style.transform=`translateX(-50%) rotate(${s*6}deg)`;
+    hM.style.transform=`translateX(-50%) rotate(${m*6}deg)`;
+    hH.style.transform=`translateX(-50%) rotate(${hr*30}deg)`;
+    const H=now.getHours(), M=now.getMinutes();
+    digi.textContent=fa(((H%12)||12))+":"+fa(String(M).padStart(2,"0"));
+    mer.textContent=H<12?"صبح":(H<19?"عصر":"شب");
+    greet.textContent=H<12?"صبح بخیر، بهرام":(H<19?"بعدازظهر خوبی داشته باشی، بهرام":"شب آرامی داشته باشی، بهرام");
+    requestAnimationFrame(tick);
+  }
+  tick();
+</script>
+</body>
+</html>

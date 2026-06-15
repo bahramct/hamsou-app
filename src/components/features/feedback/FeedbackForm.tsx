@@ -16,6 +16,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toFaDigits } from "@/lib/utils/digits";
 import type { PendingFeedbackEntry } from "@/types/feedback";
 
 type FeedbackStatus = "DONE" | "NOT_DONE";
@@ -184,7 +185,7 @@ export function FeedbackForm({ pendingEntry, todayLabel, weekdayLabel }: Props) 
             </div>
             <textarea
               value={note}
-              onChange={(e) => setNote(e.target.value)}
+              onChange={(e) => setNote(toFaDigits(e.target.value))}
               placeholder={
                 selectedStatus === "DONE"
                   ? "چه چیزی کمک کرد؟ چطور احساس کردی؟"

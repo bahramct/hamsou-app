@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ماکاپ — طرح‌های کادر سبز (ساعت + تقویم)</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31;
+  --glass-bg:rgba(255,255,255,.55); --glass-strong-bg:rgba(255,255,255,.72);
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1); color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218;
+  --glass-bg:rgba(41,36,30,.55); --glass-strong-bg:rgba(41,36,30,.72);
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:"PelakFA",Tahoma,sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; position:relative; overflow-x:hidden; font-feature-settings:"ss01" on; transition:background .4s,color .4s;}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 78% 8%, rgba(193,154,74,.10), transparent 60%),radial-gradient(55% 45% at 12% 22%, rgba(155,180,199,.10), transparent 60%),radial-gradient(50% 40% at 50% 100%, rgba(122,132,113,.08), transparent 65%);}
+[data-theme="dark"] body::before{background:radial-gradient(60% 50% at 78% 8%, rgba(207,174,99,.10), transparent 60%),radial-gradient(55% 45% at 12% 22%, rgba(138,167,188,.08), transparent 60%),radial-gradient(50% 40% at 50% 100%, rgba(151,162,138,.07), transparent 65%);}
+.glass{background:var(--glass-bg); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border:1px solid var(--line); box-shadow:0 12px 40px rgba(46,44,40,.08), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04);}
+
+.nav{position:sticky; top:0; z-index:40; background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1024px; margin:0 auto; height:64px; padding:0 24px; display:flex; align-items:center; justify-content:space-between;}
+.logo{font-weight:700; font-size:20px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.logo .dot{width:9px; height:9px; border-radius:50%; background:var(--ember);}
+.icon-btn{width:38px; height:38px; border-radius:12px; border:none; background:transparent; color:var(--stone); cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.icon-btn:hover{background:rgba(var(--rgb-line),.05); color:var(--ink);}
+
+.wrap{position:relative; z-index:10; max-width:980px; margin:0 auto; padding:34px 24px 70px;}
+.h1{font-size:15px; font-weight:600; color:var(--stone); margin-bottom:4px;}
+.h2{font-size:12px; color:var(--fog); margin-bottom:24px;}
+
+.variants{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+.variant .vcap{font-size:11px; color:var(--fog); margin:0 4px 8px; letter-spacing:.3px;}
+.variant .vcap b{color:var(--stone); font-weight:600;}
+
+/* پنل */
+.panel{border-radius:22px; padding:18px;}
+.tp-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px;}
+.tp-lbl{font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--fog);}
+.tp-mon{font-size:11.5px; color:var(--stone);}
+.clock-zone{display:flex; align-items:center; gap:14px; padding:8px 2px 12px;}
+.time-block{flex:1; text-align:right;}
+.digi{font-size:21px; font-weight:500; color:var(--ink); line-height:1; letter-spacing:.5px;}
+.digi .mer{font-size:11px; font-weight:400; color:var(--stone); margin-right:3px;}
+.jd{font-size:11.5px; color:var(--stone); margin-top:7px;}
+.tp-rule{height:1px; background:var(--line); margin:0 2px 12px;}
+
+/* ساعتِ ترنسپرنتِ نازک — عقربهٔ ثانیه سبز */
+.clock{position:relative; width:74px; height:74px; flex-shrink:0;}
+.clock.ring::before{content:""; position:absolute; inset:0; border-radius:50%; border:1px solid var(--line);}
+.mk{position:absolute; left:50%; top:0; transform-origin:50% 37px; z-index:1; border-radius:50%; background:var(--fog);}
+.clock.dots .mk{width:3.5px; height:3.5px; opacity:.7;}
+.clock.ring .mk{width:2px; height:2px; opacity:.6;}
+.clock.ring .mk.q{width:3.5px; height:3.5px; opacity:.95; background:var(--stone);}
+.hand{position:absolute; left:50%; bottom:50%; transform-origin:bottom center; transform:translateX(-50%); border-radius:999px; z-index:3;}
+.hand.h{width:2.5px; height:18px; background:var(--ink); opacity:.8;}
+.hand.m{width:2px; height:25px; background:var(--stone);}
+.hand.s{width:1.5px; height:27px; background:var(--sage);}
+.hand.s::after{content:""; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%); width:1.5px; height:6px; background:var(--sage); border-radius:999px;}
+.clock .pin{position:absolute; left:50%; top:50%; width:5px; height:5px; border-radius:50%; background:var(--sage); transform:translate(-50%,-50%); z-index:6; box-shadow:0 0 0 1.5px var(--glass-bg);}
+
+/* تقویمِ هفتگی */
+.cal-week{display:flex; gap:4px;}
+.wcell{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:7px 0 9px; border-radius:13px; cursor:default; position:relative;}
+.wcell .wd{font-size:9.5px; color:var(--fog);}
+.wcell .wn{font-size:13.5px; color:var(--stone);}
+.wcell.past .wn{color:var(--fog);}
+.wcell.future .wn{color:var(--fog); opacity:.45;}
+.wcell.has{cursor:pointer;}
+.wcell.has::after{content:""; position:absolute; bottom:4px; width:3.5px; height:3.5px; border-radius:50%; background:var(--sage);}
+.wcell.today{background:rgba(199,93,60,.09);}
+.wcell.today .wn{color:var(--ember); font-weight:700;}
+.wcell.today .wd{color:var(--ember);}
+
+/* تقویمِ ماهانه */
+.cal-month{display:grid; grid-template-columns:repeat(7,1fr); gap:2px;}
+.cal-wd{font-size:9px; color:var(--fog); text-align:center; padding-bottom:4px;}
+.mcell{position:relative; height:23px; display:flex; align-items:center; justify-content:center; cursor:default;}
+.mcell .dn{font-size:11.5px; color:var(--stone); transition:color .2s;}
+.mcell.past .dn{color:var(--fog);}
+.mcell.future .dn{color:var(--fog); opacity:.45;}
+.mcell.has{cursor:pointer;}
+.mcell.has::after{content:""; position:absolute; bottom:1px; left:50%; transform:translateX(-50%); width:3px; height:3px; border-radius:50%; background:var(--sage);}
+.mcell.today .dn{color:var(--ember); font-weight:700;}
+.mcell.has:hover .dn{color:var(--ink);}
+
+.tip{position:fixed; z-index:80; max-width:220px; padding:9px 11px; border-radius:12px;
+  background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--line); box-shadow:0 16px 44px rgba(46,44,40,.22);
+  opacity:0; pointer-events:none; display:none; transform:translate(-50%,-100%) translateY(6px); transition:opacity .2s var(--ease-expo), transform .2s var(--ease-expo);}
+.tip.show{opacity:1; transform:translate(-50%,-100%) translateY(0);}
+.tip .d{font-size:10px; color:var(--fog); margin-bottom:3px;}
+.tip .s{font-size:11.5px; line-height:1.75; color:var(--stone);}
+
+.note{max-width:980px; margin:26px auto 0; padding:0 24px;}
+.note .box{font-size:12px; color:var(--fog); line-height:1.9; border:1px dashed var(--line); border-radius:16px; padding:16px 18px;}
+.note b{color:var(--stone); font-weight:600;}
+.theme-fab{position:fixed; bottom:16px; left:16px; z-index:50; background:var(--glass-strong-bg); border:1px solid var(--line);}
+
+@media (max-width:720px){ .variants{grid-template-columns:1fr;} .wrap{padding:24px 16px 60px;} }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="dot"></span>همسو</div>
+    <button class="icon-btn" id="themeToggle" title="تم"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="h1">طرح‌های «کادر سبز» — ساعت + تقویم</div>
+  <div class="h2">۲ سبکِ ساعت × ۲ نوعِ تقویم · همه شفاف، ریز، عقربهٔ ثانیهٔ سبز · هماهنگ با دیزاین‌سیستم · روی روزها هاور کنید</div>
+
+  <div class="variants">
+
+    <!-- ۱: هفتگی + ساعتِ نقطه‌ای -->
+    <div class="variant">
+      <div class="vcap"><b>۱) هفتگی</b> · ساعتِ نقطه‌ای</div>
+      <div class="panel glass">
+        <div class="tp-head"><span class="tp-lbl">این هفته</span><span class="tp-mon">۱۹–۲۵ خرداد</span></div>
+        <div class="clock-zone">
+          <div class="clock dots"><div class="pin"></div><div class="hand h"></div><div class="hand m"></div><div class="hand s"></div></div>
+          <div class="time-block"><div class="digi"><span class="dv">۸:۴۱</span><span class="mer"></span></div><div class="jd">پنجشنبه، ۲۴ خرداد</div></div>
+        </div>
+        <div class="tp-rule"></div>
+        <div class="cal-week"></div>
+      </div>
+    </div>
+
+    <!-- ۲: هفتگی + ساعتِ حلقه‌ای -->
+    <div class="variant">
+      <div class="vcap"><b>۲) هفتگی</b> · ساعتِ حلقه‌ای</div>
+      <div class="panel glass">
+        <div class="tp-head"><span class="tp-lbl">این هفته</span><span class="tp-mon">۱۹–۲۵ خرداد</span></div>
+        <div class="clock-zone">
+          <div class="clock ring"><div class="pin"></div><div class="hand h"></div><div class="hand m"></div><div class="hand s"></div></div>
+          <div class="time-block"><div class="digi"><span class="dv">۸:۴۱</span><span class="mer"></span></div><div class="jd">پنجشنبه، ۲۴ خرداد</div></div>
+        </div>
+        <div class="tp-rule"></div>
+        <div class="cal-week"></div>
+      </div>
+    </div>
+
+    <!-- ۳: ماهانه + ساعتِ نقطه‌ای -->
+    <div class="variant">
+      <div class="vcap"><b>۳) ماهانه</b> · ساعتِ نقطه‌ای</div>
+      <div class="panel glass">
+        <div class="tp-head"><span class="tp-lbl">امروز</span><span class="tp-mon">خرداد ۱۴۰۵</span></div>
+        <div class="clock-zone">
+          <div class="clock dots"><div class="pin"></div><div class="hand h"></div><div class="hand m"></div><div class="hand s"></div></div>
+          <div class="time-block"><div class="digi"><span class="dv">۸:۴۱</span><span class="mer"></span></div><div class="jd">پنجشنبه، ۲۴ خرداد</div></div>
+        </div>
+        <div class="tp-rule"></div>
+        <div class="cal-month"></div>
+      </div>
+    </div>
+
+    <!-- ۴: ماهانه + ساعتِ حلقه‌ای -->
+    <div class="variant">
+      <div class="vcap"><b>۴) ماهانه</b> · ساعتِ حلقه‌ای</div>
+      <div class="panel glass">
+        <div class="tp-head"><span class="tp-lbl">امروز</span><span class="tp-mon">خرداد ۱۴۰۵</span></div>
+        <div class="clock-zone">
+          <div class="clock ring"><div class="pin"></div><div class="hand h"></div><div class="hand m"></div><div class="hand s"></div></div>
+          <div class="time-block"><div class="digi"><span class="dv">۸:۴۱</span><span class="mer"></span></div><div class="jd">پنجشنبه، ۲۴ خرداد</div></div>
+        </div>
+        <div class="tp-rule"></div>
+        <div class="cal-month"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+<button class="icon-btn theme-fab" id="themeFab" title="تم"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+
+<div class="note">
+  <div class="box">
+    <b>چهار طرحِ کادر سبز در یک صفحه.</b> ساعت‌ها شفاف، نازک و ریز شدند؛ <b>عقربهٔ ثانیه سبز (sage)</b> با دُمِ ظریف؛ سبکِ «نقطه‌ای» (۴ نقطه) و «حلقه‌ای» (حلقهٔ نازک + ۱۲ نقطه). تقویمِ <b>هفتگی</b> (نوارِ ۷ روزه با هایلایتِ نرمِ امروز) و <b>ماهانه</b> (اعداد روی شیشه، امروز فقط ember بدون خط). همه با توکن‌های برند و <code>.glass</code>. بگویید کدام ترکیب را می‌پسندید تا در داشبورد جای‌گذاری کنم.
+  </div>
+</div>
+
+<script>
+  const root=document.documentElement;
+  function toggleTheme(){ root.setAttribute("data-theme", root.getAttribute("data-theme")==="dark"?"light":"dark"); }
+  document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+  document.getElementById("themeFab").addEventListener("click", toggleTheme);
+  const fa = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+
+  const TODAY=24;
+  const ACT={1:"اولین روز — نوشتم که می‌خواهم آرام‌تر زندگی کنم.",2:"صبح زود بیدار شدم و قدم زدم.",4:"به جای دسر یک لیوان آب خوردم.",5:"ده دقیقه مدیتیشن کردم.",7:"یک فصل کتاب خواندم.",9:"با خانواده وقت گذراندم، بی‌گوشی.",10:"پیاده‌روی کردم.",12:"امروز چیزی ننوشتم اما به هدفم فکر کردم.",14:"زود خوابیدم.",15:"تمرینِ تنفس کردم.",17:"یک کارِ عقب‌افتاده را تمام کردم.",19:"به یک دوست زنگ زدم.",20:"بدون شبکهٔ اجتماعی گذراندم.",22:"صبح نوشتم.",23:"دیروز — قبل از کار قدم زدم."};
+
+  // ── tooltip ──
+  const tip=document.getElementById("tip"); let tt=null;
+  function showTip(el, html){ clearTimeout(tt); tip.innerHTML=html; tip.style.display="block"; const r=el.getBoundingClientRect(); tip.style.left=(r.left+r.width/2)+"px"; tip.style.top=(r.top-8)+"px"; requestAnimationFrame(()=>tip.classList.add("show")); }
+  function hideTip(){ tip.classList.remove("show"); tt=setTimeout(()=>tip.style.display="none",170); }
+  function bindTip(el, d){ el.addEventListener("mouseenter", ()=>{ const txt=ACT[d]?`<div class="s">${ACT[d]}</div>`:`<div class="s" style="color:var(--fog)">آن روز تعهدی ثبت نشد.</div>`; showTip(el, `<div class="d">${fa(d)} خرداد${d===TODAY?' · امروز':''}</div>${txt}`); }); el.addEventListener("mouseleave", hideTip); }
+
+  // ── تقویمِ هفتگی (۱۹..۲۵ خرداد، امروز=۲۴) ──
+  const WEEK=[["ش",19],["ی",20],["د",21],["س",22],["چ",23],["پ",24],["ج",25]];
+  document.querySelectorAll(".cal-week").forEach(el=>{
+    el.innerHTML=WEEK.map(([wd,d])=>{ const today=d===TODAY,future=d>TODAY,has=!!ACT[d];
+      return `<div class="wcell ${today?'today':(future?'future':'past')}${has?' has':''}" data-day="${d}"><span class="wd">${wd}</span><span class="wn">${fa(d)}</span></div>`; }).join("");
+    el.querySelectorAll(".wcell").forEach(c=>bindTip(c, +c.dataset.day));
+  });
+
+  // ── تقویمِ ماهانه (۳۱ روز، offset 3، امروز=۲۴) ──
+  const WD=["ش","ی","د","س","چ","پ","ج"], DAYS=31, OFFSET=3;
+  document.querySelectorAll(".cal-month").forEach(el=>{
+    let h=""; WD.forEach(w=> h+=`<div class="cal-wd">${w}</div>`);
+    for(let i=0;i<OFFSET;i++) h+=`<div></div>`;
+    for(let d=1; d<=DAYS; d++){ const today=d===TODAY,future=d>TODAY,has=!!ACT[d];
+      h+=`<div class="mcell ${today?'today':(future?'future':'past')}${has?' has':''}" data-day="${d}"><span class="dn">${fa(d)}</span></div>`; }
+    el.innerHTML=h;
+    el.querySelectorAll(".mcell").forEach(c=>bindTip(c, +c.dataset.day));
+  });
+
+  // ── ساعت‌ها ──
+  document.querySelectorAll(".clock").forEach(cl=>{
+    const ring = cl.classList.contains("ring");
+    const marks = ring ? [0,1,2,3,4,5,6,7,8,9,10,11] : [0,3,6,9];
+    marks.forEach(i=>{ const m=document.createElement("div"); m.className="mk"+(ring&&i%3===0?" q":""); m.style.transform=`translateX(-50%) rotate(${i*30}deg)`; cl.insertBefore(m, cl.firstChild); });
+  });
+  function tick(){
+    const now=new Date(), ms=now.getMilliseconds()/1000;
+    const s=now.getSeconds()+ms, m=now.getMinutes()+s/60, h=(now.getHours()%12)+m/60;
+    document.querySelectorAll(".clock").forEach(cl=>{
+      cl.querySelector(".hand.s").style.transform=`translateX(-50%) rotate(${s*6}deg)`;
+      cl.querySelector(".hand.m").style.transform=`translateX(-50%) rotate(${m*6}deg)`;
+      cl.querySelector(".hand.h").style.transform=`translateX(-50%) rotate(${h*30}deg)`;
+    });
+    const H=now.getHours(), M=now.getMinutes();
+    const dv=fa(((H%12)||12))+":"+fa(String(M).padStart(2,"0")), mer=H<12?"صبح":(H<19?"عصر":"شب");
+    document.querySelectorAll(".digi .dv").forEach(e=>e.textContent=dv);
+    document.querySelectorAll(".digi .mer").forEach(e=>e.textContent=mer);
+    requestAnimationFrame(tick);
+  }
+  tick();
+</script>
+</body>
+</html>

@@ -6,7 +6,7 @@
 // لحنِ آرام؛ بدون قضاوت/استریک. FREE/PLUS → کارتِ دعوت به ارتقا.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Spinner } from "@/components/ui/Spinner";
@@ -17,6 +17,8 @@ interface Props {
   goalId: string;
   companion: GoalCompanionState;
   todayInsight: SerializedInsight | null;
+  /** bare = بدونِ کارتِ بیرونی (برای جا‌گرفتن داخلِ تایلِ «همراه» در بِنتو) */
+  bare?: boolean;
 }
 
 function InsightBody({ insight }: { insight: SerializedInsight }) {
@@ -55,14 +57,17 @@ function InsightBody({ insight }: { insight: SerializedInsight }) {
   );
 }
 
-export function CompanionPanel({ goalId, companion, todayInsight }: Props) {
+export function CompanionPanel({ goalId, companion, todayInsight, bare = false }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  // در حالتِ bare کارتِ بیرونی حذف می‌شود (تایلِ بِنتو خودش کارت است)
+  const wrap = (cls: string) => (bare ? "" : cls);
 
   // ── دعوت به ارتقا (FREE/PLUS) ───────────────────────────────────────────────
   if (!companion.planAllowed) {
     return (
-      <div className="rounded-3xl border border-gold/25 bg-gold/5 p-5">
+      <div className={wrap("rounded-3xl border border-gold/25 bg-gold/5 p-5")}>
         <div className="flex items-center gap-2">
           <CompanionMark />
           <h3 className="text-sm font-semibold text-ink">همراه — کوچِ مسیرت</h3>
@@ -95,7 +100,7 @@ export function CompanionPanel({ goalId, companion, todayInsight }: Props) {
         ? "راهنماییِ «همراه» از روزِ دومِ مسیر در دسترس می‌شود."
         : "مسیرِ این هدف رو به پایان است — راهنماییِ تازه‌ای نیست.";
     return (
-      <div className="rounded-3xl border border-bone bg-white/40 p-5">
+      <div className={wrap("rounded-3xl border border-bone bg-white/40 p-5")}>
         {header}
         <p className="mt-2 text-[13px] leading-relaxed text-stone">{msg}</p>
       </div>
@@ -105,7 +110,7 @@ export function CompanionPanel({ goalId, companion, todayInsight }: Props) {
   // ── راهنماییِ امروز موجود است ─────────────────────────────────────────────────
   if (todayInsight) {
     return (
-      <div className="rounded-3xl border border-sage/20 bg-sage/5 p-5">
+      <div className={wrap("rounded-3xl border border-sage/20 bg-sage/5 p-5")}>
         <div className="mb-3 flex items-center justify-between">
           {header}
           <span className="text-[11px] text-fog">راهنماییِ امروز</span>
@@ -137,7 +142,7 @@ export function CompanionPanel({ goalId, companion, todayInsight }: Props) {
   }
 
   return (
-    <div className="rounded-3xl border border-sage/20 bg-sage/5 p-5">
+    <div className={wrap("rounded-3xl border border-sage/20 bg-sage/5 p-5")}>
       {header}
       <p className="mt-2 text-[13px] leading-relaxed text-stone">
         امروز می‌توانی یک‌بار از راهنماییِ «همراه» دربارهٔ مسیرت استفاده کنی.

@@ -23,14 +23,21 @@ import {
 import type {
   ActiveGoalView,
   GoalMood,
+  GoalType,
   ReminderChannel,
   SerializedGoal,
   SerializedInsight,
+  SerializedJourneyCard,
   SerializedStory,
 } from "@/types/goal";
 
 const MOODS: GoalMood[] = ["good", "neutral", "hard"];
 const CHANNELS: ReminderChannel[] = ["inapp", "email", "both"];
+
+/** نوعِ هدف را به مقدارِ مجاز نرمال می‌کند ("challenge" → چالش، هر چیزِ دیگر → هدف). */
+export function normalizeGoalType(v: unknown): GoalType {
+  return v === "challenge" ? "challenge" : "goal";
+}
 
 export function isGoalMood(v: unknown): v is GoalMood {
   return typeof v === "string" && (MOODS as string[]).includes(v);
@@ -49,6 +56,7 @@ export function isoToDbDate(iso: string): Date | null {
 export function serializeGoal(g: {
   id: string;
   title: string;
+  type?: string;
   startDate: Date;
   endDate: Date;
   status: string;
@@ -56,6 +64,7 @@ export function serializeGoal(g: {
   return {
     id: g.id,
     title: g.title,
+    type: normalizeGoalType(g.type),
     startIso: iranDayKey(g.startDate),
     endIso: iranDayKey(g.endDate),
     startLabel: formatJalali(g.startDate),
@@ -122,6 +131,33 @@ export function serializeInsight(i: {
     suggestions,
     generatedAtIso: i.generatedAt.toISOString(),
   };
+}
+
+/**
+ * کارت‌های «کتابخانهٔ مسیرها» — اهدافِ تمام‌شده/رهاشده (TASK-28 فاز ۳).
+ * فقط‌خواندنی، سبک: شمارشِ استوری/بینش + اولین استوری به‌عنوانِ «جوهرِ مسیر».
+ */
+export async function loadJourneyCards(userId: string): Promise<SerializedJourneyCard[]> {
+  const goals = await prisma.goal.findMany({
+    where: { userId, status: { in: ["completed", "abandoned"] } },
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { stories: true, insights: true } },
+      stories: { orderBy: [{ date: "asc" }, { createdAt: "asc" }], take: 1, select: { content: true } },
+    },
+  });
+  return goals.map((g) => ({
+    id: g.id,
+    type: normalizeGoalType(g.type),
+    title: g.title,
+    status: g.status,
+    startLabel: formatJalali(g.startDate),
+    endLabel: formatJalali(g.endDate),
+    totalDays: totalDays(g.startDate, g.endDate),
+    storyCount: g._count.stories,
+    insightCount: g._count.insights,
+    essence: g.stories[0]?.content ?? null,
+  }));
 }
 
 /** هدفِ فعالِ کاربر (با lazy-completion). اگر امروز از پایان گذشته → completed + اعلان. */

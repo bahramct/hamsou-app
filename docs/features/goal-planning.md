@@ -1,6 +1,6 @@
-# فیچر «برنامه‌ریزی» — سفرِ یک‌هدفی روایی + کوچِ «همراه»
+# فیچر «برنامه‌ریزی و چالش» — سفرِ یک‌هدفی روایی + کوچِ «همراه»
 
-> منبعِ تصمیم: **DECISION-082** (جایگزینِ DECISION-024). این سند معماریِ اجراییِ فیچر را توضیح می‌دهد.
+> منبعِ تصمیم: **DECISION-082** (جایگزینِ DECISION-024) + **DECISION-093** (هدف/چالش، سقفِ ۳۰ روز، ریلِ سفر). این سند معماریِ اجراییِ فیچر را توضیح می‌دهد.
 
 ## جوهر
 
@@ -12,6 +12,7 @@ AI به نامِ **«همراه»** راهنمایی بگیرند. یادآور�
 ## گاردهای ضدِ Task Manager (مانیفست §۱)
 
 - فقط **یک هدفِ فعال** در لحظه (enforce در API، نه DB unique — چون اهدافِ تمام‌شده می‌مانند).
+- **هدف یا چالش، حداکثر ۳۰ روز** (DECISION-093) — کوتاه و قابل‌نوشتن، ضدِ هدفِ بی‌پایان. enforce در ساخت و ویرایش؛ UX بدونِ اعلانِ قبلی (فقط toast هنگامِ ثبت).
 - بدون sub-task، priority، dependency، چک‌باکسِ «انجام شد».
 - بدون درصد تکمیل، استریک، امتیاز، مدال، رنک. تنها نمایشِ زمانی: «روز k از n» و «N روز مانده».
 - استوری = نوشتهٔ روایی **قابل‌ویرایش** (برخلافِ DailyEntry که قفل می‌شود).
@@ -29,7 +30,7 @@ AI به نامِ **«همراه»** راهنمایی بگیرند. یادآور�
 
 ## مدل داده (`prisma/schema.prisma`)
 
-- **Goal** — `userId, title, startDate, endDate, status(active|completed|abandoned)`. تاریخ‌ها begin-of-day ایران (UTC midnight).
+- **Goal** — `userId, title, type(goal|challenge), startDate, endDate, status(active|completed|abandoned)`. تاریخ‌ها begin-of-day ایران (UTC midnight). `type` فقط لحن/بَج را عوض می‌کند (هدف=sage، چالش=ember)، نه ساختار را.
 - **GoalStory** — `goalId, userId, date, content, mood?(good|neutral|hard), visibility(private|shared), shareToken?`. چند استوری در یک روز مجاز.
 - **GoalCompanionInsight** — `goalId, userId, dayKey, dayNumber, aiContent(JSON)`؛ `@@unique([goalId, dayKey])` = سقفِ روزی‌یک‌بار.
 - **GoalReminder** — `goalId(unique), userId, enabled, times(CSV HH:mm), channel(inapp|email|both), customMessage?, lastFiredKey`.
@@ -37,8 +38,10 @@ AI به نامِ **«همراه»** راهنمایی بگیرند. یادآور�
 ## لایه‌ها و فایل‌ها
 
 - **منطقِ تاریخ:** `src/lib/goal/dates.ts` — `goalToday`, `iranDayKey`, `todayKey`, `iranClock`, `totalDays`, `currentDayNumber`, `daysRemaining`, `companionWindow` (قاعدهٔ روزِ ۳ تا قبل از پایان).
-- **سرورِ مشترک:** `src/lib/goal/server.ts` — `loadActiveGoalView(userId)` (نمای کاملِ هدفِ فعال + lazy-completion)، serializerها، `isoToDbDate`.
-- **استوری‌بورد (client-safe):** `src/lib/goal/storyboard.ts` — `buildDaySlots(...)` + `MOOD_LABELS`.
+- **سرورِ مشترک:** `src/lib/goal/server.ts` — `loadActiveGoalView(userId)` (نمای کاملِ هدفِ فعال + lazy-completion)، `loadJourneyCards(userId)` (کارت‌های مسیرهای گذشته)، serializerها، `isoToDbDate`، `normalizeGoalType`.
+- **کتابخانهٔ مسیرها (DECISION-094):** `src/components/features/goal/{JourneyLibrary,JourneyCard,JourneyRecapModal}.tsx` — شبکهٔ کارت‌های مسیرهای گذشته (در پایینِ `/goal` و در `/goal/history`) + مودالِ «بازخوانیِ سفر» (نخِ روزها، lazy از `/api/goal/[id]/recap`، بدونِ AIِ جدید).
+- **استوری‌بورد (client-safe):** `src/lib/goal/storyboard.ts` — `buildDaySlots(...)` + `buildJourneyNodes(...)` (کلِ مسیر، شاملِ روزهای آینده با `isFuture`) + `MOOD_LABELS`.
+- **ریلِ سفر:** `src/components/features/goal/JourneyRail.tsx` (DECISION-093) — خطِ افقیِ تختِ فلش‌دار (نه درگ)، نشانِ طلاییِ همراه، tooltipِ شناورِ Portal؛ کلیک → `DayDetailModal`. جایگزینِ `DayCard` (حذف‌شده). بَجِ نوع: `GoalTypeBadge.tsx`.
 - **نقشِ AI:** `prompts/goal-companion/v1.fa.md` + `src/lib/ai/roles/goal-companion/{schema,index}.ts` + register در `bootstrap.ts` + ردیف در `admin-catalog.ts::AI_ROLES_ADMIN`.
 - **زمان‌بند:** `src/lib/goal/reminder-scheduler.ts::runReminderTick()`.
 
@@ -46,11 +49,12 @@ AI به نامِ **«همراه»** راهنمایی بگیرند. یادآور�
 
 | Route | متد | کار | گیت |
 |------|------|------|------|
-| `/api/goal` | GET/POST | نمای فعال / ساختِ هدف (یک فعال؛ شروع ≥ امروز) | `goal.planning` |
-| `/api/goal/[id]` | PATCH | edit(title/endIso) / complete / abandon | مالکیت |
+| `/api/goal` | GET/POST | نمای فعال / ساختِ هدف یا چالش (یک فعال؛ شروع ≥ امروز؛ بازه ≤ ۳۰ روز؛ `type`) | `goal.planning` |
+| `/api/goal/[id]` | PATCH | edit(title/endIso، بازه ≤ ۳۰ روز) / abandon | مالکیت |
 | `/api/goal/[id]/story` | POST | افزودنِ استوری | مالکیت |
 | `/api/goal/story/[storyId]` | PATCH/DELETE | ویرایش/حذف | مالکیت |
 | `/api/goal/[id]/companion` | POST/GET | بینشِ همراه / فهرست | `goal.companion` + پنجره + روزی‌یک‌بار |
+| `/api/goal/[id]/recap` | GET | «بازخوانیِ سفر» — نخِ روزها (استوری + بینش) فقط‌خواندنی | مالکیت |
 | `/api/goal/[id]/reminder` | PUT | کانفیگِ یادآوری | مالکیت |
 | `/api/cron/reminders` | GET/POST | تیکِ زمان‌بند | `CRON_SECRET` |
 | `/api/dev/goal/reminder-tick` | POST | تیکِ دستیِ dev | `IS_DEV_MODE` |
@@ -78,4 +82,5 @@ AI به نامِ **«همراه»** راهنمایی بگیرند. یادآور�
 - time-travel به روزِ ۳ → دکمهٔ همراه برای PRO فعال؛ FREE/PLUS → کارتِ ارتقا؛ تلاشِ دومِ همان روز → رد.
 - تنظیمِ یادآوری → دکمهٔ dev → اعلانِ ناقوس + (در صورتِ email) لاگِ ارسال؛ اجرای دوباره در همان اسلات → بدونِ تکرار.
 - time-travel به بعد از پایان → اعلانِ `goal.completed` + هدف به تاریخچه.
+- **کتابخانهٔ مسیرها (فاز ۳):** هدفِ تمام‌شده/رهاشده → کارت در پایینِ `/goal` و در `/goal/history`؛ کلیک → «بازخوانیِ سفر» (نخِ استوری‌ها + بینش‌های همراه)؛ مسیرِ بی‌استوری → empty-state.
 - prod-safety: `/api/dev/goal/reminder-tick` در prod → ۴۰۴؛ `/api/cron/reminders` بدونِ secret → ۴۰۱/۵۰۳.

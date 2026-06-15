@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ماکاپ — برنامه‌ریزی و چالش + تاریخچهٔ اهداف (قلب تپندهٔ همسو)</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31;
+  --glass-bg:rgba(255,255,255,.55); --glass-strong-bg:rgba(255,255,255,.72);
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1); color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218;
+  --glass-bg:rgba(41,36,30,.55); --glass-strong-bg:rgba(41,36,30,.72);
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:"PelakFA",Tahoma,sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; position:relative; overflow-x:hidden; font-feature-settings:"ss01" on; transition:background .4s,color .4s;}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 78% 8%, rgba(193,154,74,.10), transparent 60%),radial-gradient(55% 45% at 12% 22%, rgba(155,180,199,.10), transparent 60%),radial-gradient(50% 40% at 50% 100%, rgba(122,132,113,.08), transparent 65%);}
+[data-theme="dark"] body::before{background:radial-gradient(60% 50% at 78% 8%, rgba(207,174,99,.10), transparent 60%),radial-gradient(55% 45% at 12% 22%, rgba(138,167,188,.08), transparent 60%),radial-gradient(50% 40% at 50% 100%, rgba(151,162,138,.07), transparent 65%);}
+.glass{background:var(--glass-bg); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border:1px solid var(--line); box-shadow:0 12px 40px rgba(46,44,40,.08), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04);}
+.glass-strong{background:var(--glass-strong-bg); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px); border:1px solid var(--line); box-shadow:0 18px 50px rgba(46,44,40,.10), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass-strong{box-shadow:0 18px 50px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.04);}
+
+.nav{position:sticky; top:0; z-index:40; background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1024px; margin:0 auto; height:64px; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.logo{font-weight:700; font-size:20px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.logo .dot{width:9px; height:9px; border-radius:50%; background:var(--ember);}
+.nav-items{display:flex; gap:4px; flex:1; justify-content:center;}
+.nav-items a{position:relative; padding:8px 16px; border-radius:12px; font-size:14px; color:var(--stone); text-decoration:none;}
+.nav-items a.active{color:var(--ink); font-weight:500;}
+.nav-items a.active::after{content:""; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); width:20px; height:2px; border-radius:2px; background:rgba(199,93,60,.7);}
+.icon-btn{width:38px; height:38px; border-radius:12px; border:none; background:transparent; color:var(--stone); cursor:pointer; display:flex; align-items:center; justify-content:center;}
+.icon-btn:hover{background:rgba(var(--rgb-line),.05); color:var(--ink);}
+
+.wrap{position:relative; z-index:10; max-width:1024px; margin:0 auto; padding:34px 24px 90px;}
+.page-title{font-size:13px; color:var(--fog); margin:0 2px 18px;}
+.page-title b{color:var(--stone); font-weight:600; font-size:15px;}
+.section-head{display:flex; align-items:center; gap:14px; margin:46px 2px 18px;}
+.section-head h2{font-size:13px; font-weight:600; color:var(--stone); letter-spacing:.3px; white-space:nowrap;}
+.section-head .rule{flex:1; height:1px; background:var(--line);}
+.section-head .hint{font-size:11px; color:var(--fog);}
+
+.bento{display:grid; grid-template-columns:1.35fr 1fr; gap:16px; grid-template-areas:"hero comp" "path path";}
+.tile{border-radius:22px; padding:20px; position:relative; display:flex; flex-direction:column;}
+.t-hero{grid-area:hero;} .t-comp{grid-area:comp;} .t-path{grid-area:path;}
+.tile-label{font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--fog); margin-bottom:10px;}
+
+.type-badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:4px 11px; border-radius:999px; align-self:flex-start;}
+.type-goal{color:var(--sage-deep); background:rgba(122,132,113,.16); border:1px solid rgba(122,132,113,.28);}
+.type-chal{color:var(--ember); background:rgba(199,93,60,.12); border:1px solid rgba(199,93,60,.25);}
+
+.hero-title{font-size:20px; font-weight:600; color:var(--ink); margin:12px 0 8px;}
+.hero-meta{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.hero-day{font-size:12px; color:var(--stone); background:rgba(var(--rgb-line),.05); padding:4px 11px; border-radius:999px;}
+.hero-hint{font-size:11px; color:var(--fog); margin-top:12px; display:flex; align-items:center; gap:5px; line-height:1.7;}
+.story-today{margin-top:14px; font-size:13.5px; line-height:2.05; color:var(--ink); background:rgba(var(--rgb-line),.03); border:1px solid var(--line); border-radius:14px; padding:13px 15px;}
+.story-today .q{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--fog); margin-bottom:6px;}
+
+.t-comp{border-color:rgba(193,154,74,.22)!important; background:rgba(193,154,74,.05);}
+.comp-h{display:flex; align-items:center; gap:8px; margin-bottom:12px;}
+.comp-av{width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(193,154,74,.16); color:var(--gold);}
+.comp-nm{font-size:13px; font-weight:600; color:var(--stone);}
+.comp-chip{font-size:10px; color:var(--gold); background:rgba(193,154,74,.13); padding:3px 9px; border-radius:999px; border:1px solid rgba(193,154,74,.25);}
+.comp-text{font-size:13px; line-height:2.05; color:var(--ink);}
+.comp-more{margin-top:auto; padding-top:12px; font-size:11.5px; color:var(--sage-deep); background:none; border:none; cursor:pointer; font-family:inherit; text-align:right;}
+
+/* ════ ریلِ کشیدنیِ افقی — پنجرهٔ محدود + محوِ لبه‌ها + درگ ════ */
+.rail-outer{position:relative; margin-top:10px;}
+.rail-viewport{overflow-x:auto; overflow-y:hidden; cursor:default; scroll-behavior:smooth; user-select:none; -webkit-user-select:none; scrollbar-width:none; -ms-overflow-style:none;
+  -webkit-mask-image:linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);
+          mask-image:linear-gradient(to right, transparent, #000 56px, #000 calc(100% - 56px), transparent);}
+.rail-viewport::-webkit-scrollbar{display:none;}
+.rail-track{position:relative; display:flex; align-items:flex-start; width:max-content; height:96px; padding-top:8px; user-select:none; -webkit-user-select:none;}
+.line, .line-done{position:absolute; top:22px; height:3px; border-radius:999px; z-index:0;}
+.line{right:32px; left:32px; background:rgba(var(--rgb-line),.12);}
+.line-done{right:32px; background:rgba(122,132,113,.5);}
+/* فلش‌های حرکت روی مسیر (به‌جای درگ) — گرم و محو، فقط وقتی لازم است */
+.rail-arrow{position:absolute; top:23px; transform:translateY(-50%); z-index:12; width:30px; height:30px; border-radius:50%;
+  border:1px solid var(--line); background:var(--glass-strong-bg); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); color:var(--stone);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0; pointer-events:none;
+  transition:opacity .25s var(--ease-expo), color .2s, transform .2s;}
+.rail-arrow.show{opacity:.82; pointer-events:auto;}
+.rail-arrow.show:hover{opacity:1; color:var(--ember); transform:translateY(-50%) scale(1.08);}
+.ra-right{right:2px;} .ra-left{left:2px;}
+.pnode{position:relative; z-index:1; flex:0 0 64px; width:64px; display:flex; flex-direction:column; align-items:center; padding-top:16px;}
+.pnode:hover{z-index:5;}
+.pdot{width:15px; height:15px; border-radius:50%; background:var(--paper); border:2.5px solid var(--fog); cursor:default; transition:transform .25s var(--ease-expo); position:relative;}
+.pnode.has-more .pdot{cursor:pointer;}
+.pnode:not(.future):hover .pdot{transform:scale(1.32);}
+.pdot.done{background:var(--sage); border-color:var(--sage);}
+.pdot.today{background:var(--ember); border-color:var(--ember); box-shadow:0 0 0 5px rgba(199,93,60,.16);}
+.pdot.future{border-color:rgba(189,182,167,.5);}
+.pnode.has-more .pdot::after{content:""; position:absolute; top:-4px; right:-4px; width:8px; height:8px; border-radius:50%; background:var(--gold); border:1.5px solid var(--paper);}
+.pday{margin-top:9px; font-size:10.5px; color:var(--fog); white-space:nowrap;}
+.pnode.is-today .pday{color:var(--ember); font-weight:600;}
+.cm{margin-top:12px; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; background:rgba(193,154,74,.18); color:var(--gold); border:1px solid rgba(193,154,74,.45); transition:transform .25s var(--ease-expo);}
+.cm:hover{transform:scale(1.18);}
+.cm-empty{margin-top:12px; width:22px; height:22px;}
+.path-foot{display:flex; gap:18px; justify-content:center; align-items:center; margin-top:10px; flex-wrap:wrap;}
+.path-foot .lg{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--stone);}
+.lg .ds{width:11px;height:11px;border-radius:50%;background:var(--sage);}
+.lg .dg{width:15px;height:15px;border-radius:50%;background:rgba(193,154,74,.18);border:1px solid rgba(193,154,74,.45);display:flex;align-items:center;justify-content:center;color:var(--gold);}
+.drag-hint{font-size:11px; color:var(--fog); display:flex; align-items:center; gap:5px;}
+
+/* tooltipِ شناور (fixed) — بدونِ کلیپ‌شدن */
+.tip{position:fixed; z-index:80; width:212px; padding:11px 13px; border-radius:14px;
+  background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--line); box-shadow:0 16px 44px rgba(46,44,40,.22);
+  opacity:0; pointer-events:none; display:none; transform:translate(-50%,-100%) translateY(6px); transition:opacity .2s var(--ease-expo), transform .2s var(--ease-expo);}
+.tip.show{opacity:1; transform:translate(-50%,-100%) translateY(0);}
+.tip.below{transform:translate(-50%,0) translateY(-6px);}
+.tip.below.show{transform:translate(-50%,0) translateY(0);}
+.tip.gold{border-color:rgba(193,154,74,.4);}
+.tip .d{font-size:10px; color:var(--fog); margin-bottom:4px;} .tip.gold .d{color:var(--gold);}
+.tip .s{font-size:12px; line-height:1.85; color:var(--stone);}
+.tip .tap{font-size:10px; color:var(--ember); margin-top:6px;}
+
+/* ════ کتابخانهٔ مسیرها ════ */
+.journeys{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px;}
+.jcard{border-radius:22px; overflow:hidden; cursor:pointer; transition:transform .4s var(--ease-expo), box-shadow .4s; display:flex; flex-direction:column; border:1px solid var(--line);}
+.jcard:hover{transform:translateY(-4px); box-shadow:0 22px 50px rgba(46,44,40,.14);}
+.jcover{height:130px; position:relative; overflow:hidden; padding:16px; display:flex; flex-direction:column; justify-content:space-between;}
+.jcover .motif{position:absolute; bottom:-28px; left:-18px; opacity:.16; transform:rotate(-8deg);}
+.jcover .grain{position:absolute; inset:0; opacity:.5; mix-blend-mode:overlay; pointer-events:none; background-image:radial-gradient(rgba(0,0,0,.05) 1px, transparent 1px); background-size:4px 4px;}
+.jcover h3{font-size:16px; font-weight:700; color:var(--ink); line-height:1.55; position:relative; z-index:1; max-width:75%;}
+.jbody{padding:15px 16px 16px; background:var(--glass-bg); backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:9px;}
+.jrange{font-size:11px; color:var(--fog);}
+.jessence{font-size:13px; line-height:1.9; color:var(--stone); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.jmeta{display:flex; gap:12px; font-size:11px; color:var(--stone); padding-top:8px; border-top:1px solid var(--line);}
+.jmeta b{color:var(--ink); font-weight:600;}
+.status{font-size:10px; padding:3px 9px; border-radius:999px; align-self:flex-start; position:relative; z-index:1; backdrop-filter:blur(6px);}
+.st-done{background:rgba(255,255,255,.5); color:var(--sage-deep);} .st-left{background:rgba(255,255,255,.5); color:var(--stone);}
+[data-theme="dark"] .st-done, [data-theme="dark"] .st-left{background:rgba(0,0,0,.25);}
+
+/* ════ مودال‌ها — مرکز، قفلِ پس‌زمینه، اسکرولِ بدونِ نوار ════ */
+.overlay{position:fixed; inset:0; z-index:60; display:none; padding:24px; background:rgba(26,26,31,.4); backdrop-filter:blur(6px); align-items:center; justify-content:center;}
+.overlay.open{display:flex;}
+.recap{max-width:620px; width:100%; max-height:86vh; border-radius:26px; overflow:hidden; display:flex; flex-direction:column; animation:pop .35s var(--ease-expo);}
+.modal-c{max-width:480px; width:100%; max-height:84vh; border-radius:24px; overflow:hidden; display:flex; flex-direction:column; animation:pop .3s var(--ease-expo);}
+@keyframes pop{from{opacity:0; transform:translateY(14px) scale(.99);} to{opacity:1; transform:none;}}
+.scroll-area{overflow-y:auto; overscroll-behavior:contain; scrollbar-width:none; -ms-overflow-style:none;}
+.scroll-area::-webkit-scrollbar{display:none; width:0; height:0;}
+.recap-cover{padding:30px 28px 24px; position:relative;}
+.recap-cover .close{position:absolute; top:16px; left:16px;}
+.recap-cover .eyebrow{font-size:11px; letter-spacing:1px; margin-bottom:8px; display:flex; align-items:center; gap:6px;}
+.recap-cover h2{font-size:24px; font-weight:700; color:var(--ink); margin-bottom:8px;}
+.recap-cover .sub{font-size:12.5px; color:var(--stone);}
+.recap-body{padding:24px 28px 30px;}
+.recap-summary{border-radius:16px; padding:18px; background:rgba(193,154,74,.06); border:1px solid rgba(193,154,74,.2); margin-bottom:22px;}
+.recap-summary .h{font-size:12px; font-weight:600; color:var(--gold); margin-bottom:8px; display:flex; align-items:center; gap:6px;}
+.recap-summary p{font-size:13.5px; line-height:2.2; color:var(--ink);}
+.thread-day{padding:16px 0; border-bottom:1px solid var(--line);}
+.thread-day:last-child{border-bottom:none;}
+.thread-day .dt{font-size:11px; color:var(--fog); margin-bottom:6px;}
+.thread-day .story{font-size:13.5px; line-height:2.05; color:var(--ink);}
+.thread-comp{margin-top:12px; border-radius:14px; padding:13px 15px; background:rgba(193,154,74,.06); border:1px solid rgba(193,154,74,.2);}
+.thread-comp .h{font-size:11px; color:var(--gold); margin-bottom:5px; display:flex; align-items:center; gap:6px;}
+.thread-comp p{font-size:12.5px; line-height:1.95; color:var(--stone);}
+.modal-head{display:flex; align-items:center; justify-content:space-between; padding:20px 22px 14px; flex-shrink:0;}
+.modal-head h3{font-size:15px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.mc-body{padding:0 22px 22px;}
+
+.note{max-width:1024px; margin:30px auto 0; padding:0 24px;}
+.note .box{font-size:12px; color:var(--fog); line-height:1.9; border:1px dashed var(--line); border-radius:16px; padding:16px 18px;}
+.note b{color:var(--stone); font-weight:600;}
+.theme-fab{position:fixed; bottom:16px; left:16px; z-index:50;}
+
+@media (max-width:760px){ .nav-items{display:none;} .wrap{padding:24px 16px 80px;} .bento{grid-template-columns:1fr; grid-template-areas:"hero" "comp" "path";} }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="dot"></span>همسو</div>
+    <div class="nav-items">
+      <a href="dashboard-unified.html">داشبورد</a>
+      <a href="#" class="active">برنامه‌ریزی و چالش</a>
+      <a href="#">گزارش هفتگی</a>
+      <a href="#">پلن‌ها</a>
+    </div>
+    <button class="icon-btn" id="themeToggle" title="تم">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <p class="page-title"><b>برنامه‌ریزی و چالش</b> — یک مسیرِ فعال در هر زمان</p>
+
+  <div class="bento">
+
+    <div class="tile glass t-hero">
+      <span class="type-badge type-goal">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 21v-8M12 13c0-4 3-7 8-7-.2 4-3 7-8 7Zm0 1c0-4.4-3-7.5-8-7.5C4.2 11 7 14 12 14Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        هدف
+      </span>
+      <h1 class="hero-title">سه‌هفته نوشتنِ روزانه</h1>
+      <div class="hero-meta"><span class="hero-day">روز ۵ از ۲۱</span></div>
+      <p class="hero-hint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v.5M12 11.5v4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        مسیر را بکش تا همهٔ روزها را ببینی؛ روزهای پُرمتن نشانِ طلایی دارند و با کلیک کامل باز می‌شوند
+      </p>
+      <div class="story-today">
+        <div class="q">استوریِ امروز</div>
+        امروز سخت‌تر بود — اما همان چند خط نوشتن کمک کرد ذهنم سبک شود. حس می‌کنم کم‌کم دارم با خودم روراست‌تر می‌نویسم.
+      </div>
+    </div>
+
+    <div class="tile glass t-comp">
+      <div class="comp-h"><span class="comp-av"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span><span class="comp-nm">همراه</span><span class="comp-chip">پرو · روز ۵</span></div>
+      <p class="comp-text">«روزهایی که صبح می‌نویسی، متن‌هایت آرام‌تر و کوتاه‌ترند. این قضاوت نیست — فقط الگویی که شاید خودت هم حسش کرده باشی.»</p>
+      <button class="comp-more" onclick="openModal('compModal')">خواندنِ کامل ←</button>
+    </div>
+
+    <div class="tile glass t-path">
+      <span class="tile-label">مسیرت تا اینجا</span>
+      <div class="rail-outer">
+        <button class="rail-arrow ra-right" id="raRight" aria-label="روزهای جدیدتر"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="rail-viewport" id="railVp">
+          <div class="rail-track" id="railTrack"></div>
+        </div>
+        <button class="rail-arrow ra-left" id="raLeft" aria-label="روزهای بعد"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="path-foot">
+        <span class="lg"><span class="ds"></span>روزهای تو</span>
+        <span class="lg"><span class="dg"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>نشانِ همراه</span>
+        <span class="drag-hint">— با فلش‌ها در مسیر حرکت کن (۲۱ روز)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ مسیرهای گذشته ═══════ -->
+  <div class="section-head">
+    <h2>مسیرهای گذشته</h2>
+    <span class="rule"></span>
+    <span class="hint">هر مسیر، یک فصل از راهی که رفته‌ای</span>
+  </div>
+
+  <div class="journeys">
+    <div class="jcard" onclick="openModal('recap')">
+      <div class="jcover" style="background:linear-gradient(140deg, rgba(122,132,113,.30), rgba(193,154,74,.16) 70%, rgba(var(--rgb-card),.2));">
+        <div class="grain"></div>
+        <svg class="motif" width="150" height="150" viewBox="0 0 24 24" fill="none"><path d="M12 21v-9M12 12c0-5 3.5-8.5 9-8.5C20.8 8.5 17.5 12 12 12Zm0 1.5c0-5-3.5-8.5-9-8.5C3.2 10 6.5 13.5 12 13.5Z" stroke="var(--sage-deep)" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        <span class="status st-done">به‌پایان رسید</span>
+        <h3>چهل روز پیاده‌رویِ صبحگاهی</h3>
+      </div>
+      <div class="jbody">
+        <span class="jrange">۱ فروردین تا ۱۰ اردیبهشت ۱۴۰۵</span>
+        <span class="jessence">«اولش برای تناسب بود، آخرش شد قرارِ هرروزم با خودم.»</span>
+        <span class="jmeta"><span><b>۴۰</b> روز</span><span><b>۳۴</b> استوری</span><span><b>۹</b> همراه</span></span>
+      </div>
+    </div>
+    <div class="jcard" onclick="openModal('recap')">
+      <div class="jcover" style="background:linear-gradient(140deg, rgba(199,93,60,.26), rgba(155,180,199,.18) 70%, rgba(var(--rgb-card),.2));">
+        <div class="grain"></div>
+        <svg class="motif" width="140" height="140" viewBox="0 0 24 24" fill="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="var(--ember)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <span class="status st-done">به‌پایان رسید</span>
+        <h3>دو هفته بدونِ شبکه‌های اجتماعی</h3>
+      </div>
+      <div class="jbody">
+        <span class="jrange">۵ تا ۱۹ بهمن ۱۴۰۴</span>
+        <span class="jessence">«سخت‌ترین چیزی که فکر می‌کردم آسان است.»</span>
+        <span class="jmeta"><span><b>۱۴</b> روز</span><span><b>۱۲</b> استوری</span><span><b>۴</b> همراه</span></span>
+      </div>
+    </div>
+    <div class="jcard" onclick="openModal('recap')">
+      <div class="jcover" style="background:linear-gradient(140deg, rgba(122,132,113,.28), rgba(193,154,74,.18) 70%, rgba(var(--rgb-card),.2));">
+        <div class="grain"></div>
+        <svg class="motif" width="140" height="140" viewBox="0 0 24 24" fill="none"><path d="M9 18V5l11-2v13M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm11-2a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z" stroke="var(--sage-deep)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <span class="status st-done">به‌پایان رسید</span>
+        <h3>ده روز تمرینِ پیوستهٔ گیتار</h3>
+      </div>
+      <div class="jbody">
+        <span class="jrange">۲ تا ۱۱ دی ۱۴۰۴</span>
+        <span class="jessence">«انگشت‌هایم یاد گرفتند؛ مهم‌تر از آن، صبر یاد گرفتم.»</span>
+        <span class="jmeta"><span><b>۱۰</b> روز</span><span><b>۱۰</b> استوری</span><span><b>۳</b> همراه</span></span>
+      </div>
+    </div>
+    <div class="jcard" onclick="openModal('recap')">
+      <div class="jcover" style="background:linear-gradient(140deg, rgba(94,124,147,.24), rgba(189,182,167,.2) 70%, rgba(var(--rgb-card),.2));">
+        <div class="grain"></div>
+        <svg class="motif" width="140" height="140" viewBox="0 0 24 24" fill="none"><path d="M3 20 10 7l4 6 3-4 4 11" stroke="var(--mist-deep)" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        <span class="status st-left">نیمه‌رها</span>
+        <h3>چالشِ سحرخیزی</h3>
+      </div>
+      <div class="jbody">
+        <span class="jrange">۲ تا ۲۰ آذر ۱۴۰۴</span>
+        <span class="jessence">«تا روز ۱۸ آمدم؛ بعد زندگی شلوغ شد. اما بی‌فایده نبود.»</span>
+        <span class="jmeta"><span><b>۱۸</b> روز</span><span><b>۱۵</b> استوری</span><span><b>۵</b> همراه</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- بازخوانیِ سفر -->
+<div class="overlay" id="recap" onclick="if(event.target===this)closeModal('recap')">
+  <div class="recap glass-strong">
+    <div class="scroll-area">
+      <div class="recap-cover" style="background:linear-gradient(140deg, rgba(122,132,113,.22), rgba(193,154,74,.14));">
+        <button class="icon-btn close" onclick="closeModal('recap')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+        <div class="eyebrow" style="color:var(--sage-deep);"><span class="type-badge type-goal" style="font-size:10px;">هدف</span> یک مسیرِ به‌پایان‌رسیده</div>
+        <h2>چهل روز پیاده‌رویِ صبحگاهی</h2>
+        <p class="sub">۱ فروردین تا ۱۰ اردیبهشت ۱۴۰۵ · ۴۰ روز · ۳۴ روز نوشتی · ۹ بازخوردِ همراه</p>
+      </div>
+      <div class="recap-body">
+        <div class="recap-summary">
+          <div class="h"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg> نگاهی به این مسیر — از زبانِ همراه</div>
+          <p>چهل روز پیش برای تناسبِ اندام شروع کردی، اما چیزی که در نوشته‌هایت پررنگ شد، تناسب نبود — آرامش بود. هرچه جلوتر رفتی، کمتر از «باید» نوشتی و بیشتر از «دلم می‌خواست». روزهایی هم بود که نرفتی و صادقانه نوشتی چرا. این مسیر برایت یک عادت نساخت؛ یک رابطه با خودت ساخت.</p>
+        </div>
+        <div class="thread-day"><div class="dt">روز ۱ · ۱ فروردین</div><div class="story">صبحِ سردی بود. ۱۵ دقیقه رفتم و برگشتم. بیشتر برای اینکه به خودم ثابت کنم می‌توانم شروع کنم.</div></div>
+        <div class="thread-day"><div class="dt">روز ۳ · ۳ فروردین</div><div class="story">امروز دلم نمی‌خواست، اما رفتم. وسط راه فهمیدم ذهنم چقدر شلوغ بوده.</div>
+          <div class="thread-comp"><div class="h"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> همراه نوشت</div><p>سه روزه که می‌روی. دو بار نوشتی «دلم نمی‌خواست اما رفتم» — انگار این مسیر دارد چیزی فراتر از پیاده‌روی یادت می‌دهد.</p></div>
+        </div>
+        <div class="thread-day"><div class="dt">روز ۱۲ · ۱۲ فروردین</div><div class="story">امروز نرفتم. مهمان داشتیم. اما صبح ناخودآگاه دلم برایش تنگ شد — همین خودش یعنی چیزی عوض شده.</div></div>
+        <div class="thread-day"><div class="dt">روز ۲۵ · ۲۵ فروردین</div><div class="story">باران می‌آمد. چترم را برداشتم و رفتم. هیچ‌وقت فکر نمی‌کردم زیرِ باران راه‌رفتن این‌قدر بچسبد.</div></div>
+        <div class="thread-day"><div class="dt">روز ۴۰ · ۱۰ اردیبهشت</div><div class="story">روزِ آخر. دیگر «چهل روز» مهم نیست؛ فردا هم می‌روم، فقط چون دلم می‌خواهد.</div>
+          <div class="thread-comp"><div class="h"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg> همراه نوشت</div><p>از «به خودم ثابت کنم» در روز اول، به «چون دلم می‌خواهد» در روز آخر رسیدی. کمتر مسیری این‌قدر صادقانه عوض می‌شود.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- مودالِ همراه -->
+<div class="overlay" id="compModal" onclick="if(event.target===this)closeModal('compModal')">
+  <div class="modal-c glass-strong">
+    <div class="modal-head">
+      <h3><span class="comp-av"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span> همراه — روز ۵</h3>
+      <button class="icon-btn" onclick="closeModal('compModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="scroll-area mc-body">
+      <p style="font-size:13.5px; line-height:2.3; color:var(--ink);">
+        پنج روزه که می‌نویسی. روزهایی که <b>صبح</b> می‌نویسی، متن‌هایت آرام‌تر و کوتاه‌ترند؛ روزهایی که شب می‌نویسی، خسته‌تری و بیشتر گله می‌کنی.
+        <br><br>این قضاوت نیست — فقط یک الگو. اگر دوست داشتی، چند روز نوشتنِ صبح را امتحان کن و ببین فرقی می‌کند یا نه.
+        <br><br>روزِ سوم نوشته بودی «می‌خواهم تا آخرش بمانم» — همان جمله هنوز اینجاست.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- مودالِ استوریِ روز -->
+<div class="overlay" id="storyModal" onclick="if(event.target===this)closeModal('storyModal')">
+  <div class="modal-c glass-strong">
+    <div class="modal-head">
+      <h3 id="storyTitle">روز</h3>
+      <button class="icon-btn" onclick="closeModal('storyModal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="scroll-area mc-body"><p id="storyText" style="font-size:13.5px; line-height:2.3; color:var(--ink); white-space:pre-wrap;"></p></div>
+  </div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<button class="icon-btn theme-fab glass" id="themeFab" title="تم">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+</button>
+
+<div class="note">
+  <div class="box">
+    <b>ماکاپِ دوم (نسخهٔ ۴):</b>
+    ① <b>تایم‌لاینِ کشیدنی</b>: پنجرهٔ محدود، لبه‌های محو («ادامه دارد»)، با ماوس/لمس بکشید تا همهٔ ۲۱ روز را ببینید (امروز در مرکز).
+    ② <b>سایهٔ ظریفِ سه‌بعدی</b> روی ریل و نقطه‌ها.
+    ③ منطقِ کلیک: کوتاه = فقط tooltip؛ بلند = نشانِ طلایی + کلیک = مودال (روز ۳)؛ نرسیده = غیرفعال.
+    <br><b>یادداشتِ پیاده‌سازی:</b> محدودیتِ بازهٔ هدف/چالش = حداکثر ۳۰ روز؛ بدونِ اعلانِ قبلی — فقط هنگامِ ساخت اگر بازه > ۳۰ شد، <b>toast</b> هشدار می‌دهد.
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  function toggleTheme(){ root.setAttribute("data-theme", root.getAttribute("data-theme")==="dark"?"light":"dark"); }
+  document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+  document.getElementById("themeFab").addEventListener("click", toggleTheme);
+  function openModal(id){ document.getElementById(id).classList.add("open"); document.body.style.overflow="hidden"; }
+  function closeModal(id){ document.getElementById(id).classList.remove("open"); document.body.style.overflow=""; }
+  function openStory(title, text){ document.getElementById("storyTitle").textContent=title; document.getElementById("storyText").textContent=text; openModal("storyModal"); }
+  document.addEventListener("keydown", e => { if(e.key==="Escape") document.querySelectorAll(".overlay.open").forEach(o => { o.classList.remove("open"); document.body.style.overflow=""; }); });
+
+  // ─── ساختِ ریلِ مسیر ───
+  const TOTAL=21, TODAY=5, NODEW=64;
+  const fa = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+  const STORIES = {
+    1:{head:"روز ۱ · شنبه", preview:"شروع کردم. کمی مضطرب بودم اما نوشتم."},
+    2:{head:"روز ۲ · یکشنبه", preview:"امروز روان‌تر بود؛ ده دقیقه نشستم و نوشتم."},
+    3:{head:"روز ۳ · دوشنبه", preview:"یادم رفته بود، شب کوتاه نوشتم درباره‌ی اینکه چرا این هدف برایم مهم است و می‌خواهم تا آخرش بمانم…", long:true,
+       full:"یادم رفته بود، شب یادم آمد و کوتاه نوشتم درباره‌ی اینکه چرا این هدف برایم مهم است و می‌خواهم تا آخرش بمانم. این جمله را نوشتم چون می‌ترسیدم وسط راه ولش کنم، مثلِ خیلی کارهای دیگر. اما این‌بار دلم می‌خواهد فرق کند. شاید چون این‌بار برای کسی نمی‌نویسم، فقط برای خودم."},
+    4:{head:"روز ۴ · سه‌شنبه", preview:"نوشتن کم‌کم دارد عادت می‌شود."},
+    5:{head:"امروز · روز ۵", preview:"امروز سخت‌تر بود — اما همان چند خط نوشتن کمک کرد ذهنم سبک شود."}
+  };
+  const COMP = {
+    3:"سه روزه که می‌نویسی. دیدم وقتی «چرا» برایت مهم است را می‌نویسی، عمیق‌تری.",
+    5:"روزهایی که صبح می‌نویسی، ذهنت آرام‌تر است."
+  };
+
+  const track = document.getElementById("railTrack");
+  let html = `<div class="line"></div><div class="line-done" style="width:${(TODAY-1)*NODEW}px"></div>`;
+  for(let d=1; d<=TOTAL; d++){
+    const today=d===TODAY, future=d>TODAY;
+    const st=STORIES[d];
+    const dotCls = today?"today":(future?"future":"done");
+    const hasMore = !!(st && st.long);
+    const cls = "pnode"+(today?" is-today":"")+(future?" future":"")+(hasMore?" has-more":"");
+    const dayLabel = today?"امروز":fa(d);
+    const comp = COMP[d] ? `<div class="cm" data-comp="${d}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>` : `<div class="cm-empty"></div>`;
+    html += `<div class="${cls}" data-day="${d}"><div class="pdot ${dotCls}"></div><div class="pday">${dayLabel}</div>${comp}</div>`;
+  }
+  track.innerHTML = html;
+
+  // ─── tooltipِ شناور ───
+  const tip = document.getElementById("tip");
+  let tipTimer=null;
+  function showTip(el, htmlContent, below, gold){
+    clearTimeout(tipTimer);
+    tip.innerHTML = htmlContent;
+    tip.className = "tip" + (below?" below":"") + (gold?" gold":"");
+    tip.style.display = "block";
+    const r = el.getBoundingClientRect();
+    tip.style.left = (r.left + r.width/2) + "px";
+    tip.style.top  = below ? (r.bottom + 8) + "px" : (r.top - 8) + "px";
+    requestAnimationFrame(()=> tip.classList.add("show"));
+  }
+  function hideTip(){ tip.classList.remove("show"); tipTimer=setTimeout(()=>{ tip.style.display="none"; },180); }
+
+  track.querySelectorAll(".pnode").forEach(node => {
+    const d = +node.dataset.day;
+    const st = STORIES[d];
+    node.addEventListener("mouseenter", () => {
+      if(node.classList.contains("future")){
+        showTip(node, `<div class="d">روز ${fa(d)} · هنوز نرسیده</div><div class="s" style="color:var(--fog)">از این روز می‌توانی بنویسی.</div>`, false, false);
+      } else if(st){
+        showTip(node, `<div class="d">${st.head}</div><div class="s">${st.preview}</div>${st.long?'<div class="tap">روی نقطه بزن تا کامل ببینی →</div>':''}`, false, false);
+      }
+    });
+    node.addEventListener("mouseleave", hideTip);
+    if(st && st.long){
+      node.addEventListener("click", () => openStory(st.head, st.full));
+    }
+    const cm = node.querySelector(".cm");
+    if(cm){
+      cm.addEventListener("mouseenter", (e) => { e.stopPropagation(); showTip(cm, `<div class="d">همراه · ${d===TODAY?'امروز':'روز '+fa(d)}</div><div class="s">${COMP[d]}</div><div class="tap">کلیک = خواندنِ کامل</div>`, true, true); });
+      cm.addEventListener("mouseleave", (e)=>{ e.stopPropagation(); hideTip(); });
+      cm.addEventListener("click", (e) => { e.stopPropagation(); openModal("compModal"); });
+    }
+  });
+
+  // ─── حرکت با فلش‌ها (درگ غیرفعال — تا متن/نقطه سلکت نشود) ───
+  const vp = document.getElementById("railVp");
+  const raRight = document.getElementById("raRight");
+  const raLeft  = document.getElementById("raLeft");
+  let centerDay = TODAY;
+  function centerOn(day){ const el=track.querySelector('.pnode[data-day="'+day+'"]'); if(el) el.scrollIntoView({inline:"center", block:"nearest", behavior:"smooth"}); }
+  function go(delta){ centerDay = Math.max(1, Math.min(TOTAL, centerDay+delta)); centerOn(centerDay); hideTip(); setTimeout(updateArrows, 400); }
+  raRight.addEventListener("click", () => go(-5));
+  raLeft .addEventListener("click", () => go(+5));
+  function updateArrows(){
+    const slAbs = Math.abs(vp.scrollLeft);
+    const max = vp.scrollWidth - vp.clientWidth - 1;
+    raRight.classList.toggle("show", slAbs > 4);
+    raLeft .classList.toggle("show", slAbs < max);
+  }
+  vp.addEventListener("scroll", updateArrows, {passive:true});
+  setTimeout(() => { centerOn(TODAY); setTimeout(updateArrows, 420); }, 60);
+</script>
+</body>
+</html>

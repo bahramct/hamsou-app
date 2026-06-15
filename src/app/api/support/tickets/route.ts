@@ -16,6 +16,29 @@ import {
   TICKET_LIMITS,
 } from "@/lib/support/tickets";
 
+// GET — فهرستِ تیکت‌های کاربر (برای دراورِ پشتیبانی در پروفایل، DECISION-096)
+export async function GET() {
+  const ctx = await getTicketingContext();
+  if (!ctx) return NextResponse.json({ error: "احراز هویت لازم است." }, { status: 401 });
+
+  const tickets = await prisma.supportTicket.findMany({
+    where: { userId: ctx.userId },
+    orderBy: { lastMessageAt: "desc" },
+    take: 50,
+    select: { id: true, subject: true, category: true, status: true, lastMessageAt: true },
+  });
+
+  return NextResponse.json({
+    tickets: tickets.map((t) => ({
+      id: t.id,
+      subject: t.subject,
+      category: t.category,
+      status: t.status,
+      lastMessageAt: t.lastMessageAt.toISOString(),
+    })),
+  });
+}
+
 export async function POST(req: NextRequest) {
   const ctx = await getTicketingContext();
   if (!ctx) return NextResponse.json({ error: "احراز هویت لازم است." }, { status: 401 });

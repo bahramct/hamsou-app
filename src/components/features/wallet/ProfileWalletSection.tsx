@@ -1,13 +1,15 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ProfileWalletSection — بخش کیف‌پول در صفحهٔ پروفایل (DECISION-062)
-// خلاصه: موجودی + کارت‌های ثبت‌شده (حداکثر ۲) + ۳ تراکنش اخیر + لینک به /wallet
+// ProfileWalletSection — تایلِ «امور مالی و تراکنش‌ها» (بازطراحی DECISION-096)
+// نوارِ موجودی + شارژ (TopupPanel) · کارتِ کارت‌به‌کارت · تراکنش‌های اخیر +
+// «مشاهدهٔ همه» در مودال (الگوی تاریخچه). موجودی در هیرو هم نمایش داده می‌شود.
+// قواعد: متن دکمه ثابت + Spinner (DECISION-053)، toast برای نتیجه (DECISION-046).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { toast } from "@/lib/notifications/toast";
 import { Spinner } from "@/components/ui/Spinner";
 import { onlyDigits } from "@/lib/utils/digits";
@@ -27,6 +29,7 @@ interface Props {
   balance: number;
   cardNumber: string | null;
   cardNumber2: string | null;
+  /** تا ۲۰ تراکنشِ اخیر — ۴ تای اول در تایل، بقیه در مودال */
   recentTxs: ProfileWalletTx[];
 }
 
@@ -34,28 +37,61 @@ function groupCard(num: string): string {
   return (num.match(/.{1,4}/g) ?? [num]).join(" - ");
 }
 
-function faDate(iso: string): string {
+function faDateTime(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString("fa-IR", { month: "2-digit", day: "2-digit" });
+    const d = new Date(iso);
+    const date = d.toLocaleDateString("fa-IR", { day: "numeric", month: "long", year: "numeric" });
+    const time = d.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" });
+    return `${date} · ${time}`;
   } catch { return iso; }
 }
 
-const STATUS_CLS: Record<string, string> = {
-  pending: "text-amber-700 bg-amber-400/12",
-  approved: "text-sage-deep bg-sage/12",
-  completed: "text-sage-deep bg-sage/12",
-  rejected: "text-ember bg-ember/10",
-};
-
 function txLabel(t: ProfileWalletTx): string {
-  if (t.type === "topup") return "شارژ";
+  if (t.type === "topup") return "شارژ کیف‌پول";
   if (t.type === "purchase") return "خرید پلن";
-  return "اصلاح";
+  return "اصلاح موجودی";
+}
+
+function statusInfo(status: string): { label: string; cls: string } {
+  if (status === "pending") return { label: "در انتظار", cls: "pf-st-pending" };
+  if (status === "rejected") return { label: "رد شد", cls: "pf-st-rej" };
+  return { label: "انجام شد", cls: "pf-st-ok" };
+}
+
+// ─── ردیفِ یک تراکنش (مشترکِ تایل و مودال) ─────────────────────────────────────
+function TxRow({ t, onReceipt }: { t: ProfileWalletTx; onReceipt: (id: string) => void }) {
+  const positive = t.amount >= 0;
+  const st = statusInfo(t.status);
+  const canReceipt = t.status === "approved" || t.status === "completed";
+  return (
+    <div className="pf-tx">
+      <div className={`pf-tx-ic ${positive ? "up" : "down"}`}>
+        {positive ? (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        ) : (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        )}
+      </div>
+      <div className="pf-tx-mid">
+        <div className="t">{txLabel(t)} <span className={`pf-st ${st.cls}`}>{st.label}</span></div>
+        <div className="d fa-num">{faDateTime(t.createdAt)}</div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className={`pf-tx-amt fa-num ${positive ? "pos" : "neg"}`}>
+          {positive ? "+" : "−"}{Math.abs(t.amount).toLocaleString("fa-IR")}
+        </span>
+        {canReceipt && (
+          <button onClick={() => onReceipt(t.id)} className="text-[10px] text-stone hover:text-ink underline underline-offset-2">رسید</button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function ProfileWalletSection({ balance, cardNumber, cardNumber2, recentTxs }: Props) {
   const router = useRouter();
   const [showTopup, setShowTopup] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const [receiptTx, setReceiptTx] = useState<string | null>(null);
 
   // مدیریت ۲ کارت
@@ -65,7 +101,6 @@ export function ProfileWalletSection({ balance, cardNumber, cardNumber2, recentT
 
   const hasCard1 = Boolean(cardNumber);
   const hasCard2 = Boolean(cardNumber2);
-  const canAddCard2 = hasCard1 && !hasCard2;
 
   function startEdit(slot: 1 | 2, existing: string | null) {
     setEditSlot(slot);
@@ -106,136 +141,91 @@ export function ProfileWalletSection({ balance, cardNumber, cardNumber2, recentT
     finally { setSaving(false); }
   }
 
+  const tileTxs = recentTxs.slice(0, 4);
+
   return (
-    <section className="glass rounded-2xl overflow-hidden">
-      {/* ── هدر موجودی ── */}
-      <div className="bg-gradient-to-br from-sage/12 to-mist/10 px-6 pt-5 pb-5 flex items-center justify-between gap-4 border-b border-black/6">
+    <section className="pf-tile pf-t-finance glass" id="finance">
+      <div className="pf-tile-head">
+        <div className="pf-tile-ic ic-fin"><CardIcon /></div>
         <div>
-          <div className="text-[11px] text-fog mb-0.5">موجودی کیف‌پول</div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-ink fa-num">{balance.toLocaleString("fa-IR")}</span>
-            <span className="text-sm text-stone">تومان</span>
-          </div>
+          <h3>امور مالی و تراکنش‌ها</h3>
+          <div className="sub">کیف‌پول، کارت بانکی و تاریخچهٔ پرداخت</div>
         </div>
-        <button
-          onClick={() => setShowTopup(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-ink text-paper text-sm hover:bg-charcoal transition-colors shrink-0"
-        >
+      </div>
+
+      {/* موجودی + شارژ */}
+      <div className="pf-wallet-strip">
+        <div className="pf-ws-bal">
+          <span className="l">موجودی کیف‌پول</span>
+          <span className="v fa-num">{balance.toLocaleString("fa-IR")} <i>تومان</i></span>
+        </div>
+        <button className="pf-ws-btn" onClick={() => setShowTopup(true)}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
-          شارژ
+          شارژ کیف‌پول
         </button>
       </div>
 
-      <div className="px-6 py-5 space-y-5">
-        {/* ── کارت‌های پرداخت ── */}
-        <div>
-          <div className="flex items-center justify-between mb-2.5">
-            <h3 className="text-[12px] font-semibold text-stone">کارت‌های پرداخت</h3>
-            <span className="text-[10px] text-fog">برای واریز شارژ استفاده می‌شود</span>
-          </div>
-
-          <div className="space-y-2">
-            {/* کارت اول */}
-            <CardSlotRow
-              slot={1}
-              cardNumber={cardNumber}
-              editing={editSlot === 1}
-              cardInput={editSlot === 1 ? cardInput : ""}
-              saving={saving}
-              onEdit={() => startEdit(1, cardNumber)}
-              onCancelEdit={() => setEditSlot(null)}
-              onChangeInput={(v) => setCardInput(v)}
-              onSave={() => saveCard(1)}
-              onRemove={() => removeCard(1)}
-              label="کارت اول"
+      {/* کارت‌های کارت‌به‌کارت */}
+      {editSlot !== null ? (
+        <div className="pf-fin-card" style={{ background: "rgba(122,132,113,.06)" }}>
+          <div className="ttl">شمارهٔ کارت {editSlot === 2 ? "دوم" : "—"} برای واریز و کارت‌به‌کارت</div>
+          <div className="flex items-center gap-2 mt-2.5">
+            <input
+              value={cardInput}
+              onChange={(e) => setCardInput(e.target.value)}
+              inputMode="numeric" dir="ltr" autoComplete="off"
+              placeholder="0000 0000 0000 0000"
+              className="flex-1 rounded-lg px-3 py-2 text-sm bg-white/80 border border-bone text-ink focus:outline-none focus:border-sage num-latin text-center"
             />
-            {/* دکمهٔ افزودن کارت اول — وقتی کارتی ثبت نشده */}
-            {!hasCard1 && editSlot !== 1 && (
-              <button
-                onClick={() => startEdit(1, null)}
-                className="w-full rounded-xl border border-dashed border-bone py-2 text-[12px] text-fog hover:text-stone hover:border-stone/40 transition-colors"
-              >
-                + افزودن کارت بانکی
-              </button>
-            )}
-            {/* کارت دوم — فقط اگر کارت اول ثبت شده باشد */}
-            {(hasCard2 || canAddCard2) && (
-              <CardSlotRow
-                slot={2}
-                cardNumber={cardNumber2}
-                editing={editSlot === 2}
-                cardInput={editSlot === 2 ? cardInput : ""}
-                saving={saving}
-                onEdit={() => startEdit(2, cardNumber2)}
-                onCancelEdit={() => setEditSlot(null)}
-                onChangeInput={(v) => setCardInput(v)}
-                onSave={() => saveCard(2)}
-                onRemove={() => removeCard(2)}
-                label="کارت دوم"
-              />
-            )}
-            {/* دکمهٔ افزودن کارت دوم — فقط اگر کارت اول ثبت و کارت دوم نیست */}
-            {canAddCard2 && editSlot !== 2 && (
-              <button
-                onClick={() => startEdit(2, null)}
-                className="w-full rounded-xl border border-dashed border-bone py-2 text-[12px] text-fog hover:text-stone hover:border-stone/40 transition-colors"
-              >
-                + افزودن کارت دوم
-              </button>
-            )}
+            <button onClick={() => saveCard(editSlot)} disabled={saving} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-ink text-paper text-xs disabled:opacity-40">
+              {saving && <Spinner size={11} />} ذخیره
+            </button>
+            <button onClick={() => setEditSlot(null)} disabled={saving} className="px-2 py-2 rounded-lg text-xs text-stone hover:bg-black/5">×</button>
           </div>
         </div>
-
-        {/* ── تراکنش‌های اخیر ── */}
-        {recentTxs.length > 0 && (
-          <div>
-            <div className="text-[12px] font-semibold text-stone mb-2">تراکنش‌های اخیر</div>
-            <ul className="space-y-1.5">
-              {recentTxs.map((t) => {
-                const positive = t.amount >= 0;
-                const stCls = STATUS_CLS[t.status] ?? "text-stone bg-black/4";
-                const canReceipt = t.status === "approved" || t.status === "completed";
-                return (
-                  <li key={t.id} className="flex items-center justify-between gap-3 rounded-lg bg-black/3 px-3 py-2.5">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[12px] text-ink">{txLabel(t)}</span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${stCls}`}>
-                          {t.status === "pending" ? "در انتظار" : t.status === "rejected" ? "رد شد" : "انجام شد"}
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-fog mt-0.5">{faDate(t.createdAt)}</div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-sm font-semibold fa-num ${positive ? "text-sage-deep" : "text-ink"}`}>
-                        {positive ? "+" : "−"}{Math.abs(t.amount).toLocaleString("fa-IR")}
-                      </span>
-                      {canReceipt && (
-                        <button
-                          onClick={() => setReceiptTx(t.id)}
-                          className="text-[10px] text-stone hover:text-ink underline underline-offset-2"
-                        >
-                          رسید
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-            <Link
-              href="/wallet"
-              className="mt-2.5 flex items-center justify-center gap-1.5 text-[12px] text-stone hover:text-ink transition-colors py-1.5"
-            >
-              مشاهدهٔ همهٔ تراکنش‌ها
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </Link>
+      ) : hasCard1 ? (
+        <>
+          <div className="pf-fin-card">
+            <button className="edit" onClick={() => startEdit(1, cardNumber)}>ویرایش</button>
+            <div className="ttl">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.6" /><path d="M3 10h18" stroke="currentColor" strokeWidth="1.6" /></svg>
+              کارت من — برای واریز و کارت‌به‌کارت
+            </div>
+            <div className="num">{groupCard(cardNumber!)}</div>
           </div>
-        )}
+          {hasCard2 ? (
+            <div className="pf-fin-card">
+              <button className="edit" onClick={() => startEdit(2, cardNumber2)}>ویرایش</button>
+              <div className="ttl">کارت دوم</div>
+              <div className="num">{groupCard(cardNumber2!)}</div>
+              <button onClick={() => removeCard(2)} className="absolute left-14 top-3.5 text-[11px] text-ember">حذف</button>
+            </div>
+          ) : (
+            <button onClick={() => startEdit(2, null)} className="w-full rounded-xl border border-dashed border-bone py-2 mb-4 text-[12px] text-fog hover:text-stone hover:border-stone/40 transition-colors">
+              + افزودن کارت دوم
+            </button>
+          )}
+        </>
+      ) : (
+        <button onClick={() => startEdit(1, null)} className="pf-fin-card empty">
+          + افزودن کارت بانکی برای واریز و کارت‌به‌کارت
+        </button>
+      )}
 
-        {recentTxs.length === 0 && (
-          <p className="text-[12px] text-fog text-center py-2">هنوز تراکنشی ثبت نشده.</p>
-        )}
+      {/* تراکنش‌های اخیر */}
+      {tileTxs.length > 0 ? (
+        <div className="pf-tx-list">
+          {tileTxs.map((t) => <TxRow key={t.id} t={t} onReceipt={setReceiptTx} />)}
+        </div>
+      ) : (
+        <p className="text-[12px] text-fog text-center py-3">هنوز تراکنشی ثبت نشده.</p>
+      )}
+
+      <div className="pf-cta-foot">
+        <button className="pf-row-link" onClick={() => setShowAll(true)}>
+          مشاهدهٔ همهٔ تراکنش‌ها
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
       </div>
 
       {showTopup && (
@@ -247,64 +237,77 @@ export function ProfileWalletSection({ balance, cardNumber, cardNumber2, recentT
           onDone={() => router.refresh()}
         />
       )}
+      {showAll && <TransactionsModal txs={recentTxs} onReceipt={setReceiptTx} onClose={() => setShowAll(false)} />}
       {receiptTx && <WalletReceiptModal txId={receiptTx} onClose={() => setReceiptTx(null)} />}
     </section>
   );
 }
 
-function CardSlotRow({
-  slot, cardNumber, editing, cardInput, saving,
-  onEdit, onCancelEdit, onChangeInput, onSave, onRemove, label,
+// ─── مودالِ همهٔ تراکنش‌ها (الگوی مودالِ همسو + فیلتر) ─────────────────────────
+const TX_FILTERS: { key: string; label: string }[] = [
+  { key: "all", label: "همه" },
+  { key: "topup", label: "شارژ" },
+  { key: "purchase", label: "خرید پلن" },
+  { key: "adjust", label: "اصلاح" },
+];
+
+function TransactionsModal({
+  txs, onReceipt, onClose,
 }: {
-  slot: 1 | 2;
-  cardNumber: string | null;
-  editing: boolean;
-  cardInput: string;
-  saving: boolean;
-  onEdit: () => void;
-  onCancelEdit: () => void;
-  onChangeInput: (v: string) => void;
-  onSave: () => void;
-  onRemove: () => void;
-  label: string;
+  txs: ProfileWalletTx[];
+  onReceipt: (id: string) => void;
+  onClose: () => void;
 }) {
-  if (editing) {
-    return (
-      <div className="rounded-xl border border-sage/30 bg-sage/4 px-3 py-2.5 space-y-2">
-        <div className="text-[11px] text-stone">{label}</div>
-        <div className="flex items-center gap-2">
-          <input
-            value={cardInput}
-            onChange={(e) => onChangeInput(e.target.value)}
-            inputMode="numeric"
-            dir="ltr"
-            autoComplete="off"
-            placeholder="0000 0000 0000 0000"
-            className="flex-1 rounded-lg px-3 py-2 text-sm bg-white/80 border border-bone text-ink focus:outline-none focus:border-sage num-latin text-center"
-          />
-          <button onClick={onSave} disabled={saving} className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-ink text-paper text-xs disabled:opacity-40">
-            {saving && <Spinner size={11} />} ذخیره
-          </button>
-          <button onClick={onCancelEdit} disabled={saving} className="px-2 py-2 rounded-lg text-xs text-stone hover:bg-black/4">×</button>
+  const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  const filtered = filter === "all" ? txs : txs.filter((t) => t.type === filter);
+
+  return createPortal(
+    <>
+      <div className="pf-overlay" onClick={onClose} />
+      <div className="pf-modal glass-strong" role="dialog" aria-modal="true">
+        <div className="pf-modal-head">
+          <h3>امور مالی و تراکنش‌ها</h3>
+          <button className="pf-x-btn" onClick={onClose} aria-label="بستن">×</button>
+        </div>
+        <div className="pf-modal-filters">
+          {TX_FILTERS.map((f) => (
+            <button key={f.key} className={`pf-chip ${filter === f.key ? "active" : ""}`} onClick={() => setFilter(f.key)}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="pf-modal-body">
+          {filtered.length === 0 ? (
+            <p className="text-[12px] text-fog text-center py-10">تراکنشی در این دسته نیست.</p>
+          ) : (
+            <div className="pf-tx-list">
+              {filtered.map((t) => <TxRow key={t.id} t={t} onReceipt={onReceipt} />)}
+            </div>
+          )}
         </div>
       </div>
-    );
-  }
+    </>,
+    document.body
+  );
+}
 
-  if (!cardNumber) return null;
-
+function CardIcon() {
   return (
-    <div className="rounded-xl border border-bone bg-white/40 px-3 py-2.5 flex items-center justify-between gap-2">
-      <div>
-        <div className="text-[10px] text-fog mb-0.5">{label}</div>
-        <div dir="ltr" className="text-sm font-semibold text-ink num-latin tracking-wider">{groupCard(cardNumber)}</div>
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <button onClick={onEdit} className="text-[11px] text-stone hover:text-ink px-1.5 py-1 rounded hover:bg-black/4">ویرایش</button>
-        {slot === 2 && (
-          <button onClick={onRemove} className="text-[11px] text-ember hover:text-ember px-1.5 py-1 rounded hover:bg-ember/6">حذف</button>
-        )}
-      </div>
-    </div>
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+      <path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h15A1.5 1.5 0 0 1 21 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5v-9Z" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 10h18" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
   );
 }

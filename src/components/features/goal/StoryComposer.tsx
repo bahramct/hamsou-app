@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast } from "@/lib/notifications/toast";
 import { MOOD_LABELS } from "@/lib/goal/storyboard";
+import { toFaDigits } from "@/lib/utils/digits";
 import type { GoalMood, SerializedStory } from "@/types/goal";
 
 const MAX = 4000;
@@ -23,14 +24,20 @@ interface Props {
   todayLabel: string;
   weekdayLabel: string;
   todayStory: SerializedStory | null;
+  /** bare = بدونِ کارتِ بیرونی (برای جا‌گرفتن داخلِ تایلِ هیروِ صفحهٔ هدف) */
+  bare?: boolean;
 }
 
-export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory }: Props) {
+export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory, bare = false }: Props) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState("");
   const [mood, setMood] = useState<GoalMood | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const box = bare
+    ? "rounded-2xl border border-black/6 bg-black/[0.02] p-4"
+    : "glass-strong rounded-3xl p-5 shadow-paper";
 
   const remaining = MAX - content.length;
   const canSubmit = content.trim().length > 0 && remaining >= 0 && !isPending;
@@ -94,7 +101,7 @@ export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory }: 
   // ── استوریِ موجود: حالتِ نمایش یا ویرایش ─────────────────────────────────
   if (todayStory && !editing) {
     return (
-      <div className="glass-strong rounded-3xl p-5 shadow-paper">
+      <div className={box}>
         <div className="mb-3 flex items-baseline justify-between">
           <span className="text-xs font-medium text-stone">استوریِ امروز</span>
           {dateLabel}
@@ -128,6 +135,7 @@ export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory }: 
         mood={mood}
         isPending={isPending}
         dateLabel={dateLabel}
+        boxClass={box}
         onContentChange={setContent}
         onMoodChange={setMood}
         onSave={handleSaveEdit}
@@ -142,7 +150,7 @@ export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory }: 
 
   // ── نوشتنِ استوری جدید ─────────────────────────────────────────────────────
   return (
-    <form onSubmit={handleSubmit} className="glass-strong rounded-3xl p-5 shadow-paper">
+    <form onSubmit={handleSubmit} className={box}>
       <div className="mb-3 flex items-baseline justify-between">
         <span className="text-xs font-medium text-stone">امروز در مسیرت چه گذشت؟</span>
         {dateLabel}
@@ -150,7 +158,7 @@ export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory }: 
 
       <textarea
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => setContent(toFaDigits(e.target.value))}
         placeholder="هرچه دلت می‌خواهد بنویس — از حال‌وهوا تا چالش‌ها و قدم‌های کوچک…"
         rows={4}
         disabled={isPending}
@@ -196,6 +204,7 @@ function EditMode({
   mood,
   isPending,
   dateLabel,
+  boxClass,
   onContentChange,
   onMoodChange,
   onSave,
@@ -206,6 +215,7 @@ function EditMode({
   mood: GoalMood | null;
   isPending: boolean;
   dateLabel: React.ReactNode;
+  boxClass: string;
   onContentChange: (v: string) => void;
   onMoodChange: (v: GoalMood | null) => void;
   onSave: (content: string, mood: GoalMood | null) => void;
@@ -214,7 +224,7 @@ function EditMode({
   const canSave = content.trim().length > 0 && content.length <= MAX && !isPending;
 
   return (
-    <div className="glass-strong rounded-3xl p-5 shadow-paper">
+    <div className={boxClass}>
       <div className="mb-3 flex items-baseline justify-between">
         <span className="text-xs font-medium text-stone">ویرایشِ استوریِ امروز</span>
         {dateLabel}
@@ -222,7 +232,7 @@ function EditMode({
 
       <textarea
         value={content}
-        onChange={(e) => onContentChange(e.target.value)}
+        onChange={(e) => onContentChange(toFaDigits(e.target.value))}
         rows={4}
         dir="rtl"
         disabled={isPending}

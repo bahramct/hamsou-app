@@ -15,6 +15,7 @@
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FreezePill } from "@/components/features/freeze/FreezePill";
+import { toFaDigits } from "@/lib/utils/digits";
 
 const MIN_CHARS = 5;
 const MAX_CHARS = 500;
@@ -113,7 +114,7 @@ export function EntryForm({ todayLabel, weekdayLabel }: Props) {
 
             <textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => setContent(toFaDigits(e.target.value))}
               placeholder="یک تعهد واقعی به خودت…"
               rows={5}
               disabled={isPending}

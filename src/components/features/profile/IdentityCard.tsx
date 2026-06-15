@@ -41,64 +41,57 @@ export function IdentityCard({ phone, email, emailVerified, username, hasPasswor
   const toggle = (k: RowKey) => setOpen((cur) => (cur === k ? null : k));
 
   return (
-    <section className="glass rounded-2xl p-6 space-y-1">
-      <div className="space-y-0.5 mb-4">
-        <h2 className="text-sm font-semibold text-ink">هویت و ورود</h2>
-        <p className="text-xs text-fog leading-relaxed">
-          راه‌های ورود و شناسهٔ تو در همسو. با تکمیل آن‌ها از هر کدام می‌توانی وارد شوی.
-        </p>
+    <section className="pf-tile pf-t-identity glass">
+      <div className="pf-tile-head">
+        <div className="pf-tile-ic ic-id"><PersonIcon /></div>
+        <div>
+          <h3>هویت و ورود</h3>
+          <div className="sub">راه‌های ورود و امنیت حساب</div>
+        </div>
       </div>
 
-      {/* موبایل */}
-      <Row
-        icon={<PhoneIcon />}
-        label="موبایل"
+      {/* موبایل — پس از تأیید قفل می‌شود */}
+      <IdRow
+        label="شماره موبایل"
         value={phone ? <span dir="ltr">{toFaDigits(phone)}</span> : null}
-        done={!!phone}
+        badge={phone ? "تأیید شده" : null}
+        action={phone ? null : "افزودن"}
         open={open === "phone"}
-        onToggle={() => toggle("phone")}
-        actionLabel={phone ? undefined : "افزودن"}
-        locked={!!phone}
+        onAction={() => toggle("phone")}
       >
         <PhoneAdd onDone={() => setOpen(null)} />
-      </Row>
+      </IdRow>
 
-      {/* ایمیل */}
-      <Row
-        icon={<MailIcon />}
+      {/* ایمیل — پس از تأیید قفل می‌شود */}
+      <IdRow
         label="ایمیل"
         value={email && emailVerified ? <span dir="ltr" className="num-latin">{email}</span> : null}
-        done={!!email && emailVerified}
+        badge={email && emailVerified ? "تأیید شده" : null}
+        action={email && emailVerified ? null : "افزودن"}
         open={open === "email"}
-        onToggle={() => toggle("email")}
-        actionLabel={email && emailVerified ? undefined : "افزودن"}
-        locked={!!email && emailVerified}
+        onAction={() => toggle("email")}
       >
         <EmailAdd onDone={() => setOpen(null)} />
-      </Row>
+      </IdRow>
 
       {/* نام‌کاربری */}
-      <Row
-        icon={<AtIcon />}
+      <IdRow
         label="نام کاربری"
         value={username ? <span dir="ltr" className="num-latin">@{username}</span> : null}
-        done={!!username}
+        action={username ? "ویرایش" : "انتخاب"}
         open={open === "username"}
-        onToggle={() => toggle("username")}
-        actionLabel={username ? "تغییر" : "انتخاب"}
+        onAction={() => toggle("username")}
       >
         <UsernameEdit initial={username} onDone={() => setOpen(null)} />
-      </Row>
+      </IdRow>
 
       {/* رمز عبور */}
-      <Row
-        icon={<LockIcon />}
+      <IdRow
         label="رمز عبور"
-        value={hasPassword ? <span className="text-sage-deep">تنظیم‌شده</span> : null}
-        done={hasPassword}
+        value={hasPassword ? <span>••••••••</span> : null}
+        action={hasPassword ? "تغییر" : "تنظیم"}
         open={open === "password"}
-        onToggle={() => toggle("password")}
-        actionLabel={hasPassword ? "تغییر" : "تنظیم"}
+        onAction={() => toggle("password")}
       >
         <PasswordEdit
           hasPassword={hasPassword}
@@ -106,10 +99,10 @@ export function IdentityCard({ phone, email, emailVerified, username, hasPasswor
           emailVerified={emailVerified}
           onDone={() => setOpen(null)}
         />
-      </Row>
+      </IdRow>
 
       {/* حذف حساب */}
-      <div className="pt-3">
+      <div className="pf-cta-foot">
         <button
           type="button"
           onClick={() => setShowDelete(true)}
@@ -130,51 +123,40 @@ export function IdentityCard({ phone, email, emailVerified, username, hasPasswor
   );
 }
 
-// ─── ردیفِ پایه ──────────────────────────────────────────────────────────────
-function Row({
-  icon, label, value, done, open, onToggle, actionLabel, locked, children,
+// ─── ردیفِ پایه — مطابق mockup (.pf-field) با ویرایشگرِ inline زیر ردیف ─────────
+function IdRow({
+  label, value, badge, action, open, onAction, children,
 }: {
-  icon: React.ReactNode;
   label: string;
   value: React.ReactNode | null;
-  done: boolean;
+  badge?: string | null;
+  action: string | null;
   open: boolean;
-  onToggle: () => void;
-  actionLabel?: string;
-  locked?: boolean;
+  onAction: () => void;
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-black/5 last:border-0">
-      <div className="flex items-center gap-3 py-3">
-        <span className="shrink-0 w-8 h-8 rounded-xl bg-bone/60 text-stone flex items-center justify-center">
-          {icon}
-        </span>
-        <div className="flex-1 min-w-0">
-          <div className="text-xs text-fog">{label}</div>
-          <div className="text-sm text-ink truncate">
-            {value ?? <span className="text-fog/70">تنظیم نشده</span>}
-          </div>
-        </div>
-        {done && (
-          <span className="shrink-0 text-sage-deep" aria-label="تأیید شده">
-            <CheckIcon />
+    <>
+      <div className="pf-field">
+        <span className="k">{label}</span>
+        <div className="vrow">
+          <span className="val">
+            {value ?? <span style={{ color: "var(--color-fog)" }}>تنظیم نشده</span>}
           </span>
-        )}
-        {!locked && actionLabel && (
-          <button
-            type="button"
-            onClick={onToggle}
-            className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border transition-colors ${
-              open ? "border-ink/30 text-ink" : "border-black/10 text-stone hover:text-ink hover:border-black/20"
-            }`}
-          >
-            {open ? "بستن" : actionLabel}
-          </button>
-        )}
+          {badge && <span className="pf-verified">{badge}</span>}
+          {action && (
+            <button type="button" className="pf-editlink" onClick={onAction}>
+              {open ? "بستن" : action}
+            </button>
+          )}
+        </div>
       </div>
-      {open && !locked && <div className="pb-4 pr-11 animate-fade-in">{children}</div>}
-    </div>
+      {open && action && (
+        <div className="animate-fade-in" style={{ padding: "2px 0 12px" }}>
+          {children}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -590,12 +572,8 @@ function onlyDigits(s: string): string {
 }
 
 // ─── آیکن‌ها ──────────────────────────────────────────────────────────────────
-const ico = { width: 16, height: 16, fill: "none", stroke: "currentColor", strokeWidth: 1.7, viewBox: "0 0 24 24", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-function PhoneIcon() { return <svg {...ico}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>; }
-function MailIcon() { return <svg {...ico}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>; }
-function AtIcon() { return <svg {...ico}><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>; }
-function LockIcon() { return <svg {...ico}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>; }
-function CheckIcon() { return <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>; }
+const ico = { width: 17, height: 17, fill: "none", stroke: "currentColor", strokeWidth: 1.6, viewBox: "0 0 24 24", strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+function PersonIcon() { return <svg {...ico}><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /><path d="M5 20a7 7 0 0 1 14 0" /></svg>; }
 
 // ─── مودال حذف حساب ──────────────────────────────────────────────────────────
 function DeleteModal({ phone, email, onClose }: { phone: string | null; email: string | null; onClose: () => void }) {

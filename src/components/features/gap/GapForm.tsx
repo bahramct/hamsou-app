@@ -16,6 +16,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toFaDigits } from "@/lib/utils/digits";
 import type { PendingGap } from "@/types/gap";
 
 const MAX_NOTE_CHARS = 500;
@@ -108,7 +109,7 @@ export function GapForm({ pendingGap, todayLabel, weekdayLabel }: Props) {
 
           <textarea
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => setNote(toFaDigits(e.target.value))}
             placeholder="(اختیاری) هر چیزی که می‌خوای بنویسی…"
             rows={4}
             disabled={isPending}

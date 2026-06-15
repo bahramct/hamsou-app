@@ -10,6 +10,45 @@ import { getNow } from "@/lib/dev/time";
 import { getTicketingContext } from "@/lib/support/server";
 import { TICKET_LIMITS } from "@/lib/support/tickets";
 
+// GET — تیکت + رشتهٔ پیام‌ها (برای نمای گفتگوی دراور، DECISION-096)
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const ctx = await getTicketingContext();
+  if (!ctx) return NextResponse.json({ error: "احراز هویت لازم است." }, { status: 401 });
+
+  const { id } = await params;
+  const ticket = await prisma.supportTicket.findUnique({
+    where: { id },
+    select: {
+      id: true, userId: true, subject: true, status: true, category: true,
+      messages: {
+        orderBy: { createdAt: "asc" },
+        select: { id: true, authorType: true, body: true, createdAt: true },
+      },
+    },
+  });
+  if (!ticket || ticket.userId !== ctx.userId) {
+    return NextResponse.json({ error: "تیکت یافت نشد." }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    ticket: {
+      id: ticket.id,
+      subject: ticket.subject,
+      status: ticket.status,
+      category: ticket.category,
+      messages: ticket.messages.map((m) => ({
+        id: m.id,
+        authorType: m.authorType,
+        body: m.body,
+        createdAt: m.createdAt.toISOString(),
+      })),
+    },
+  });
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

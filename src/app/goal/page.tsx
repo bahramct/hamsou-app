@@ -7,30 +7,44 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { AppShell } from "@/components/layout/AppShell";
-import { loadActiveGoalView } from "@/lib/goal/server";
+import { loadActiveGoalView, loadJourneyCards } from "@/lib/goal/server";
 import { todayKey } from "@/lib/goal/dates";
 import { GoalCreateForm } from "@/components/features/goal/GoalCreateForm";
 import { GoalStoryboard } from "@/components/features/goal/GoalStoryboard";
+import { JourneyLibrary } from "@/components/features/goal/JourneyLibrary";
 
-export const metadata = { title: "برنامه‌ریزی — همسو" };
+export const metadata = { title: "برنامه‌ریزی و چالش — همسو" };
 
 export default async function GoalPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const view = await loadActiveGoalView(user.userId);
+  const [view, journeyCards] = await Promise.all([
+    loadActiveGoalView(user.userId),
+    loadJourneyCards(user.userId),
+  ]);
   const todayIso = todayKey();
 
   return (
     <AppShell>
-      <div className="flex-1 px-5 pt-10 pb-28 sm:pt-14">
-        <div className="mx-auto w-full max-w-3xl">
-          {view.goal ? (
-            <GoalStoryboard view={view} todayIso={todayIso} />
-          ) : (
-            <GoalCreateForm planningAllowed={view.planningAllowed} todayIso={todayIso} />
-          )}
-        </div>
+      <div className="jp-wrap animate-fade-up">
+        {view.goal ? (
+          <GoalStoryboard view={view} todayIso={todayIso} />
+        ) : (
+          <GoalCreateForm planningAllowed={view.planningAllowed} todayIso={todayIso} />
+        )}
+
+        {/* مسیرهای گذشته — کتابخانه (الگوی ماکاپ) */}
+        {journeyCards.length > 0 && (
+          <>
+            <div className="dsh-sec">
+              <h2>مسیرهای گذشته</h2>
+              <span className="rule" />
+              <span className="hint">هر مسیر، یک فصل از راهی که رفته‌ای</span>
+            </div>
+            <JourneyLibrary cards={journeyCards} />
+          </>
+        )}
       </div>
     </AppShell>
   );

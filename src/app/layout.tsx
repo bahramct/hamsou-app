@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { DevModeBadge } from "@/components/dev/DevModeBadge";
 import { DevResetPanel } from "@/components/dev/DevResetPanel";
-import { ChatFAB } from "@/components/features/chat/ChatFAB";
+import { FloatingActions } from "@/components/features/chat/FloatingActions";
 import { DisableAutofill } from "@/components/system/DisableAutofill";
 import { ThemeScript } from "@/components/theme/ThemeScript";
 import { ToastHost } from "@/components/notifications/ToastHost";
@@ -33,13 +33,14 @@ export default async function RootLayout({
   let companionName: string | null = null;
   let userName: string | null = null;
   let isAuthenticated = false;
+  let isPro = false;
   try {
     const session = await getSessionUser();
     if (session) {
       isAuthenticated = true;
       const user = await prisma.user.findUnique({
         where: { id: session.userId },
-        select: { companionName: true, displayName: true },
+        select: { companionName: true, displayName: true, plan: true },
       });
       // نامِ همدم admin-controlled است (DECISION-089): اگر کاربر مقداری ندارد،
       // پیش‌فرضِ ادمین خوانده می‌شود تا هدرِ FAB/ChatWindow با پیامِ خوش‌آمدِ چت یکی باشد.
@@ -47,6 +48,7 @@ export default async function RootLayout({
         user?.companionName ??
         (await getAiConfig(AI_CONFIG_KEYS.companionDefaultName, DEFAULT_COMPANION_NAME));
       userName = user?.displayName ?? null;
+      isPro = user?.plan === "PRO";
     }
   } catch {
     // fallback — layout هرگز throw نمی‌کند
@@ -64,7 +66,7 @@ export default async function RootLayout({
         {children}
         {/* لایهٔ گذرای toast — روی سایت و پنل (DECISION-046) */}
         <ToastHost />
-        <ChatFAB companionName={companionName} userName={userName} isAuthenticated={isAuthenticated} />
+        <FloatingActions companionName={companionName} userName={userName} isAuthenticated={isAuthenticated} isPro={isPro} />
         {/* ابزارهای dev — در prod هیچ‌چیز رندر نمی‌شود (CLAUDE.md §۱۳) */}
         <DevModeBadge />
         <DevResetPanel />

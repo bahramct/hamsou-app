@@ -11,17 +11,16 @@ import { prisma } from "@/lib/db/client";
 import { EditableAvatar } from "@/components/features/profile/EditableAvatar";
 import { PersonalInfoSection } from "@/components/features/profile/PersonalInfoSection";
 import { IdentityCard } from "@/components/features/profile/IdentityCard";
+import { PlanTile } from "@/components/features/profile/PlanTile";
+import { RemindersTile } from "@/components/features/profile/RemindersTile";
 import { SetPasswordModal } from "@/components/features/profile/SetPasswordModal";
-import { SupportSection } from "@/components/features/support-chat/SupportSection";
+import { SupportCenter, type TicketSummary } from "@/components/features/support/SupportCenter";
 import { ProfileWalletSection, type ProfileWalletTx } from "@/components/features/wallet/ProfileWalletSection";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { planAllows } from "@/lib/plans/access";
-import { LIVE_CHAT_FEATURE_KEY } from "@/lib/support/chat";
 import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import { toFaDigits } from "@/lib/utils/digits";
 import { getEffectivePlan } from "@/lib/plans/effective";
-import { countCommitments } from "@/lib/stats/commitments";
-import { getNow } from "@/lib/dev/time";
 import { isOnboardingEnabled } from "@/lib/settings/site";
 
 function formatMemberSince(date: Date): string {
@@ -72,20 +71,21 @@ export default async function ProfileSettingsPage() {
 
   // پلن مؤثر (با lazy-downgrade + چک ۳ روز)
   const effectivePlan = await getEffectivePlan(session.userId);
-  const now = getNow();
 
-  // «تعهد ثبت‌شده» = روزهای دارای تعهد، بدون روزهای داخل بازه‌های فاصله (DECISION-074)
-  const [entryCount, reportCount, recentTxsRaw] = await Promise.all([
-    countCommitments(session.userId),
-    prisma.weeklyReport.count({ where: { userId: session.userId } }),
+  // تراکنش‌های اخیر (۲۰ تا برای مودال؛ ۴ تای اول در تایل) + تیکت‌های پشتیبانی (برای دراور)
+  const [recentTxsRaw, ticketsRaw] = await Promise.all([
     prisma.walletTransaction.findMany({
       where: { userId: session.userId },
       orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 20,
+    }),
+    prisma.supportTicket.findMany({
+      where: { userId: session.userId },
+      orderBy: { lastMessageAt: "desc" },
+      take: 50,
+      select: { id: true, subject: true, category: true, status: true, lastMessageAt: true },
     }),
   ]);
-
-  const daysSince = Math.max(0, Math.floor((now.getTime() - user.createdAt.getTime()) / 86_400_000));
 
   // کاربرِ ایمیلی که هنوز رمز عبور ندارد → مودالِ قفل (DECISION-080)
   const needsPassword = !!user.email && !!user.emailVerifiedAt && !user.passwordHash;
@@ -98,10 +98,7 @@ export default async function ProfileSettingsPage() {
   const color = AVATAR_COLOR;
   const initialLetter = user.displayName?.trim()?.[0] ?? "ه";
   const planBadge = PLAN_BADGE[effectivePlan.plan] ?? { label: effectivePlan.plan, className: "bg-fog/25 text-stone" };
-  const [liveChatAllowed, ticketingAllowed] = await Promise.all([
-    planAllows(effectivePlan.plan, LIVE_CHAT_FEATURE_KEY),
-    planAllows(effectivePlan.plan, TICKETING_FEATURE_KEY),
-  ]);
+  const ticketingAllowed = await planAllows(effectivePlan.plan, TICKETING_FEATURE_KEY);
   const daysLeftStr = daysLeftLabel(effectivePlan.daysLeft);
 
   const recentTxs: ProfileWalletTx[] = recentTxsRaw.map((t) => ({
@@ -113,16 +110,31 @@ export default async function ProfileSettingsPage() {
     createdAt: t.createdAt.toISOString(),
   }));
 
+  const tickets: TicketSummary[] = ticketsRaw.map((t) => ({
+    id: t.id,
+    subject: t.subject,
+    category: t.category,
+    status: t.status,
+    lastMessageAt: t.lastMessageAt.toISOString(),
+  }));
+
   return (
     <AppShell>
       {needsPassword && <SetPasswordModal userDisplayName={user.displayName} />}
-      <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-6">
+      <div className="pf-wrap animate-fade-up">
 
-        {/* ───── Hero ───── */}
+        {/* ───── Hero (دست‌نخورده) + ورودیِ کیف‌پول ───── */}
         <div
-          className="relative overflow-hidden glass-strong rounded-3xl p-6 sm:p-8 animate-fade-up"
+          className="relative overflow-hidden glass-strong rounded-3xl p-6 sm:p-8"
           style={{ background: `linear-gradient(135deg, ${color.bg}28 0%, rgba(var(--rgb-card),0.60) 55%)` }}
         >
+          {/* ورودیِ کیف‌پول — آیکونِ فلتِ وکتوری + موجودی (در گوشهٔ خالیِ بالا-چپ) */}
+          <a className="pf-wallet-mini" href="#finance" title="کیف‌پول">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H18a2 2 0 0 1 2 2v1H6a1 1 0 0 0 0 2h14a1 1 0 0 1 1 1v4a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5v-9Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><circle cx="16.5" cy="13.5" r="1.1" fill="currentColor" /></svg>
+            <span className="wm-label">کیف‌پول</span>
+            <span className="wm-bal fa-num">{user.walletBalance.toLocaleString("fa-IR")} <i>تومان</i></span>
+          </a>
+
           <div
             className="pointer-events-none absolute -top-20 -right-20 w-72 h-72 rounded-full"
             style={{ background: `radial-gradient(circle, ${color.bg}38, transparent 65%)` }}
@@ -176,20 +188,14 @@ export default async function ProfileSettingsPage() {
           </div>
         </div>
 
-        {/* ───── نوار آمار ───── */}
-        <div className="grid grid-cols-3 gap-3 stagger" style={{ animationDelay: "80ms" }}>
-          <StatCard value={entryCount} label="تعهد ثبت‌شده" />
-          <StatCard value={reportCount} label="گزارش هفتگی" />
-          <StatCard value={daysSince} label="روز همراهی" />
+        {/* ───── جداکنندهٔ بخش ───── */}
+        <div className="pf-section-head">
+          <h2>حساب من</h2>
+          <span className="rule" />
         </div>
 
-        {/* ───── ردیف اول: اطلاعات شخصی + هویت و ورود ───── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          <PersonalInfoSection
-            displayName={user.displayName}
-            bio={user.bio}
-            birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
-          />
+        {/* ───── بِنتوِ حساب ───── */}
+        <div className="pf-bento">
           <IdentityCard
             phone={user.phone}
             email={user.email}
@@ -197,46 +203,29 @@ export default async function ProfileSettingsPage() {
             username={user.username}
             hasPassword={user.passwordHash !== null}
           />
-        </div>
-
-        {/* ───── ردیف دوم: کیف‌پول + پشتیبانی ───── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <PersonalInfoSection
+            displayName={user.displayName}
+            bio={user.bio}
+            birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
+          />
+          <PlanTile
+            planLabel={planBadge.label}
+            planKey={effectivePlan.plan}
+            cycle={user.planCycle}
+            daysLeft={effectivePlan.daysLeft}
+          />
           <ProfileWalletSection
             balance={user.walletBalance}
             cardNumber={user.paymentCardNumber}
             cardNumber2={user.paymentCardNumber2}
             recentTxs={recentTxs}
           />
-          <SupportSection ticketingAllowed={ticketingAllowed} liveChatAllowed={liveChatAllowed} />
+          <RemindersTile />
+          <SupportCenter ticketingAllowed={ticketingAllowed} initialTickets={tickets} />
         </div>
-
-        {/* ───── ردیف سوم: یادآوری‌ها ───── */}
-        <NotificationsCard />
 
       </div>
     </AppShell>
-  );
-}
-
-function StatCard({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="glass rounded-2xl p-4 flex flex-col items-center justify-center gap-1 text-center">
-      <span className="text-2xl font-semibold text-ink">{value.toLocaleString("fa-IR")}</span>
-      <span className="text-[11px] text-fog leading-tight">{label}</span>
-    </div>
-  );
-}
-
-function NotificationsCard() {
-  return (
-    <section className="glass rounded-2xl p-6">
-      <div className="space-y-0.5">
-        <h2 className="text-sm font-semibold text-ink">یادآوری‌ها</h2>
-        <p className="text-xs text-fog leading-relaxed max-w-md">
-          رویدادهای مهم مسیر تو — پاسخ پشتیبانی، تغییر پلن و… از طریق زنگوله در نوار بالا قابل مشاهده‌اند. تنظیم زمان و نوعِ یادآوری‌های روزانه و هفتگی به‌زودی اضافه می‌شود.
-        </p>
-      </div>
-    </section>
   );
 }
 

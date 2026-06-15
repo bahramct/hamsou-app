@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ماکاپ — بازطراحی پروفایل کاربر (همسو)</title>
+<style>
+/* فونت PelakFA — مسیرِ نسبی به public/Fonts */
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31;
+  --glass-bg:rgba(255,255,255,.55); --glass-strong-bg:rgba(255,255,255,.72);
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1);
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218;
+  --glass-bg:rgba(41,36,30,.55); --glass-strong-bg:rgba(41,36,30,.72);
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{
+  font-family:"PelakFA",Tahoma,"Segoe UI",sans-serif;
+  background:var(--paper); color:var(--ink); font-weight:400;
+  min-height:100vh; position:relative; overflow-x:hidden;
+  font-feature-settings:"ss01" on; transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 78% 8%, rgba(193,154,74,.10), transparent 60%),
+    radial-gradient(55% 45% at 12% 22%, rgba(155,180,199,.10), transparent 60%),
+    radial-gradient(50% 40% at 50% 100%, rgba(122,132,113,.08), transparent 65%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(60% 50% at 78% 8%, rgba(207,174,99,.10), transparent 60%),
+    radial-gradient(55% 45% at 12% 22%, rgba(138,167,188,.08), transparent 60%),
+    radial-gradient(50% 40% at 50% 100%, rgba(151,162,138,.07), transparent 65%);
+}
+.glass{background:var(--glass-bg); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--line); box-shadow:0 12px 40px rgba(46,44,40,.08), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04);}
+.glass-strong{background:var(--glass-strong-bg); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--line); box-shadow:0 18px 50px rgba(46,44,40,.10), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass-strong{box-shadow:0 18px 50px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.04);}
+
+/* نوار بالا */
+.nav{position:sticky; top:0; z-index:40; background:var(--glass-strong-bg);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1024px; margin:0 auto; height:64px; padding:0 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.logo{font-weight:700; font-size:20px; letter-spacing:-.5px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.logo .dot{width:9px; height:9px; border-radius:50%; background:var(--ember);}
+.nav-items{display:flex; gap:4px; flex:1; justify-content:center;}
+.nav-items a{position:relative; padding:8px 16px; border-radius:12px; font-size:14px; color:var(--stone); text-decoration:none; transition:.25s;}
+.nav-items a:hover{color:var(--ink);}
+.nav-items a.active{color:var(--ink); font-weight:500;}
+.nav-items a.active::after{content:""; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); width:20px; height:2px; border-radius:2px; background:rgba(199,93,60,.7);}
+.nav-right{display:flex; align-items:center; gap:6px;}
+.icon-btn{width:38px; height:38px; border-radius:12px; border:none; background:transparent; color:var(--stone); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.25s;}
+.icon-btn:hover{background:rgba(var(--rgb-line),.05); color:var(--ink);}
+.bell-wrap{position:relative;}
+.bell-badge{position:absolute; top:6px; left:8px; min-width:15px; height:15px; padding:0 3px; border-radius:8px; background:var(--ember); color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center;}
+.nav-ava{width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--sage),var(--sage-deep)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:600;}
+
+.wrap{position:relative; z-index:10; max-width:1024px; margin:0 auto; padding:36px 24px 90px;}
+
+/* ───────── کارت هیرو (دست‌نخورده + ورودیِ کیف‌پول در گوشهٔ خالیِ بالا-چپ) ───────── */
+.hero{position:relative; overflow:hidden; border-radius:28px; padding:26px 30px;
+  background:linear-gradient(135deg, rgba(122,132,113,.16) 0%, rgba(var(--rgb-card),.60) 55%);}
+.hero::after{content:""; position:absolute; top:-80px; left:-80px; width:288px; height:288px; border-radius:50%;
+  background:radial-gradient(circle, rgba(122,132,113,.22), transparent 65%); pointer-events:none;}
+.hero-main{position:relative; display:flex; align-items:flex-start; gap:26px;}
+.hero-ava{width:92px; height:92px; border-radius:50%; flex-shrink:0; position:relative;
+  background:linear-gradient(135deg,var(--sage),var(--sage-deep)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:600;
+  box-shadow:0 10px 30px rgba(92,101,85,.28);}
+.hero-ava .cam{position:absolute; bottom:-2px; left:-2px; width:28px; height:28px; border-radius:50%;
+  background:var(--ink); color:var(--paper); display:flex; align-items:center; justify-content:center; border:3px solid var(--paper);}
+.hero-id{flex:1; padding-top:4px;}
+.hero-id h1{font-size:24px; font-weight:600; color:var(--ink); line-height:1.3;}
+.hero-id .uname{font-size:13px; color:var(--sage-deep); font-weight:500; margin-top:2px; direction:ltr; text-align:right;}
+.hero-id .contact{font-size:13px; color:var(--fog); margin-top:4px; direction:ltr; text-align:right;}
+.hero-id .bio{font-size:12px; color:var(--stone); margin-top:8px; line-height:1.9; max-width:380px;}
+.hero-badges{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:14px;}
+.b-pill{font-size:11px; padding:3px 11px; border-radius:999px; display:inline-flex; align-items:center; gap:5px;}
+.b-plan{background:rgba(199,93,60,.14); color:var(--ember);}
+.b-cycle{background:rgba(189,182,167,.18); color:var(--stone);}
+.b-left{background:rgba(189,182,167,.18); color:var(--stone);}
+.b-since{font-size:11px; color:var(--fog);}
+
+/* ورودیِ کیف‌پول در گوشهٔ بالا-چپِ هیرو — فقط آیکونِ فلتِ وکتوری + موجودی (بدون پاپ‌اوور) */
+.wallet-mini{position:absolute; top:22px; left:24px; z-index:5; display:inline-flex; align-items:center; gap:8px;
+  color:var(--stone); text-decoration:none; font-size:13px; transition:.2s;}
+.wallet-mini:hover{color:var(--ink);}
+.wallet-mini:hover svg{color:var(--ink);}
+.wallet-mini svg{color:var(--stone); transition:.2s;}
+.wallet-mini .wm-label{color:var(--stone);}
+.wallet-mini .wm-bal{font-weight:600; color:var(--ink); direction:ltr;}
+.wallet-mini .wm-bal i{font-style:normal; font-weight:400; font-size:11px; color:var(--fog); margin-right:3px;}
+
+/* جداکنندهٔ بخش */
+.section-head{display:flex; align-items:center; gap:14px; margin:30px 2px 18px;}
+.section-head h2{font-size:13px; font-weight:600; color:var(--stone); letter-spacing:.3px; white-space:nowrap;}
+.section-head .rule{flex:1; height:1px; background:var(--line);}
+
+/* ───────── بِنتوِ حساب ───────── */
+.pf-bento{display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  grid-template-areas:
+    "identity finance"
+    "personal finance"
+    "plan     reminders"
+    "support  support";}
+.t-identity{grid-area:identity;}
+.t-personal{grid-area:personal;}
+.t-plan{grid-area:plan;}
+.t-finance{grid-area:finance;}
+.t-reminders{grid-area:reminders;}
+.t-support{grid-area:support;}
+.tile{border-radius:22px; padding:22px; position:relative; display:flex; flex-direction:column;
+  transition:transform .35s var(--ease-expo);}
+.tile:hover{transform:translateY(-2px);}
+.tile-head{display:flex; align-items:center; gap:10px; margin-bottom:16px;}
+.tile-ic{width:34px; height:34px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.tile-ic.ic-id{background:rgba(94,124,147,.12); color:var(--mist-deep);}
+.tile-ic.ic-pers{background:rgba(122,132,113,.14); color:var(--sage-deep);}
+.tile-ic.ic-plan{background:rgba(193,154,74,.14); color:var(--gold);}
+.tile-ic.ic-fin{background:rgba(92,101,85,.14); color:var(--sage-deep);}
+.tile-ic.ic-sup{background:rgba(199,93,60,.12); color:var(--ember);}
+.tile-head h3{font-size:14px; font-weight:600; color:var(--ink);}
+.tile-head .sub{font-size:11px; color:var(--fog); margin-top:1px;}
+.cta-foot{margin-top:auto; padding-top:16px;}
+.row-link{display:inline-flex; align-items:center; gap:5px; font-size:12px; color:var(--sage-deep);
+  background:none; border:none; cursor:pointer; font-family:inherit; padding:0; transition:.2s;}
+.row-link:hover{color:var(--ember);}
+
+/* فیلدهای اطلاعات (هویت/شخصی) */
+.field{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 0; border-bottom:1px solid var(--line);}
+.field:last-child{border-bottom:none;}
+.field .k{font-size:12px; color:var(--stone); display:flex; align-items:center; gap:7px;}
+.field .vrow{display:flex; align-items:center; gap:8px;}
+.field .val{font-size:13px; color:var(--ink); direction:ltr;}
+.verified{font-size:10px; padding:2px 7px; border-radius:999px; background:rgba(122,132,113,.14); color:var(--sage-deep);}
+.editlink{font-size:11px; color:var(--fog); cursor:pointer; transition:.2s;}
+.editlink:hover{color:var(--ink);}
+.bio-field{padding-top:11px;}
+.bio-field .v{font-size:12.5px; color:var(--ink); line-height:1.9; margin-top:6px;}
+
+/* پلن */
+.plan-now{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.plan-now .name{font-size:18px; font-weight:700; color:var(--ink);}
+.plan-now .tag{font-size:10px; padding:3px 9px; border-radius:999px; background:rgba(199,93,60,.14); color:var(--ember);}
+.plan-bar{height:7px; border-radius:999px; background:rgba(var(--rgb-line),.07); margin-top:14px; overflow:hidden;}
+.plan-bar > i{display:block; height:100%; width:62%; border-radius:999px; background:linear-gradient(90deg,var(--gold),var(--ember));}
+.plan-meta{font-size:11px; color:var(--fog); margin-top:8px;}
+
+/* امور مالی */
+.wallet-strip{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 16px; border-radius:16px; margin-bottom:14px;
+  background:linear-gradient(120deg, rgba(122,132,113,.11), rgba(94,124,147,.07)); border:1px solid var(--line);}
+.ws-bal .l{font-size:10.5px; color:var(--stone); display:block;}
+.ws-bal .v{font-size:19px; font-weight:700; color:var(--ink); direction:ltr; display:inline-block; margin-top:2px;}
+.ws-bal .v i{font-style:normal; font-size:12px; font-weight:400; color:var(--stone); margin-right:3px;}
+.ws-btn{display:inline-flex; align-items:center; gap:6px; padding:10px 15px; border-radius:13px; background:var(--ink); color:var(--paper);
+  border:none; font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; transition:.25s; flex-shrink:0;}
+.ws-btn:hover{background:var(--charcoal);}
+.fin-card{position:relative; overflow:hidden; border-radius:16px; padding:14px 16px; margin-bottom:16px;
+  background:linear-gradient(120deg, rgba(94,124,147,.10), rgba(122,132,113,.08)); border:1px solid var(--line);}
+.fin-card .ttl{font-size:11px; color:var(--stone); display:flex; align-items:center; gap:6px;}
+.fin-card .num{font-size:15px; font-weight:600; color:var(--ink); direction:ltr; text-align:left; letter-spacing:2px; margin-top:7px;}
+.fin-card .edit{position:absolute; top:13px; left:14px; font-size:11px; color:var(--mist-deep); cursor:pointer;}
+.fin-card.empty{display:flex; align-items:center; justify-content:center; border-style:dashed; cursor:pointer; color:var(--fog); font-size:12.5px;}
+.tx-list{display:flex; flex-direction:column; gap:8px;}
+.tx{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; background:rgba(var(--rgb-line),.025);}
+.tx-ic{width:36px; height:36px; border-radius:11px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+.tx-ic.up{background:rgba(122,132,113,.14); color:var(--sage-deep);}
+.tx-ic.down{background:rgba(199,93,60,.10); color:var(--ember);}
+.tx-mid{flex:1; min-width:0;}
+.tx-mid .t{font-size:13px; color:var(--ink); display:flex; align-items:center; gap:7px;}
+.tx-mid .d{font-size:10.5px; color:var(--fog); margin-top:3px;}
+.st{font-size:9px; padding:2px 7px; border-radius:999px;}
+.st-pending{background:rgba(193,154,74,.14); color:#9a7b2e;}
+.st-ok{background:rgba(122,132,113,.16); color:var(--sage-deep);}
+.st-rej{background:rgba(199,93,60,.12); color:var(--ember);}
+.tx-amt{font-size:14px; font-weight:600; direction:ltr; flex-shrink:0;}
+.tx-amt.pos{color:var(--sage-deep);}
+.tx-amt.neg{color:var(--ink);}
+
+/* پشتیبانی */
+.sup-body{display:flex; gap:18px; align-items:stretch;}
+.sup-copy{flex:1;}
+.sup-copy p{font-size:12.5px; color:var(--stone); line-height:1.95; max-width:420px;}
+.sup-tickets{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
+.sup-tk{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 13px; border-radius:13px;
+  background:rgba(var(--rgb-line),.025); cursor:pointer; transition:.2s;}
+.sup-tk:hover{background:rgba(var(--rgb-line),.05);}
+.sup-tk .s{font-size:12.5px; color:var(--ink);}
+.sup-tk .m{font-size:10px; color:var(--fog); margin-top:2px;}
+.tkst{font-size:9.5px; padding:2px 8px; border-radius:999px;}
+.tkst-open{background:rgba(94,124,147,.14); color:var(--mist-deep);}
+.tkst-ans{background:rgba(122,132,113,.16); color:var(--sage-deep);}
+.tkst-closed{background:rgba(189,182,167,.2); color:var(--stone);}
+.sup-side{flex:0 0 220px; border-radius:16px; padding:18px; display:flex; flex-direction:column; justify-content:center; gap:12px;
+  background:linear-gradient(135deg, rgba(199,93,60,.08), rgba(193,154,74,.06)); border:1px solid var(--line);}
+.sup-side .h{font-size:13px; font-weight:600; color:var(--ink);}
+.sup-side .p{font-size:11px; color:var(--stone); line-height:1.8;}
+.btn-primary{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:11px 16px; border-radius:13px;
+  background:var(--ink); color:var(--paper); font-family:inherit; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:.25s;}
+.btn-primary:hover{background:var(--charcoal);}
+
+/* یادآوری‌ها و اعلان‌ها */
+.tile-ic.ic-rem{background:rgba(155,180,199,.14); color:var(--mist-deep);}
+.rm-row{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid var(--line);}
+.rm-row:last-of-type{border-bottom:none;}
+.rm-info{min-width:0;}
+.rm-info .t{font-size:13px; color:var(--ink);}
+.rm-info .h{font-size:10.5px; color:var(--fog); margin-top:2px;}
+.switch{position:relative; width:42px; height:24px; border-radius:999px; background:rgba(var(--rgb-line),.14);
+  cursor:pointer; transition:.25s; flex-shrink:0; border:none; padding:0;}
+.switch.on{background:var(--sage);}
+.switch i{position:absolute; top:3px; right:3px; width:18px; height:18px; border-radius:50%; background:#fff;
+  transition:.25s var(--ease-expo); box-shadow:0 1px 4px rgba(0,0,0,.22);}
+.switch.on i{right:21px;}
+.rm-foot{margin-top:14px; font-size:11px; color:var(--fog); line-height:1.8; display:flex; align-items:center; gap:7px;}
+
+/* ───────── اورلیِ مودال/دراور ───────── */
+.overlay{position:fixed; inset:0; z-index:80; background:rgba(26,26,31,.34); backdrop-filter:blur(3px);
+  opacity:0; pointer-events:none; transition:opacity .3s ease;}
+.overlay.show{opacity:1; pointer-events:auto;}
+
+/* مودالِ تراکنش‌ها */
+.modal{position:fixed; z-index:90; top:50%; left:50%; transform:translate(-50%,-46%) scale(.97);
+  width:520px; max-width:calc(100vw - 32px); max-height:84vh; border-radius:26px; overflow:hidden;
+  display:flex; flex-direction:column; opacity:0; pointer-events:none; transition:.35s var(--ease-expo);}
+.modal.show{opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1);}
+.modal-head{padding:18px 22px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line);}
+.modal-head h3{font-size:15px; font-weight:600; color:var(--ink);}
+.x-btn{width:32px; height:32px; border-radius:10px; border:none; background:rgba(var(--rgb-line),.05); color:var(--stone); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center;}
+.x-btn:hover{color:var(--ink);}
+.modal-filters{display:flex; gap:7px; padding:14px 22px 4px;}
+.chip{font-size:11.5px; padding:6px 13px; border-radius:999px; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--stone); font-family:inherit; transition:.2s;}
+.chip.active{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+.modal-body{padding:14px 22px 22px; overflow-y:auto; scrollbar-width:none;}
+.modal-body::-webkit-scrollbar{display:none;}
+
+/* دراورِ پشتیبانی (پنلِ کناری) */
+.drawer{position:fixed; z-index:90; top:0; bottom:0; left:0; width:440px; max-width:100vw;
+  display:flex; flex-direction:column; background:var(--glass-strong-bg); backdrop-filter:blur(28px);
+  border-left:1px solid var(--line); box-shadow:-20px 0 60px rgba(46,44,40,.16);
+  transform:translateX(-100%); transition:transform .42s var(--ease-expo);}
+.drawer.show{transform:translateX(0);}
+.drawer-head{padding:20px 22px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line);}
+.drawer-head .ic{width:40px; height:40px; border-radius:13px; background:rgba(199,93,60,.12); color:var(--ember); display:flex; align-items:center; justify-content:center;}
+.drawer-head h3{font-size:15px; font-weight:600; color:var(--ink);}
+.drawer-head .sub{font-size:11px; color:var(--fog); margin-top:2px;}
+.drawer-head .x-btn{margin-right:auto;}
+.drawer-body{flex:1; overflow-y:auto; scrollbar-width:none; padding:18px 22px;}
+.drawer-body::-webkit-scrollbar{display:none;}
+.compose{border-radius:18px; padding:16px; background:rgba(var(--rgb-line),.03); border:1px solid var(--line); margin-bottom:20px;}
+.compose .lab{font-size:12px; font-weight:600; color:var(--ink); margin-bottom:10px;}
+.inp{width:100%; border-radius:12px; border:1px solid var(--line); background:var(--glass-bg); padding:10px 13px;
+  font-family:inherit; font-size:13px; color:var(--ink); margin-bottom:9px; outline:none; transition:.2s;}
+.inp:focus{border-color:var(--sage);}
+textarea.inp{resize:none; line-height:1.9; min-height:78px;}
+.cat-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:11px;}
+.list-title{font-size:12px; font-weight:600; color:var(--stone); margin:6px 2px 12px;}
+.tk-card{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:13px 15px; border-radius:15px;
+  background:rgba(var(--rgb-card),.5); border:1px solid var(--line); cursor:pointer; margin-bottom:9px; transition:.2s;}
+.tk-card:hover{transform:translateX(-3px); border-color:rgba(122,132,113,.3);}
+.tk-card .s{font-size:13px; color:var(--ink);}
+.tk-card .m{font-size:10.5px; color:var(--fog); margin-top:3px; display:flex; align-items:center; gap:7px;}
+
+/* نمای گفتگوی تیکت در دراور */
+.thread{display:none; flex-direction:column; height:100%;}
+.drawer.thread-open .drawer-body > .tk-list-view{display:none;}
+.drawer.thread-open .thread{display:flex;}
+.thread-back{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--stone); background:none; border:none; cursor:pointer; font-family:inherit; margin-bottom:14px;}
+.thread-back:hover{color:var(--ink);}
+.msg{max-width:80%; padding:11px 14px; border-radius:16px; font-size:12.5px; line-height:1.9; margin-bottom:10px;}
+.msg.user{background:var(--ink); color:var(--paper); margin-left:auto; border-bottom-right-radius:5px;}
+.msg.admin{background:rgba(var(--rgb-line),.05); color:var(--ink); margin-right:auto; border-bottom-left-radius:5px;}
+.msg .who{font-size:10px; opacity:.6; margin-bottom:4px;}
+.thread-foot{margin-top:auto; padding-top:14px; display:flex; gap:8px; align-items:flex-end;}
+.thread-foot .inp{margin-bottom:0;}
+
+/* تمِ روشن/تاریک — دکمهٔ شناور */
+.theme-fab{position:fixed; bottom:20px; right:20px; z-index:70; width:46px; height:46px; border-radius:50%;
+  border:1px solid var(--line); background:var(--glass-strong-bg); color:var(--stone); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(46,44,40,.12);}
+.note{position:fixed; bottom:20px; left:20px; z-index:70; font-size:11px; color:var(--fog);
+  background:var(--glass-strong-bg); border:1px solid var(--line); padding:7px 12px; border-radius:999px;}
+
+@media (max-width:860px){
+  .pf-bento{grid-template-columns:1fr; grid-template-areas:"identity" "personal" "finance" "plan" "reminders" "support";}
+  .hero-main{flex-direction:column; align-items:center; text-align:center;}
+  .hero-id, .hero-id .uname, .hero-id .contact{text-align:center;}
+  .hero-badges{justify-content:center;}
+  .wallet-mini{position:static; margin:0 auto 16px; justify-content:center;}
+  .sup-body{flex-direction:column;}
+  .sup-side{flex:auto;}
+  .drawer{width:100vw;}
+}
+</style>
+</head>
+<body>
+
+<!-- نوار بالا -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="dot"></span>همسو</div>
+    <div class="nav-items">
+      <a href="#">امروز</a>
+      <a href="#">برنامه‌ریزی و چالش</a>
+      <a href="#">گزارش‌ها</a>
+      <a href="#" class="active">پروفایل</a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn bell-wrap" aria-label="اعلان‌ها">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2.25a4 4 0 0 0-4 4v2.4l-1.2 2.4h10.4L13 8.65v-2.4a4 4 0 0 0-4-4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M7.25 13.5a1.75 1.75 0 0 0 3.5 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="bell-badge">۲</span>
+      </button>
+      <div class="nav-ava">ب</div>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ───────── کارت هیرو (دست‌نخورده) + ورودیِ کیف‌پول ───────── -->
+  <div class="hero glass-strong">
+    <!-- ورودیِ کیف‌پول در گوشهٔ خالیِ بالا-چپ — آیکونِ فلتِ وکتوری + موجودی -->
+    <a class="wallet-mini" href="#finance" title="کیف‌پول">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H18a2 2 0 0 1 2 2v1H6a1 1 0 0 0 0 2h14a1 1 0 0 1 1 1v4a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5v-9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16.5" cy="13.5" r="1.1" fill="currentColor"/></svg>
+      <span class="wm-label">کیف‌پول</span>
+      <span class="wm-bal">۲۴۰٬۰۰۰ <i>تومان</i></span>
+    </a>
+
+    <div class="hero-main">
+      <div class="hero-ava">ب
+        <span class="cam"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="1.6"/></svg></span>
+      </div>
+      <div class="hero-id">
+        <h1>بهرام برازنده</h1>
+        <div class="uname">@bahram</div>
+        <div class="contact">۰۹۱۲۰۰۰۰۰۰۰</div>
+        <div class="bio">در مسیر نوشتنِ روزانه و ساختنِ عادتِ تأمل. همسو همراهِ این مسیر است.</div>
+        <div class="hero-badges">
+          <span class="b-pill b-plan">پرو</span>
+          <span class="b-pill b-cycle">سالانه</span>
+          <span class="b-pill b-left">۲۱۴ روز مانده</span>
+          <span class="b-since">عضو از خرداد ۱۴۰۴</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2>حساب من</h2><span class="rule"></span></div>
+
+  <!-- ───────── بِنتوِ حساب ───────── -->
+  <div class="pf-bento">
+
+    <!-- هویت و ورود -->
+    <div class="tile glass t-identity">
+      <div class="tile-head">
+        <div class="tile-ic ic-id"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.6"/><path d="M5 20a7 7 0 0 1 14 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <div><h3>هویت و ورود</h3><div class="sub">راه‌های ورود و امنیت حساب</div></div>
+      </div>
+      <div class="field"><span class="k">شماره موبایل</span><div class="vrow"><span class="val">۰۹۱۲۰۰۰۰۰۰۰</span></div></div>
+      <div class="field"><span class="k">ایمیل</span><div class="vrow"><span class="val">bahram@mail.com</span><span class="verified">تأیید شده</span></div></div>
+      <div class="field"><span class="k">نام کاربری</span><div class="vrow"><span class="val">@bahram</span><span class="editlink">ویرایش</span></div></div>
+      <div class="field"><span class="k">رمز عبور</span><div class="vrow"><span class="val">••••••••</span><span class="editlink">تغییر</span></div></div>
+    </div>
+
+    <!-- اطلاعات شخصی -->
+    <div class="tile glass t-personal">
+      <div class="tile-head">
+        <div class="tile-ic ic-pers"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 19a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <div><h3>اطلاعات شخصی</h3><div class="sub">نام، معرفی و تاریخ تولد</div></div>
+      </div>
+      <div class="field"><span class="k">نام نمایشی</span><div class="vrow"><span class="val">بهرام برازنده</span><span class="editlink">ویرایش</span></div></div>
+      <div class="field"><span class="k">تاریخ تولد</span><div class="vrow"><span class="val">۱۳ مرداد ۱۳۶۸</span><span class="editlink">ویرایش</span></div></div>
+      <div class="bio-field"><span class="k">دربارهٔ من</span><div class="v">در مسیر نوشتنِ روزانه و ساختنِ عادتِ تأمل.</div></div>
+    </div>
+
+    <!-- پلن و اشتراک -->
+    <div class="tile glass t-plan">
+      <div class="tile-head">
+        <div class="tile-ic ic-plan"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.6.9-5.5-4-3.9 5.5-.8L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></div>
+        <div><h3>پلن و اشتراک</h3><div class="sub">وضعیت اشتراک فعلی</div></div>
+      </div>
+      <div class="plan-now"><span class="name">پرو</span><span class="tag">سالانه فعال</span></div>
+      <div class="plan-bar"><i></i></div>
+      <div class="plan-meta">۲۱۴ روز از ۳۶۵ روز باقی مانده</div>
+      <div class="cta-foot"><button class="row-link">مدیریت و ارتقای پلن
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    </div>
+
+    <!-- یادآوری‌ها و اعلان‌ها -->
+    <div class="tile glass t-reminders">
+      <div class="tile-head">
+        <div class="tile-ic ic-rem"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+        <div><h3>یادآوری‌ها و اعلان‌ها</h3><div class="sub">چه چیزی و چه زمانی یادت بیندازیم</div></div>
+      </div>
+      <div class="rm-row">
+        <div class="rm-info"><div class="t">یادآوریِ تعهدِ روزانه</div><div class="h">هر روز ساعت ۲۱:۰۰</div></div>
+        <button class="switch on" onclick="this.classList.toggle('on')"><i></i></button>
+      </div>
+      <div class="rm-row">
+        <div class="rm-info"><div class="t">یادآوریِ گزارشِ هفتگی</div><div class="h">جمعه‌ها، پایانِ هفته</div></div>
+        <button class="switch on" onclick="this.classList.toggle('on')"><i></i></button>
+      </div>
+      <div class="rm-row">
+        <div class="rm-info"><div class="t">پاسخِ پشتیبانی</div><div class="h">وقتی تیکتت پاسخ گرفت</div></div>
+        <button class="switch on" onclick="this.classList.toggle('on')"><i></i></button>
+      </div>
+      <div class="rm-row">
+        <div class="rm-info"><div class="t">رویدادهای مالی و پلن</div><div class="h">شارژ، خرید و تغییرِ پلن</div></div>
+        <button class="switch" onclick="this.classList.toggle('on')"><i></i></button>
+      </div>
+      <div class="rm-foot">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        اعلان‌ها از طریقِ زنگوله و (به‌زودی) پیامک دریافت می‌شوند.
+      </div>
+    </div>
+
+    <!-- امور مالی و تراکنش‌ها -->
+    <div class="tile glass t-finance" id="finance">
+      <div class="tile-head">
+        <div class="tile-ic ic-fin"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h15A1.5 1.5 0 0 1 21 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 16.5v-9Z" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <div><h3>امور مالی و تراکنش‌ها</h3><div class="sub">کیف‌پول، کارت بانکی و تاریخچهٔ پرداخت</div></div>
+      </div>
+
+      <!-- موجودی + شارژ (پروسهٔ شارژ اینجا هندل می‌شود) -->
+      <div class="wallet-strip">
+        <div class="ws-bal"><span class="l">موجودی کیف‌پول</span><span class="v">۲۴۰٬۰۰۰ <i>تومان</i></span></div>
+        <button class="ws-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          شارژ کیف‌پول
+        </button>
+      </div>
+
+      <!-- کارتِ کارت‌به‌کارت -->
+      <div class="fin-card">
+        <span class="edit">ویرایش</span>
+        <div class="ttl"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 10h18" stroke="currentColor" stroke-width="1.6"/></svg>کارت من — برای واریز و کارت‌به‌کارت</div>
+        <div class="num">۶۰۳۷ - ۹۹۱۸ - ۱۲۳۴ - ۵۶۷۸</div>
+      </div>
+
+      <div class="tx-list">
+        <div class="tx">
+          <div class="tx-ic up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tx-mid"><div class="t">شارژ کیف‌پول <span class="st st-ok">انجام شد</span></div><div class="d">۱۲ خرداد ۱۴۰۴ · ۱۴:۲۰</div></div>
+          <div class="tx-amt pos">+۱۰۰٬۰۰۰</div>
+        </div>
+        <div class="tx">
+          <div class="tx-ic down"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tx-mid"><div class="t">خرید پلن پرو <span class="st st-ok">انجام شد</span></div><div class="d">۱ خرداد ۱۴۰۴ · ۰۹:۰۵</div></div>
+          <div class="tx-amt neg">−۲۹۰٬۰۰۰</div>
+        </div>
+        <div class="tx">
+          <div class="tx-ic up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tx-mid"><div class="t">شارژ کیف‌پول <span class="st st-pending">در انتظار</span></div><div class="d">۱۲ خرداد ۱۴۰۴ · ۱۴:۱۸</div></div>
+          <div class="tx-amt pos">+۵۰٬۰۰۰</div>
+        </div>
+        <div class="tx">
+          <div class="tx-ic up"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="tx-mid"><div class="t">شارژ کیف‌پول <span class="st st-ok">انجام شد</span></div><div class="d">۲۰ اردیبهشت ۱۴۰۴ · ۰۸:۱۲</div></div>
+          <div class="tx-amt pos">+۱۵۰٬۰۰۰</div>
+        </div>
+      </div>
+
+      <div class="cta-foot"><button class="row-link" onclick="openTx()">مشاهدهٔ همهٔ تراکنش‌ها
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+    </div>
+
+    <!-- ارتباط با پشتیبانی -->
+    <div class="tile glass t-support">
+      <div class="tile-head">
+        <div class="tile-ic ic-sup"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 1 1 16 0v5a2 2 0 0 1-2 2h-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 13v-1m0 1a2 2 0 0 0 2 2h0a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h0a2 2 0 0 0-2 2v1Zm16 0a2 2 0 0 1-2 2h0a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h0a2 2 0 0 1 2 2v1Z" stroke="currentColor" stroke-width="1.6"/></svg></div>
+        <div><h3>ارتباط با پشتیبانی</h3><div class="sub">تیکت‌ها و گفتگو با تیم همسو</div></div>
+      </div>
+      <div class="sup-body">
+        <div class="sup-copy">
+          <p>سؤال، مشکل یا پیشنهادی داری؟ تیکت بفرست و گفتگو را همین‌جا — بدون ترکِ صفحه — دنبال کن. تیمِ همسو معمولاً در کمتر از یک روز پاسخ می‌دهد.</p>
+          <div class="sup-tickets">
+            <div class="sup-tk" onclick="openSupport(true)">
+              <div><div class="s">مشکل در ثبت تعهد روزانه</div><div class="m">فنی · ۱۰ خرداد</div></div>
+              <span class="tkst tkst-ans">پاسخ داده شد</span>
+            </div>
+            <div class="sup-tk" onclick="openSupport(true)">
+              <div><div class="s">سؤال دربارهٔ صورتحساب پلن پرو</div><div class="m">مالی · ۴ خرداد</div></div>
+              <span class="tkst tkst-closed">بسته شد</span>
+            </div>
+          </div>
+        </div>
+        <div class="sup-side">
+          <div class="h">نیاز به کمک داری؟</div>
+          <div class="p">تیکتِ تازه باز کن یا گفتگوهای قبلی را در پنلِ کناری مرور کن.</div>
+          <button class="btn-primary" onclick="openSupport(false)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            تیکت جدید
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ───────── اورلی مشترک ───────── -->
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+
+<!-- مودالِ همهٔ تراکنش‌ها -->
+<div class="modal glass-strong" id="txModal">
+  <div class="modal-head">
+    <h3>امور مالی و تراکنش‌ها</h3>
+    <button class="x-btn" onclick="closeAll()">×</button>
+  </div>
+  <div class="modal-filters">
+    <button class="chip active">همه</button>
+    <button class="chip">شارژ</button>
+    <button class="chip">خرید پلن</button>
+    <button class="chip">اصلاح</button>
+  </div>
+  <div class="modal-body">
+    <div class="tx-list" id="txAll"></div>
+  </div>
+</div>
+
+<!-- دراورِ پشتیبانی -->
+<div class="drawer" id="supDrawer">
+  <div class="drawer-head">
+    <div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 12a9 9 0 1 0-3.5 7.1L21 21l-1-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div><h3>پشتیبانی همسو</h3><div class="sub">گفتگو و پیگیری — بدونِ ترکِ صفحه</div></div>
+    <button class="x-btn" onclick="closeAll()">×</button>
+  </div>
+  <div class="drawer-body">
+    <!-- نمای فهرست -->
+    <div class="tk-list-view">
+      <div class="compose">
+        <div class="lab">تیکت جدید</div>
+        <input class="inp" placeholder="موضوع را کوتاه بنویس…" />
+        <div class="cat-chips">
+          <button class="chip active">فنی</button>
+          <button class="chip">مالی</button>
+          <button class="chip">حساب</button>
+          <button class="chip">پیشنهاد</button>
+          <button class="chip">سایر</button>
+        </div>
+        <textarea class="inp" placeholder="توضیح بده چه کمکی از ما برمی‌آید…"></textarea>
+        <button class="btn-primary" style="width:100%">ارسال تیکت</button>
+      </div>
+      <div class="list-title">گفتگوهای من</div>
+      <div class="tk-card" onclick="openThread()">
+        <div><div class="s">مشکل در ثبت تعهد روزانه</div><div class="m"><span class="tkst tkst-ans">پاسخ داده شد</span> فنی · ۱۰ خرداد</div></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="var(--fog)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="tk-card" onclick="openThread()">
+        <div><div class="s">سؤال دربارهٔ صورتحساب پلن پرو</div><div class="m"><span class="tkst tkst-closed">بسته شد</span> مالی · ۴ خرداد</div></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="var(--fog)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="tk-card" onclick="openThread()">
+        <div><div class="s">درخواست تغییر نام کاربری</div><div class="m"><span class="tkst tkst-open">باز</span> حساب · ۲ خرداد</div></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="var(--fog)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+
+    <!-- نمای گفتگو -->
+    <div class="thread">
+      <button class="thread-back" onclick="closeThread()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        بازگشت به فهرست
+      </button>
+      <div class="list-title" style="margin-bottom:16px">مشکل در ثبت تعهد روزانه — <span class="tkst tkst-ans">پاسخ داده شد</span></div>
+      <div class="msg user"><div class="who">تو · ۱۰ خرداد ۰۹:۱۲</div>وقتی تعهد امروز را می‌نویسم، دکمهٔ ثبت کار نمی‌کند. مشکل از کجاست؟</div>
+      <div class="msg admin"><div class="who">پشتیبانی همسو · ۱۰ خرداد ۱۱:۴۰</div>سلام بهرام عزیز. لطفاً یک‌بار صفحه را تازه کن و دوباره امتحان کن؛ اگر باز هم بود، از چه مرورگری استفاده می‌کنی؟</div>
+      <div class="msg user"><div class="who">تو · ۱۰ خرداد ۱۲:۰۵</div>با تازه‌کردن درست شد. ممنون!</div>
+      <div class="thread-foot">
+        <textarea class="inp" rows="1" placeholder="پاسخ بنویس…"></textarea>
+        <button class="btn-primary">ارسال</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="theme-fab" onclick="toggleTheme()" aria-label="تغییر تم">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+</button>
+<div class="note">ماکاپ — برای دیدن: «مشاهدهٔ همهٔ تراکنش‌ها»، «تیکت جدید»، کلیدهای یادآوری</div>
+
+<script>
+// ── تم ──
+function toggleTheme(){
+  const h=document.documentElement;
+  h.setAttribute("data-theme", h.getAttribute("data-theme")==="dark"?"light":"dark");
+}
+// ── مودالِ تراکنش‌ها ──
+const TX=[
+  ["up","شارژ کیف‌پول","st-ok","انجام شد","۱۲ خرداد ۱۴۰۴ · ۱۴:۲۰","+۱۰۰٬۰۰۰"],
+  ["down","خرید پلن پرو","st-ok","انجام شد","۱ خرداد ۱۴۰۴ · ۰۹:۰۵","−۲۹۰٬۰۰۰"],
+  ["up","شارژ کیف‌پول","st-pending","در انتظار","۱۲ خرداد ۱۴۰۴ · ۱۴:۱۸","+۵۰٬۰۰۰"],
+  ["up","شارژ کیف‌پول","st-rej","رد شد","۸ خرداد ۱۴۰۴ · ۱۹:۳۰","+۲۰٬۰۰۰"],
+  ["down","خرید پلن پلاس","st-ok","انجام شد","۲۸ اردیبهشت ۱۴۰۴ · ۱۱:۰۰","−۹۹٬۰۰۰"],
+  ["up","شارژ کیف‌پول","st-ok","انجام شد","۲۰ اردیبهشت ۱۴۰۴ · ۰۸:۱۲","+۱۵۰٬۰۰۰"],
+  ["up","اصلاحِ موجودی","st-ok","انجام شد","۱۵ اردیبهشت ۱۴۰۴ · ۱۶:۴۵","+۱۰٬۰۰۰"],
+];
+function txRow(t){
+  const pos=t[5].startsWith("+");
+  return `<div class="tx">
+    <div class="tx-ic ${t[0]}">${t[0]==="up"
+      ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      :'<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</div>
+    <div class="tx-mid"><div class="t">${t[1]} <span class="st ${t[2]}">${t[3]}</span></div><div class="d">${t[4]}</div></div>
+    <div class="tx-amt ${pos?'pos':'neg'}">${t[5]}</div>
+  </div>`;
+}
+function openTx(){
+  document.getElementById("txAll").innerHTML=TX.map(txRow).join("");
+  document.getElementById("overlay").classList.add("show");
+  document.getElementById("txModal").classList.add("show");
+}
+// ── دراورِ پشتیبانی ──
+function openSupport(showThread){
+  const d=document.getElementById("supDrawer");
+  d.classList.toggle("thread-open", !!showThread);
+  document.getElementById("overlay").classList.add("show");
+  d.classList.add("show");
+}
+function openThread(){ document.getElementById("supDrawer").classList.add("thread-open"); }
+function closeThread(){ document.getElementById("supDrawer").classList.remove("thread-open"); }
+function closeAll(){
+  document.getElementById("overlay").classList.remove("show");
+  document.getElementById("txModal").classList.remove("show");
+  document.getElementById("supDrawer").classList.remove("show");
+}
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ closeAll(); }});
+</script>
+</body>
+</html>

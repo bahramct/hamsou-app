@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ماکاپ — داشبوردِ یکپارچهٔ همسو (امروز + مسیرِ من)</title>
+<style>
+/* فونت PelakFA — مسیرِ نسبی به public/Fonts */
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31;
+  --glass-bg:rgba(255,255,255,.55); --glass-strong-bg:rgba(255,255,255,.72);
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1);
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218;
+  --glass-bg:rgba(41,36,30,.55); --glass-strong-bg:rgba(41,36,30,.72);
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{
+  font-family:"PelakFA",Tahoma,"Segoe UI",sans-serif;
+  background:var(--paper); color:var(--ink); font-weight:400;
+  min-height:100vh; position:relative; overflow-x:hidden;
+  font-feature-settings:"ss01" on; transition:background .4s ease,color .4s ease;
+}
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 78% 8%, rgba(193,154,74,.10), transparent 60%),
+    radial-gradient(55% 45% at 12% 22%, rgba(155,180,199,.10), transparent 60%),
+    radial-gradient(50% 40% at 50% 100%, rgba(122,132,113,.08), transparent 65%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(60% 50% at 78% 8%, rgba(207,174,99,.10), transparent 60%),
+    radial-gradient(55% 45% at 12% 22%, rgba(138,167,188,.08), transparent 60%),
+    radial-gradient(50% 40% at 50% 100%, rgba(151,162,138,.07), transparent 65%);
+}
+.glass{background:var(--glass-bg); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--line); box-shadow:0 12px 40px rgba(46,44,40,.08), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04);}
+.glass-strong{background:var(--glass-strong-bg); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--line); box-shadow:0 18px 50px rgba(46,44,40,.10), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass-strong{box-shadow:0 18px 50px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.04);}
+
+/* نوار بالا */
+.nav{position:sticky; top:0; z-index:40; background:var(--glass-strong-bg);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1024px; margin:0 auto; height:64px; padding:0 24px;
+  display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.logo{font-weight:700; font-size:20px; letter-spacing:-.5px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.logo .dot{width:9px; height:9px; border-radius:50%; background:var(--ember);}
+.nav-items{display:flex; gap:4px; flex:1; justify-content:center;}
+.nav-items a{position:relative; padding:8px 16px; border-radius:12px; font-size:14px; color:var(--stone); text-decoration:none; transition:.25s;}
+.nav-items a:hover{color:var(--ink);}
+.nav-items a.active{color:var(--ink); font-weight:500;}
+.nav-items a.active::after{content:""; position:absolute; bottom:-1px; left:50%; transform:translateX(-50%); width:20px; height:2px; border-radius:2px; background:rgba(199,93,60,.7);}
+.nav-right{display:flex; align-items:center; gap:6px;}
+.icon-btn{width:38px; height:38px; border-radius:12px; border:none; background:transparent; color:var(--stone); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.25s;}
+.icon-btn:hover{background:rgba(var(--rgb-line),.05); color:var(--ink);}
+.bell-wrap{position:relative;}
+.bell-badge{position:absolute; top:6px; left:8px; min-width:15px; height:15px; padding:0 3px; border-radius:8px; background:var(--ember); color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center;}
+
+.wrap{position:relative; z-index:10; max-width:1024px; margin:0 auto; padding:40px 24px 90px;}
+
+/* لایهٔ ۱ — امروز */
+.today-head{text-align:center; margin-bottom:18px;}
+.today-head .greet{font-size:13px; color:var(--fog);}
+.today-head .date{font-size:15px; color:var(--stone); margin-top:2px;}
+.hero{max-width:520px; margin:0 auto;}
+.hero-card{border-radius:28px; padding:26px;}
+.hero-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+.hero-label{font-size:13px; font-weight:500; color:var(--stone);}
+.chip{font-size:11px; padding:4px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:5px;}
+.chip-sage{color:var(--sage); background:rgba(122,132,113,.12);}
+.hero-text{font-size:15px; line-height:2.1; color:var(--ink); white-space:pre-wrap;}
+.hero-foot{margin-top:18px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; color:var(--fog);}
+.freeze-pill{margin:14px auto 0; width:max-content; display:flex; align-items:center; gap:7px; font-size:12px; color:var(--mist-deep); background:rgba(94,124,147,.10); padding:7px 14px; border-radius:999px; cursor:pointer; border:1px solid rgba(94,124,147,.15);}
+
+/* جداکنندهٔ بخش */
+.section-head{display:flex; align-items:center; gap:14px; margin:46px 2px 18px;}
+.section-head h2{font-size:13px; font-weight:600; color:var(--stone); letter-spacing:.3px; white-space:nowrap;}
+.section-head .rule{flex:1; height:1px; background:var(--line);}
+.section-head .hint{font-size:11px; color:var(--fog);}
+
+/* بِنتو — CSS grid؛ آیتم‌ها به‌صورتِ پیش‌فرض کشیده می‌شوند → کف‌ها هم‌تراز */
+.bento{display:grid; grid-template-columns:1.35fr 1fr; gap:16px;
+  grid-template-areas:
+    "goal pulse"
+    "goal hist"
+    "report plan";}
+.t-goal{grid-area:goal;}
+.t-pulse{grid-area:pulse;}
+.t-hist{grid-area:hist;}
+.t-report{grid-area:report;}
+.t-plan{grid-area:plan;}
+.tile{display:flex; flex-direction:column;}
+
+.tile{border-radius:22px; padding:20px; position:relative; transition:transform .35s var(--ease-expo);}
+.tile:hover{transform:translateY(-2px);}
+.tile-label{font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--fog); margin-bottom:10px;}
+.tile-cta{font-size:12px; color:var(--sage-deep); display:inline-flex; align-items:center; gap:4px; text-decoration:none; background:none; border:none; cursor:pointer; font-family:inherit; padding:0;}
+.tile-cta:hover{color:var(--ember);}
+.cta-foot{margin-top:auto; padding-top:14px;} /* لنگرِ پایین — کف هم‌تراز */
+
+/* هدفِ فعال */
+.goal-title{font-size:17px; font-weight:600; color:var(--ink); margin-bottom:6px;}
+.goal-meta{display:flex; align-items:center; gap:8px; margin-bottom:14px;}
+.goal-day{font-size:12px; color:var(--stone); background:rgba(var(--rgb-line),.05); padding:4px 10px; border-radius:999px;}
+.timeline{display:flex; align-items:center; gap:0; margin:18px 0; padding-top:6px;}
+.tl-item{position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+.tl-node{width:12px; height:12px; border-radius:50%; border:2px solid var(--fog); background:transparent; transition:transform .25s var(--ease-expo);}
+.tl-item:hover .tl-node{transform:scale(1.35);}
+.tl-node.filled{background:var(--sage); border-color:var(--sage);}
+.tl-node.today{background:var(--ember); border-color:var(--ember); box-shadow:0 0 0 4px rgba(199,93,60,.14); width:14px; height:14px;}
+.tl-node.future{border-color:rgba(189,182,167,.5);}
+.tl-link{flex:1; height:2px; background:var(--line); min-width:10px;}
+.tl-link.done{background:rgba(122,132,113,.45);}
+.tl-pop{position:absolute; bottom:170%; right:50%; transform:translateX(50%) translateY(8px) scale(.94);
+  width:188px; padding:11px 13px; border-radius:14px; z-index:30;
+  background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--line); box-shadow:0 14px 40px rgba(46,44,40,.16);
+  opacity:0; pointer-events:none; transition:opacity .28s var(--ease-expo), transform .28s var(--ease-expo);}
+[data-theme="dark"] .tl-pop{box-shadow:0 14px 40px rgba(0,0,0,.5);}
+.tl-item:hover .tl-pop{opacity:1; transform:translateX(50%) translateY(0) scale(1);}
+.tl-pop::after{content:""; position:absolute; bottom:-6px; right:50%; transform:translateX(50%) rotate(45deg);
+  width:11px; height:11px; background:var(--glass-strong-bg); border-right:1px solid var(--line); border-bottom:1px solid var(--line);}
+.tl-pop .d{font-size:10px; color:var(--fog); margin-bottom:4px;}
+.tl-pop .s{font-size:12px; line-height:1.85; color:var(--stone); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+.tl-pop .more{font-size:10px; color:var(--ember); margin-top:6px;}
+.tl-pop .empty{font-size:11.5px; color:var(--fog);}
+.goal-story{font-size:13px; line-height:1.95; color:var(--stone); background:rgba(var(--rgb-line),.03); border-radius:14px; padding:12px 14px; border:1px solid var(--line);}
+.goal-story .q{font-size:11px; color:var(--fog); margin-bottom:4px;}
+
+/* پنلِ همراه — flex:1 تا خلأ را پر کند (تقارن حفظ شود) */
+.companion-panel{flex:1; margin-top:14px; border-radius:16px; padding:16px;
+  border:1px solid var(--line); background:rgba(var(--rgb-line),.025);
+  display:flex; flex-direction:column; justify-content:center; gap:9px;}
+.cp-pro{align-items:flex-start;}
+.cp-head{display:flex; align-items:center; gap:8px;}
+.cp-avatar{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(193,154,74,.16); color:var(--gold); flex-shrink:0;}
+.cp-name{font-size:12.5px; font-weight:600; color:var(--stone);}
+.chip-pro{font-size:10px; color:var(--gold); background:rgba(193,154,74,.13); padding:3px 9px; border-radius:999px; border:1px solid rgba(193,154,74,.25);}
+.cp-text{font-size:13px; line-height:2; color:var(--ink);}
+.cp-more{font-size:11.5px; color:var(--sage-deep);}
+/* حالتِ رایگان — قفلِ نرمِ ambient (بدون فشار) */
+.cp-free{align-items:center; text-align:center; gap:11px;}
+.cp-glyph-lg{width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(193,154,74,.10); color:var(--gold); opacity:.85;}
+.cp-line{font-size:12.5px; line-height:1.95; color:var(--stone); max-width:330px;}
+.cp-link{font-size:11.5px; color:var(--gold); display:inline-flex; align-items:center; gap:4px;}
+/* سوییچِ نمایش */
+.companion-panel.cp-pro{display:none;}
+body.show-pro .companion-panel.cp-pro{display:flex;}
+body.show-pro .companion-panel.cp-free{display:none;}
+
+/* نبضِ این هفته */
+.legend{display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:11px;}
+.lg{display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--stone);}
+.lg .sw{width:12px; height:12px; border-radius:4px; flex-shrink:0;}
+.lg .sw.wrote{background:rgba(122,132,113,.55);}
+.lg .sw.empty{background:rgba(189,182,167,.16); border:1px dashed rgba(189,182,167,.6);}
+.lg .sw.freeze{background:rgba(94,124,147,.28); border:1px solid rgba(94,124,147,.45);}
+.lg .sw.today{background:transparent; box-shadow:0 0 0 2px var(--paper), 0 0 0 3px var(--ember);}
+.rhythm{display:flex; gap:8px; margin:4px 0 14px;}
+.rh{flex:1; display:flex; flex-direction:column; align-items:center; gap:7px;}
+.rh-pill{position:relative; width:100%; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; transition:transform .25s var(--ease-expo);}
+.rh:hover .rh-pill{transform:translateY(-2px);}
+.rh-pill.wrote{background:rgba(122,132,113,.55);}
+.rh-pill.empty{background:rgba(189,182,167,.16); border:1px dashed rgba(189,182,167,.55);}
+.rh-pill.freeze{background:rgba(94,124,147,.28); border:1px solid rgba(94,124,147,.4);}
+.rh-pill.future{background:rgba(189,182,167,.08); border:1px dashed rgba(189,182,167,.3);}
+.rh.today .rh-pill{box-shadow:0 0 0 2px var(--paper), 0 0 0 4px var(--ember);}
+.rh-day{font-size:10px; color:var(--fog);}
+.rh.today .rh-day{color:var(--ember); font-weight:600;}
+.pulse-line{font-size:12.5px; line-height:1.85; color:var(--stone); margin-top:auto;}
+
+/* تاریخچهٔ اخیر */
+.hist-item{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+.hist-item:last-of-type{border-bottom:none;}
+.hist-dot{width:8px; height:8px; border-radius:50%; margin-top:6px; flex-shrink:0;}
+.hist-dot.done{background:var(--sage);}
+.hist-dot.miss{background:var(--fog);}
+.hist-body{min-width:0;}
+.hist-date{font-size:10px; color:var(--fog); margin-bottom:1px;}
+.hist-text{font-size:12.5px; color:var(--stone); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+/* آخرین گزارش */
+.report-week{font-size:13px; color:var(--stone); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+.report-quote{font-size:13.5px; line-height:2; color:var(--ink); font-weight:500;}
+.report-cats{display:flex; gap:6px; flex-wrap:wrap; margin:14px 0;}
+.cat{font-size:11px; color:var(--stone); background:rgba(var(--rgb-line),.05); padding:4px 11px; border-radius:999px;}
+.cat .bar{display:inline-block; width:5px; height:5px; border-radius:50%; margin-left:5px; vertical-align:middle;}
+
+/* پلن و کیف‌پول */
+.plan-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.plan-badge{font-size:12px; font-weight:600; color:var(--ember); background:rgba(199,93,60,.12); padding:4px 12px; border-radius:999px;}
+.plan-left{font-size:11px; color:var(--stone);}
+.plan-wallet{display:flex; align-items:baseline; gap:6px; margin-bottom:4px;}
+.plan-wallet .amt{font-size:20px; font-weight:600; color:var(--ink);}
+.plan-wallet .unit{font-size:11px; color:var(--fog);}
+.plan-sub{font-size:11px; color:var(--fog);}
+.plan-links{display:flex; gap:14px; margin-top:auto; padding-top:14px;}
+.plan-links a{font-size:12px; color:var(--sage-deep); text-decoration:none;}
+.plan-links a:hover{color:var(--ember);}
+
+/* مودالِ ۳۰ روزِ اخیر */
+.overlay{position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(26,26,31,.32); backdrop-filter:blur(3px);}
+.overlay.open{display:flex;}
+.modal{width:100%; max-width:440px; max-height:80vh; border-radius:24px; padding:22px; overflow:hidden; display:flex; flex-direction:column; animation:pop .3s var(--ease-expo);}
+@keyframes pop{from{opacity:0; transform:translateY(10px) scale(.98);} to{opacity:1; transform:none;}}
+.modal-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+.modal-head h3{font-size:15px; font-weight:600; color:var(--ink);}
+.modal-list{overflow-y:auto; padding-left:4px; scrollbar-width:thin;}
+
+/* کلیدِ دموِ رایگان/پرو (فقط برای ماکاپ) */
+.demo-toggle{position:fixed; bottom:16px; right:16px; z-index:70; display:flex; align-items:center; gap:6px;
+  background:var(--glass-strong-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 12px; box-shadow:0 8px 24px rgba(46,44,40,.12);}
+.demo-toggle span{font-size:11px; color:var(--fog);}
+.demo-toggle button{font-family:inherit; font-size:11.5px; border:none; cursor:pointer; padding:5px 12px; border-radius:999px; background:transparent; color:var(--stone); transition:.2s;}
+.demo-toggle button.active{background:var(--ember); color:#fff;}
+
+/* یادداشت */
+.note{max-width:1024px; margin:30px auto 0; padding:0 24px;}
+.note .box{font-size:12px; color:var(--fog); line-height:1.9; border:1px dashed var(--line); border-radius:16px; padding:16px 18px;}
+.note b{color:var(--stone); font-weight:600;}
+
+@media (max-width:760px){
+  .nav-items{display:none;}
+  .bento{grid-template-columns:1fr; grid-template-areas:"goal" "pulse" "hist" "report" "plan";}
+  .wrap{padding:28px 16px 80px;}
+}
+</style>
+</head>
+<body>
+
+<!-- نوار بالا (بدونِ «تاریخچه») -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo"><span class="dot"></span>همسو</div>
+    <div class="nav-items">
+      <a href="#" class="active">داشبورد</a>
+      <a href="#">برنامه‌ریزی</a>
+      <a href="#">گزارش هفتگی</a>
+      <a href="#">پلن‌ها</a>
+    </div>
+    <div class="nav-right">
+      <div class="bell-wrap">
+        <button class="icon-btn" title="اعلان‌ها">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5 1.5 5h-15S6 13 6 9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 19a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+        <span class="bell-badge">۲</span>
+      </div>
+      <button class="icon-btn" title="پروفایل">
+        <svg width="16" height="16" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="5" r="2.5" stroke="currentColor" stroke-width="1.4"/><path d="M2 13c0-2.485 2.463-4.5 5.5-4.5S13 10.515 13 13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" id="themeToggle" title="تمِ روشن/تاریک">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- لایهٔ ۱ — امروز -->
+  <div class="today-head">
+    <p class="greet">صبحت آرام، بهرام</p>
+    <p class="date">پنجشنبه، ۲۴ خرداد ۱۴۰۵</p>
+  </div>
+  <div class="hero">
+    <div class="hero-card glass-strong">
+      <div class="hero-row">
+        <span class="hero-label">تعهد امروز</span>
+        <span class="chip chip-sage">تا ۱ ساعت و ۴۲ دقیقه ویرایش می‌شود</span>
+      </div>
+      <p class="hero-text">امروز نیم‌ساعت بدون گوشی می‌نویسم — فقط هرچه در ذهنم هست، بی‌ویرایش.</p>
+      <p class="hero-foot">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 20v-7" stroke="var(--sage)" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13c0-3 2.2-5.2 5.5-5.2C17.5 11 15.3 13 12 13Z" stroke="var(--sage)" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 14c0-3.4-2.4-5.8-6-5.8C6 11.6 8.4 14 12 14Z" stroke="var(--sage)" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        فردا بازخوردش را می‌پرسم
+      </p>
+    </div>
+    <div class="freeze-pill">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 7l14 10M19 7 5 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      مسیرم را موقتاً متوقف کن
+    </div>
+  </div>
+
+  <!-- لایهٔ ۲ — مسیرِ من -->
+  <div class="section-head">
+    <h2>مسیرِ من</h2>
+    <span class="rule"></span>
+    <span class="hint">یک نگاهِ آرام به جایی که هستم</span>
+  </div>
+
+  <div class="bento">
+
+    <!-- هدفِ فعال -->
+    <div class="tile glass t-goal">
+      <div class="tile-label">هدفِ فعال</div>
+      <div class="goal-title">سی روز نوشتنِ روزانه</div>
+      <div class="goal-meta"><span class="goal-day">روز ۵ از ۲۱</span></div>
+
+      <div class="timeline">
+        <div class="tl-item"><span class="tl-node filled"></span>
+          <div class="tl-pop"><div class="d">روز ۱ · شنبه</div><div class="s">شروع کردم. کمی مضطرب بودم اما نوشتم.</div></div></div>
+        <span class="tl-link done"></span>
+        <div class="tl-item"><span class="tl-node filled"></span>
+          <div class="tl-pop"><div class="d">روز ۲ · یکشنبه</div><div class="s">امروز روان‌تر بود؛ ده دقیقه نشستم و نوشتم.</div></div></div>
+        <span class="tl-link done"></span>
+        <div class="tl-item"><span class="tl-node filled"></span>
+          <div class="tl-pop"><div class="d">روز ۳ · دوشنبه</div><div class="s">یادم رفته بود، شب یادم آمد و کوتاه نوشتم درباره‌ی اینکه چرا این هدف برایم مهم است و می‌خواهم تا آخرش بمانم.</div><div class="more">برای متنِ کامل، کلیک کن →</div></div></div>
+        <span class="tl-link done"></span>
+        <div class="tl-item"><span class="tl-node filled"></span>
+          <div class="tl-pop"><div class="d">روز ۴ · سه‌شنبه</div><div class="s">نوشتن کم‌کم دارد عادت می‌شود.</div></div></div>
+        <span class="tl-link done"></span>
+        <div class="tl-item"><span class="tl-node today"></span>
+          <div class="tl-pop"><div class="d">امروز · روز ۵</div><div class="s">امروز سخت‌تر بود — اما همان چند خط نوشتن کمک کرد ذهنم سبک شود.</div></div></div>
+        <span class="tl-link"></span>
+        <div class="tl-item"><span class="tl-node future"></span><div class="tl-pop"><div class="empty">روز ۶ · هنوز نرسیده</div></div></div>
+        <span class="tl-link"></span>
+        <div class="tl-item"><span class="tl-node future"></span><div class="tl-pop"><div class="empty">روز ۷ · هنوز نرسیده</div></div></div>
+        <span class="tl-link"></span>
+        <div class="tl-item"><span class="tl-node future"></span><div class="tl-pop"><div class="empty">روز ۸ · هنوز نرسیده</div></div></div>
+      </div>
+
+      <div class="goal-story">
+        <div class="q">استوریِ امروز</div>
+        امروز سخت‌تر بود — اما همان چند خط نوشتن کمک کرد ذهنم سبک شود.
+      </div>
+
+      <!-- پنلِ همراه — حالتِ پرو (بازخوردِ زنده) -->
+      <div class="companion-panel cp-pro">
+        <div class="cp-head">
+          <span class="cp-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+          <span class="cp-name">همراه</span>
+          <span class="chip-pro">پرو</span>
+        </div>
+        <p class="cp-text">«پنج روزه که می‌نویسی — دیدم روزهایی که صبح می‌نویسی، ذهنت آرام‌تر است. شاید همین ریتمِ صبح را نگه داری.»</p>
+        <button class="cp-more" style="background:none;border:none;cursor:pointer;font-family:inherit;padding:0;" onclick="document.getElementById('companionModal').classList.add('open')">خواندنِ کامل ←</button>
+      </div>
+
+      <!-- پنلِ همراه — حالتِ رایگان (قفلِ نرمِ ambient، بدون فشار) -->
+      <div class="companion-panel cp-free">
+        <span class="cp-glyph-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span>
+        <p class="cp-line">«همراه» در پلنِ پرو، هر چند روز یک‌بار نگاهی تازه و بی‌قضاوت به مسیرت می‌نویسد — مثلِ کسی که کنارت قدم می‌زند.</p>
+        <a href="#" class="cp-link">آشنایی با پرو
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+      <div class="cta-foot"><a href="#" class="tile-cta">بازکردنِ هدف
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+    </div>
+
+    <!-- نبضِ این هفته -->
+      <div class="tile glass t-pulse">
+        <div class="tile-label">نبضِ این هفته</div>
+        <div class="legend">
+          <span class="lg"><span class="sw wrote"></span>نوشتم</span>
+          <span class="lg"><span class="sw empty"></span>نبودم</span>
+          <span class="lg"><span class="sw freeze"></span>فریز</span>
+          <span class="lg"><span class="sw today"></span>امروز</span>
+        </div>
+        <div class="rhythm">
+          <div class="rh"><div class="rh-pill wrote"></div><span class="rh-day">ش</span></div>
+          <div class="rh"><div class="rh-pill wrote"></div><span class="rh-day">ی</span></div>
+          <div class="rh"><div class="rh-pill empty"></div><span class="rh-day">د</span></div>
+          <div class="rh"><div class="rh-pill freeze"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M5 7l14 10M19 7 5 17" stroke="var(--mist-deep)" stroke-width="1.5" stroke-linecap="round"/></svg></div><span class="rh-day">س</span></div>
+          <div class="rh"><div class="rh-pill wrote"></div><span class="rh-day">چ</span></div>
+          <div class="rh today"><div class="rh-pill wrote"></div><span class="rh-day">پ</span></div>
+          <div class="rh"><div class="rh-pill future"></div><span class="rh-day">ج</span></div>
+        </div>
+        <p class="pulse-line">این هفته ۴ روز نوشتم، ۱ روز فریز گذاشتم و ۱ روز نبودم. امروز هم نوشتم.</p>
+      </div>
+
+      <!-- تاریخچهٔ اخیر -->
+      <div class="tile glass t-hist">
+        <div class="tile-label">تاریخچهٔ اخیر</div>
+        <div class="hist-item"><span class="hist-dot done"></span>
+          <div class="hist-body"><div class="hist-date">دیروز · چهارشنبه</div><div class="hist-text">صبح زود بیدار شدم و قبل از کار قدم زدم.</div></div></div>
+        <div class="hist-item"><span class="hist-dot miss"></span>
+          <div class="hist-body"><div class="hist-date">سه‌شنبه ۲۲ خرداد</div><div class="hist-text">می‌خواستم کتاب بخوانم — نشد، روزِ شلوغی بود.</div></div></div>
+        <div class="hist-item"><span class="hist-dot done"></span>
+          <div class="hist-body"><div class="hist-date">دوشنبه ۲۱ خرداد</div><div class="hist-text">به جای دسر، یک لیوان آب خوردم و راضی بودم.</div></div></div>
+        <div class="cta-foot">
+          <button class="tile-cta" onclick="document.getElementById('histModal').classList.add('open')">دیدنِ ۳۰ روزِ اخیر
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+    <!-- آخرین گزارشِ هفتگی -->
+    <div class="tile glass t-report">
+      <div class="tile-label">آخرین گزارشِ هفتگی</div>
+      <div class="report-week">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="2.5" stroke="currentColor" stroke-width="1.5"/><path d="M4 9h16M9 3v4M15 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        ۱۴ تا ۲۰ خرداد
+      </div>
+      <p class="report-quote">«این هفته وقتی روزت پُر بود، باز هم چند خط نوشتی — انگار نوشتن برایت لنگرِ آرامش شده.»</p>
+      <div class="report-cats">
+        <span class="cat"><span class="bar" style="background:var(--sage)"></span>آرامش</span>
+        <span class="cat"><span class="bar" style="background:var(--mist-deep)"></span>تمرکز</span>
+        <span class="cat"><span class="bar" style="background:var(--gold)"></span>سلامت</span>
+      </div>
+      <div class="cta-foot"><a href="#" class="tile-cta">خواندنِ گزارش
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+    </div>
+
+    <div class="tile glass t-plan">
+      <div class="tile-label">پلن و کیف‌پول</div>
+      <div class="plan-top">
+        <span class="plan-badge">پرو</span>
+        <span class="plan-left">۱۸ روز مانده</span>
+      </div>
+      <div class="plan-wallet"><span class="amt">۱۲۵٬۰۰۰</span><span class="unit">تومان موجودی</span></div>
+      <p class="plan-sub">سالانه · تمدیدِ خودکار خاموش</p>
+      <div class="plan-links"><a href="#">کیف‌پول</a><a href="#">پشتیبانی</a><a href="#">ارتقا / تمدید</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- مودالِ ۳۰ روزِ اخیر -->
+<div class="overlay" id="histModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal glass-strong">
+    <div class="modal-head">
+      <h3>سی روزِ اخیر</h3>
+      <button class="icon-btn" onclick="document.getElementById('histModal').classList.remove('open')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-list" id="histList"></div>
+  </div>
+</div>
+
+<!-- مودالِ همراه — نامه‌وار (خواندنِ کاملِ بازخورد) -->
+<div class="overlay" id="companionModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal glass-strong" style="max-width:480px;">
+    <div class="modal-head">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="cp-avatar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
+        <h3>همراه — روز ۵</h3>
+      </div>
+      <button class="icon-btn" onclick="document.getElementById('companionModal').classList.remove('open')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-list">
+      <p style="font-size:13.5px; line-height:2.3; color:var(--ink);">
+        پنج روزه که می‌نویسی. چیزی که توجهم را گرفت این بود: روزهایی که <b>صبح</b> می‌نویسی، متن‌هایت آرام‌تر و کوتاه‌ترند؛ روزهایی که شب می‌نویسی، انگار خسته‌تری و بیشتر گله می‌کنی.
+        <br><br>
+        این قضاوت نیست — فقط یک الگو که شاید خودت هم حسش کرده باشی. اگر دوست داشتی، چند روز نوشتنِ صبح را امتحان کن و ببین فرقی می‌کند یا نه.
+        <br><br>
+        روزِ سوم نوشته بودی «می‌خواهم تا آخرش بمانم» — همان جمله هنوز اینجاست. مسیرت ادامه دارد.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- کلیدِ دموِ رایگان/پرو -->
+<div class="demo-toggle">
+  <span>تایلِ هدف:</span>
+  <button id="btnFree" class="active">رایگان</button>
+  <button id="btnPro">پرو</button>
+</div>
+
+<div class="note">
+  <div class="box">
+    <b>ماکاپِ نسخهٔ ۴</b> — اصلاحاتِ بازخوردِ شما:
+    ① <b>هم‌ترازی حل شد</b>: چیدمان از flex به <b>CSS Grid</b> رفت (کف تایل‌ها هم‌تراز) + دکمه‌ها لنگرِ پایین.
+    ② <b>«ادامهٔ مسیر» → «بازکردنِ هدف»</b> (مقصد روشن).
+    ③ <b>بازخوردِ همراه → مودالِ نامه‌وار</b>: روی «خواندنِ کامل» بزنید. با کلیدِ گوشهٔ پایین، حالتِ <b>رایگان/پرو</b> را هم مقایسه کنید (هر دو فضا را پر می‌کنند).
+    ④ <b>نبضِ هفته اول‌شخص</b>: «نوشتم / نبودم …» (فقط داشبورد).
+    «نشانِ همراه روی تایم‌لاین» و «تاریخچهٔ اهداف» در ماکاپِ دومِ مجزا (<b>goal-journey.html</b>) آمده‌اند.
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    root.setAttribute("data-theme", root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+  });
+
+  const btnFree = document.getElementById("btnFree");
+  const btnPro  = document.getElementById("btnPro");
+  btnFree.addEventListener("click", () => { document.body.classList.remove("show-pro"); btnFree.classList.add("active"); btnPro.classList.remove("active"); });
+  btnPro .addEventListener("click", () => { document.body.classList.add("show-pro");    btnPro.classList.add("active");  btnFree.classList.remove("active"); });
+
+  const samples = [
+    ["امروز · پنجشنبه","نیم‌ساعت بدون گوشی نوشتم.","done"],
+    ["دیروز · چهارشنبه","صبح زود بیدار شدم و قبل از کار قدم زدم.","done"],
+    ["سه‌شنبه ۲۲ خرداد","می‌خواستم کتاب بخوانم — نشد، روزِ شلوغی بود.","miss"],
+    ["دوشنبه ۲۱ خرداد","به جای دسر، یک لیوان آب خوردم.","done"],
+    ["یکشنبه ۲۰ خرداد","ده دقیقه مدیتیشن کردم.","done"],
+    ["شنبه ۱۹ خرداد","قرار بود زود بخوابم، نشد.","miss"],
+    ["جمعه ۱۸ خرداد","با خانواده وقت گذراندم، بی‌گوشی.","done"],
+    ["پنجشنبه ۱۷ خرداد","یک فصل کتاب خواندم.","done"],
+    ["چهارشنبه ۱۶ خرداد","پیاده‌روی کردم.","done"],
+    ["سه‌شنبه ۱۵ خرداد","امروز چیزی ننوشتم اما به هدفم فکر کردم.","miss"]
+  ];
+  document.getElementById("histList").innerHTML = samples.map(([d,t,s]) => `
+    <div class="hist-item"><span class="hist-dot ${s}"></span>
+      <div class="hist-body"><div class="hist-date">${d}</div><div class="hist-text" style="white-space:normal">${t}</div></div></div>`).join("");
+</script>
+</body>
+</html>

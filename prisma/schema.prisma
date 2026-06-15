@@ -916,6 +916,7 @@ model Goal {
   id        String   @id @default(cuid())
   userId    String
   title     String // تنها یک هدف — بدون sub-task
+  type      String   @default("goal") // goal (هدف) | challenge (چالش) — تفاوتِ لحن/بَج، نه ساختار (TASK-28 فاز ۲)
   startDate DateTime // startDate ≥ امروز هنگام ساخت
   endDate   DateTime // > startDate
   status    String   @default("active") // active | completed | abandoned

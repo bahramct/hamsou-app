@@ -9,10 +9,17 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
 import { JalaliDatePicker } from "@/components/ui/JalaliDatePicker";
+import { Portal } from "@/components/ui/Portal";
 import { toast } from "@/lib/notifications/toast";
 import type { SerializedGoal } from "@/types/goal";
 
 const MAX_TITLE = 120;
+const MAX_RANGE_DAYS = 30;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function isoToUtc(iso: string): number {
+  return new Date(`${iso}T00:00:00.000Z`).getTime();
+}
 
 export function GoalEditModal({
   goal,
@@ -52,6 +59,11 @@ export function GoalEditModal({
   function save() {
     const t = title.trim();
     if (!t || isPending) return;
+    // محدودیتِ ۳۰ روز — بدونِ اعلانِ قبلی؛ فقط هنگامِ ذخیره هشدار می‌دهد.
+    if (Math.round((isoToUtc(endIso) - isoToUtc(goal.startIso)) / MS_PER_DAY) + 1 > MAX_RANGE_DAYS) {
+      toast.error("بازهٔ یک هدف یا چالش حداکثر ۳۰ روز است");
+      return;
+    }
     startTransition(async () => {
       try {
         const res = await fetch(`/api/goal/${goal.id}`, {
@@ -76,6 +88,7 @@ export function GoalEditModal({
   const canSave = title.trim().length > 0 && title.length <= MAX_TITLE && endIso > goal.startIso && endIso >= todayIso && !isPending;
 
   return (
+    <Portal>
     <>
       <div
         aria-hidden
@@ -169,5 +182,6 @@ export function GoalEditModal({
         </div>
       </div>
     </>
+    </Portal>
   );
 }

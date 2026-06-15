@@ -1,37 +1,56 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Dashboard — صفحه اصلی کاربر پس از ورود (TASK-005, TASK-DASHBOARD-HISTORY)
+// Dashboard — صفحه اصلی کاربر پس از ورود (TASK-005, TASK-DASHBOARD-HISTORY,
+//   TASK-28 «یکپارچه‌سازی داشبورد»)
 //
-// این یک Server Component است:
-//   ● Session را از cookie می‌خواند (auth-server.ts)
-//   ● تعهد امروز را مستقیماً از Prisma می‌خواند (بدون HTTP round-trip)
-//   ● داده را Serialize می‌کند و به Client Components پاس می‌دهد
+// Server Component. چیدمانِ یکپارچه:
+//   ① ردیفِ بالا: «کادر سبز» (TodayPanel: ساعت + هفته) | «امروز» (هیروِ گیت‌دار)
+//   ② «مسیرِ من» (بِنتو): هدفِ فعال · نبضِ هفته · تاریخچهٔ اخیر · آخرین گزارش · پلن/کیف
 //
-// حالت‌های صفحه (به ترتیب اولویت):
-//   ● freeze فعال → FreezeActiveBanner (بدون فرم تعهد)
-//   ● بازخورد pending → FeedbackForm
-//   ● gap pending → GapForm (با آگاهی از freeze)
-//   ● تعهد دارد → EntryCard
-//   ● بدون تعهد → EntryForm + FreezePill
+// هیروِ «امروز» همان گیتینگِ قبلی است (دست‌نخورده):
+//   freeze فعال → FreezeActiveBanner · بازخورد pending → FeedbackForm
+//   gap pending → GapForm · تعهد دارد → EntryCard · بدون تعهد → EntryForm
+// بِنتو و کادر سبز همیشه (حتی هنگام گیت) نمایش داده می‌شوند.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { AppShell } from "@/components/layout/AppShell";
 import { prisma } from "@/lib/db/client";
-import { getTodayDateForDB, canEdit, formatJalali, formatWeekday } from "@/lib/utils/date";
+import {
+  getTodayDateForDB,
+  canEdit,
+  formatJalali,
+  formatWeekday,
+  jalaaliTodayParts,
+  JALALI_MONTH_NAMES,
+} from "@/lib/utils/date";
 import { EntryForm } from "@/components/features/entry/EntryForm";
 import { EntryCard } from "@/components/features/entry/EntryCard";
 import { FeedbackForm } from "@/components/features/feedback/FeedbackForm";
 import { GapForm } from "@/components/features/gap/GapForm";
 import { FreezeActiveBanner } from "@/components/features/freeze/FreezeActiveBanner";
-import { RecentHistoryButton } from "@/components/features/history/RecentHistoryModal";
 import { createNotification } from "@/lib/notifications/server";
+import { getWeekActivity } from "@/lib/dashboard/activity";
+import { loadActiveGoalView } from "@/lib/goal/server";
+import { buildJourneyNodes } from "@/lib/goal/storyboard";
+import { todayKey } from "@/lib/goal/dates";
+import { getEffectivePlan } from "@/lib/plans/effective";
+import { TodayPanel } from "@/components/features/dashboard/TodayPanel";
+import { GoalTile, type GoalTileData, type GoalTimelineNode } from "@/components/features/dashboard/GoalTile";
+import { PulseTile } from "@/components/features/dashboard/PulseTile";
+import { RecentTile } from "@/components/features/dashboard/RecentTile";
+import { ReportTile, type ReportTileData } from "@/components/features/dashboard/ReportTile";
+import { PlanTile, type PlanTileData } from "@/components/features/dashboard/PlanTile";
 import type { RecentEntry } from "@/components/features/history/RecentHistoryModal";
 import type { SerializedEntry } from "@/types/entry";
 import type { PendingFeedbackEntry } from "@/types/feedback";
 import type { PendingGap, ActiveFreeze } from "@/types/gap";
+import type { WeeklyReportContent } from "@/types/weekly-report";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+const PLAN_LABEL: Record<string, string> = { FREE: "رایگان", PLUS: "پلاس", PRO: "پرو" };
+const PLAN_TONE: Record<string, PlanTileData["tone"]> = { FREE: "free", PLUS: "plus", PRO: "pro" };
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
@@ -40,6 +59,7 @@ export default async function DashboardPage() {
   const todayDate = getTodayDateForDB();
   const todayLabel = formatJalali(todayDate);
   const weekdayLabel = formatWeekday(todayDate);
+  const todayIso = todayKey();
 
   // ─── بررسی فریز فعال (امروز در بازه فریز) ────────────────────────────────
   const activeGapFreeze = await prisma.gapRecord.findFirst({
@@ -52,7 +72,7 @@ export default async function DashboardPage() {
     select: { id: true, fromDate: true, toDate: true, note: true },
   });
 
-  // ─── اعلانِ پایان فریز (lazy — فقط اگر فریزی دیروز تمام شده) ────────────
+  // ─── اعلانِ پایان فریز (lazy) ────────────────────────────────────────────
   const yesterday = new Date(todayDate.getTime() - MS_PER_DAY);
   const endedFreeze = await prisma.gapRecord.findFirst({
     where: {
@@ -82,11 +102,7 @@ export default async function DashboardPage() {
 
   // ─── بازخورد تعهد قبلی ────────────────────────────────────────────────────
   const pendingFeedbackRow = await prisma.dailyEntry.findFirst({
-    where: {
-      userId: user.userId,
-      date: { lt: todayDate },
-      feedback: null,
-    },
+    where: { userId: user.userId, date: { lt: todayDate }, feedback: null },
     orderBy: { date: "desc" },
   });
 
@@ -106,8 +122,6 @@ export default async function DashboardPage() {
 
   // ─── تشخیص فاصله غیرفعالی (با آگاهی از freeze) ─────────────────────────
   let pendingGap: PendingGap | null = null;
-
-  // اگر freeze فعال نیست، بازخورد pending نیست، تعهد امروز ندارد → چک gap
   if (!activeGapFreeze && !pendingFeedbackEntry && !entry) {
     const lastEntry = await prisma.dailyEntry.findFirst({
       where: { userId: user.userId },
@@ -117,15 +131,12 @@ export default async function DashboardPage() {
 
     if (lastEntry && lastEntry.date < yesterday) {
       const dayAfterLastEntry = new Date(lastEntry.date.getTime() + MS_PER_DAY);
-
-      // چک اینکه آیا gap قبلاً ثبت شده
       const existingGap = await prisma.gapRecord.findFirst({
         where: { userId: user.userId, fromDate: dayAfterLastEntry },
         select: { id: true },
       });
 
       if (!existingGap) {
-        // اگر freeze‌ای در بازه gap شروع می‌شود، gap را تا قبل از freeze محدود کن
         const overlapFreeze = await prisma.gapRecord.findFirst({
           where: {
             userId: user.userId,
@@ -140,9 +151,8 @@ export default async function DashboardPage() {
           ? new Date(overlapFreeze.fromDate.getTime() - MS_PER_DAY)
           : yesterday;
 
-        const gapDays = Math.round(
-          (gapToDate.getTime() - dayAfterLastEntry.getTime()) / MS_PER_DAY,
-        ) + 1;
+        const gapDays =
+          Math.round((gapToDate.getTime() - dayAfterLastEntry.getTime()) / MS_PER_DAY) + 1;
 
         if (gapDays > 0) {
           pendingGap = {
@@ -155,34 +165,7 @@ export default async function DashboardPage() {
     }
   }
 
-  // ─── تاریخچه آخرین ۷ تعهد ────────────────────────────────────────────────
-  const recentEntries: RecentEntry[] = [];
-  if (!activeGapFreeze && !pendingFeedbackEntry && !pendingGap) {
-    const recentRows = await prisma.dailyEntry.findMany({
-      where: { userId: user.userId },
-      orderBy: { date: "desc" },
-      take: 7,
-      select: {
-        id: true,
-        content: true,
-        date: true,
-        feedback: { select: { status: true } },
-      },
-    });
-    recentEntries.push(
-      ...recentRows.map((r) => ({
-        id: r.id,
-        content: r.content,
-        dateLabel: formatJalali(r.date),
-        weekdayLabel: formatWeekday(r.date),
-        feedbackStatus: r.feedback
-          ? (r.feedback.status as "DONE" | "NOT_DONE")
-          : null,
-      })),
-    );
-  }
-
-  // ─── Serialize ───────────────────────────────────────────────────────────
+  // ─── Serialize تعهد امروز ─────────────────────────────────────────────────
   const serializedEntry: SerializedEntry | null = entry
     ? {
         id: entry.id,
@@ -210,47 +193,192 @@ export default async function DashboardPage() {
       }
     : null;
 
+  // ─── دادهٔ «مسیرِ من» (بِنتو) — همیشه ────────────────────────────────────
+  const [weekActivity, goalView, latestReport, effectivePlan, fullUser, recentRows] =
+    await Promise.all([
+      getWeekActivity(user.userId),
+      loadActiveGoalView(user.userId),
+      prisma.weeklyReport.findFirst({
+        where: { userId: user.userId },
+        orderBy: { weekStart: "desc" },
+      }),
+      getEffectivePlan(user.userId),
+      prisma.user.findUnique({
+        where: { id: user.userId },
+        select: { walletBalance: true, planCycle: true, displayName: true },
+      }),
+      prisma.dailyEntry.findMany({
+        where: { userId: user.userId },
+        orderBy: { date: "desc" },
+        take: 30,
+        select: {
+          id: true,
+          content: true,
+          date: true,
+          feedback: { select: { status: true } },
+        },
+      }),
+    ]);
+
+  // GoalTile — تایم‌لاینِ ریز: پنجره‌ای حداکثر ۸ نقطه حولِ امروز
+  let goalTimeline: GoalTimelineNode[] = [];
+  if (goalView.goal) {
+    const nodes = buildJourneyNodes(
+      goalView.goal.startIso,
+      goalView.goal.endIso,
+      todayIso,
+      goalView.stories,
+      goalView.insights,
+    );
+    const total = nodes.length;
+    let startIdx = 0;
+    let endIdx = total;
+    if (total > 8) {
+      const tIdx = Math.max(0, goalView.goal.dayNumber - 1);
+      startIdx = Math.max(0, Math.min(tIdx - 4, total - 8));
+      endIdx = startIdx + 8;
+    }
+    goalTimeline = nodes.slice(startIdx, endIdx).map((n) => {
+      const story = n.stories[0];
+      const long = !!story && story.content.length > 120;
+      return {
+        dayNumber: n.dayNumber,
+        weekdayLabel: n.weekdayLabel,
+        kind: n.isToday ? "today" : n.isFuture ? "future" : "filled",
+        preview: story ? (long ? story.content.slice(0, 120) + "…" : story.content) : null,
+        hasMore: long,
+      };
+    });
+  }
+
+  const goalTileData: GoalTileData = goalView.goal
+    ? {
+        hasGoal: true,
+        type: goalView.goal.type,
+        title: goalView.goal.title,
+        dayNumber: goalView.goal.dayNumber,
+        totalDays: goalView.goal.totalDays,
+        timeline: goalTimeline,
+        todayStory: goalView.stories.find((s) => s.dateIso === todayIso)?.content ?? null,
+        companionPlanAllowed: goalView.companion.planAllowed,
+        companionLatest:
+          goalView.insights.length > 0
+            ? goalView.insights[goalView.insights.length - 1].reflection
+            : null,
+      }
+    : {
+        hasGoal: false,
+        type: "goal",
+        title: "",
+        dayNumber: 0,
+        totalDays: 0,
+        timeline: [],
+        todayStory: null,
+        companionPlanAllowed: goalView.companion.planAllowed,
+        companionLatest: null,
+      };
+
+  // ReportTile
+  let reportData: ReportTileData = {
+    hasReport: false,
+    jalaliStart: "",
+    jalaliEnd: "",
+    text: "",
+    categories: [],
+  };
+  if (latestReport) {
+    try {
+      const parsed = JSON.parse(latestReport.aiContent) as { content: WeeklyReportContent };
+      const content = parsed.content;
+      reportData = {
+        hasReport: true,
+        jalaliStart: formatJalali(latestReport.weekStart),
+        jalaliEnd: formatJalali(latestReport.weekEnd),
+        text: content.reflection || content.summary || "",
+        categories: (content.categories ?? []).map((c) => c.label),
+      };
+    } catch {
+      /* payload خراب → دعوتِ ساده */
+    }
+  }
+
+  // PlanTile
+  const planTileData: PlanTileData = {
+    planLabel: PLAN_LABEL[effectivePlan.plan] ?? effectivePlan.plan,
+    tone: PLAN_TONE[effectivePlan.plan] ?? "free",
+    daysLeft: effectivePlan.daysLeft,
+    walletBalance: fullUser?.walletBalance ?? 0,
+    cycleLabel:
+      effectivePlan.plan !== "FREE" && fullUser?.planCycle
+        ? fullUser.planCycle === "annual"
+          ? "سالانه"
+          : "ماهانه"
+        : null,
+  };
+
+  // RecentTile
+  const recentEntries: RecentEntry[] = recentRows.map((r) => ({
+    id: r.id,
+    content: r.content,
+    dateLabel: formatJalali(r.date),
+    weekdayLabel: formatWeekday(r.date),
+    feedbackStatus: r.feedback ? (r.feedback.status as "DONE" | "NOT_DONE") : null,
+  }));
+
+  const monthLabel = JALALI_MONTH_NAMES[jalaaliTodayParts().jm - 1];
+  const dateLabel = `${weekdayLabel}، ${todayLabel}`;
+
+  // ─── هیروِ «امروز» (گیتینگِ دست‌نخورده) ───────────────────────────────
+  const heroNode = activeFreeze ? (
+    <FreezeActiveBanner freeze={activeFreeze} todayLabel={todayLabel} weekdayLabel={weekdayLabel} />
+  ) : pendingFeedbackEntry ? (
+    <FeedbackForm pendingEntry={pendingFeedbackEntry} todayLabel={todayLabel} weekdayLabel={weekdayLabel} />
+  ) : pendingGap ? (
+    <GapForm pendingGap={pendingGap} todayLabel={todayLabel} weekdayLabel={weekdayLabel} />
+  ) : serializedEntry ? (
+    <EntryCard entry={serializedEntry} todayLabel={todayLabel} weekdayLabel={weekdayLabel} />
+  ) : (
+    <EntryForm todayLabel={todayLabel} weekdayLabel={weekdayLabel} />
+  );
+
   return (
     <AppShell>
-      <div className="flex-1 relative flex items-center justify-center px-5 pt-12 pb-28 sm:pt-16 sm:pb-32">
-        <div className="w-full flex justify-center">
-          {activeFreeze ? (
-            // گیت فریز: فریز فعال — بدون فرم تعهد
-            <FreezeActiveBanner
-              freeze={activeFreeze}
-              todayLabel={todayLabel}
-              weekdayLabel={weekdayLabel}
+      <div className="dsh-wrap animate-fade-up">
+        {/* ① ردیفِ بالا: تعهد امروز (راست) | کادر سبز (چپ) */}
+        <div className="dsh-top">
+          <div className="dsh-today-col">
+            <div className="flex flex-1 items-center justify-center">{heroNode}</div>
+          </div>
+          <div className="dsh-green-col">
+            <TodayPanel
+              days={weekActivity.days}
+              dateLabel={dateLabel}
+              monthLabel={monthLabel}
+              userName={fullUser?.displayName ?? undefined}
             />
-          ) : pendingFeedbackEntry ? (
-            // گیت ۱: بازخورد تعهد قبلی — پیش از هر چیز
-            <FeedbackForm
-              pendingEntry={pendingFeedbackEntry}
-              todayLabel={todayLabel}
-              weekdayLabel={weekdayLabel}
-            />
-          ) : pendingGap ? (
-            // گیت ۲: توضیح فاصله غیرفعالی
-            <GapForm
-              pendingGap={pendingGap}
-              todayLabel={todayLabel}
-              weekdayLabel={weekdayLabel}
-            />
-          ) : serializedEntry ? (
-            <EntryCard
-              entry={serializedEntry}
-              todayLabel={todayLabel}
-              weekdayLabel={weekdayLabel}
-            />
-          ) : (
-            <EntryForm todayLabel={todayLabel} weekdayLabel={weekdayLabel} />
-          )}
+          </div>
         </div>
 
-        {recentEntries.length > 0 && (
-          <div className="absolute bottom-6 sm:bottom-8 inset-x-0 flex justify-center">
-            <RecentHistoryButton entries={recentEntries} />
-          </div>
-        )}
+        {/* ② مسیرِ من */}
+        <div className="dsh-sec">
+          <h2>مسیرِ من</h2>
+          <span className="rule" />
+          <span className="hint">یک نگاهِ آرام به جایی که هستم</span>
+        </div>
+
+        <div className="dsh-bento">
+          <GoalTile data={goalTileData} />
+          <PulseTile
+            days={weekActivity.days}
+            wroteCount={weekActivity.wroteCount}
+            freezeCount={weekActivity.freezeCount}
+            emptyCount={weekActivity.emptyCount}
+            todayWrote={weekActivity.todayWrote}
+          />
+          <RecentTile entries={recentEntries} />
+          <ReportTile data={reportData} />
+          <PlanTile data={planTileData} />
+        </div>
       </div>
     </AppShell>
   );

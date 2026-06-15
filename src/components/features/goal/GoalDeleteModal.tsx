@@ -11,6 +11,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
+import { Portal } from "@/components/ui/Portal";
 import { toast } from "@/lib/notifications/toast";
 
 type DeleteChoice = "keep" | "purge" | null;
@@ -77,6 +78,7 @@ export function GoalDeleteModal({
   }
 
   return (
+    <Portal>
     <>
       <div
         aria-hidden
@@ -186,5 +188,6 @@ export function GoalDeleteModal({
         </div>
       </div>
     </>
+    </Portal>
   );
 }

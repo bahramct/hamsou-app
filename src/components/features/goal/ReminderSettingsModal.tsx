@@ -9,6 +9,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/Spinner";
+import { Portal } from "@/components/ui/Portal";
 import { toast } from "@/lib/notifications/toast";
 import { toFaDigits } from "@/lib/utils/digits";
 import type { GoalReminderConfig, ReminderChannel } from "@/types/goal";
@@ -105,6 +106,7 @@ export function ReminderSettingsModal({
   }
 
   return (
+    <Portal>
     <>
       <div
         aria-hidden
@@ -232,7 +234,7 @@ export function ReminderSettingsModal({
                   <p className="mb-2 text-xs font-medium text-stone">متنِ یادآوری (اختیاری)</p>
                   <textarea
                     value={message}
-                    onChange={(e) => setMessage(e.target.value.slice(0, MAX_MSG))}
+                    onChange={(e) => setMessage(toFaDigits(e.target.value).slice(0, MAX_MSG))}
                     rows={2}
                     dir="rtl"
                     placeholder="مثلاً: یک لحظه به مسیرت سر بزن."
@@ -260,5 +262,6 @@ export function ReminderSettingsModal({
         </div>
       </div>
     </>
+    </Portal>
   );
 }

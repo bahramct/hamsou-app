@@ -10,11 +10,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
 import { isoToDbDate } from "@/lib/goal/server";
-import { goalToday, currentDayNumber } from "@/lib/goal/dates";
+import { goalToday, currentDayNumber, MS_PER_DAY } from "@/lib/goal/dates";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 const MAX_TITLE = 120;
+const MAX_RANGE_DAYS = 30; // هماهنگ با ساختِ هدف/چالش (TASK-28 فاز ۲)
 
 export async function PATCH(request: NextRequest, { params }: Ctx) {
   const user = await getSessionUser();
@@ -73,6 +74,9 @@ export async function PATCH(request: NextRequest, { params }: Ctx) {
         return NextResponse.json({ ok: false, message: "پایان باید بعد از شروع باشد." }, { status: 400 });
       if (end.getTime() < goalToday().getTime())
         return NextResponse.json({ ok: false, message: "پایان نمی‌تواند در گذشته باشد." }, { status: 400 });
+      const rangeDays = Math.round((end.getTime() - goal.startDate.getTime()) / MS_PER_DAY) + 1;
+      if (rangeDays > MAX_RANGE_DAYS)
+        return NextResponse.json({ ok: false, message: "بازهٔ یک هدف یا چالش حداکثر ۳۰ روز است." }, { status: 400 });
       data.endDate = end;
     }
 

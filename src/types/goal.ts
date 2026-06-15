@@ -5,10 +5,12 @@
 
 export type GoalMood = "good" | "neutral" | "hard";
 export type ReminderChannel = "inapp" | "email" | "both";
+export type GoalType = "goal" | "challenge"; // هدف | چالش (TASK-28 فاز ۲)
 
 export interface SerializedGoal {
   id: string;
   title: string;
+  type: GoalType; // هدف یا چالش — تفاوتِ لحن/بَج، نه ساختار
   startIso: string; // "YYYY-MM-DD" میلادی (مبادله)
   endIso: string;
   startLabel: string; // شمسی
@@ -63,4 +65,43 @@ export interface ActiveGoalView {
   insights: SerializedInsight[];
   companion: GoalCompanionState;
   reminder: GoalReminderConfig;
+}
+
+// ─── کتابخانهٔ مسیرها + بازخوانیِ سفر (TASK-28 فاز ۳) ─────────────────────────
+
+/** کارتِ یک مسیرِ گذشته (completed|abandoned) در «کتابخانهٔ مسیرها». */
+export interface SerializedJourneyCard {
+  id: string;
+  type: GoalType;
+  title: string;
+  status: string; // completed | abandoned
+  startLabel: string; // شمسی
+  endLabel: string;
+  totalDays: number;
+  storyCount: number;
+  insightCount: number;
+  essence: string | null; // نمایندهٔ مسیر — اولین استوری
+}
+
+/** یک روزِ بافته‌شده در «بازخوانیِ سفر» (استوری + بینشِ همراه). */
+export interface JourneyRecapDay {
+  dayNumber: number;
+  dateLabel: string; // شمسی
+  weekdayLabel: string;
+  story: { content: string; mood: GoalMood | null } | null;
+  insight: { reflection: string; suggestions: string[] } | null;
+}
+
+/** نمای کاملِ «بازخوانیِ سفر» (lazy از /api/goal/[id]/recap). */
+export interface JourneyRecap {
+  id: string;
+  type: GoalType;
+  title: string;
+  status: string;
+  startLabel: string;
+  endLabel: string;
+  totalDays: number;
+  storyCount: number;
+  insightCount: number;
+  days: JourneyRecapDay[];
 }

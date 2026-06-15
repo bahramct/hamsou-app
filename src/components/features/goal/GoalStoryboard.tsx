@@ -1,98 +1,140 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GoalStoryboard — نمای هدفِ فعال (DECISION-082)
-// چیدمانِ آرام: سرآیند + آهنگ‌سازِ استوریِ امروز + پنلِ همراه + استوری‌بوردِ افقیِ روزها.
-// منبعِ حقیقت = props سرور؛ هر تغییر با router.refresh اعمال می‌شود (state تکراری نداریم).
-// استوری‌بوردِ افقی با خطِ زمانیِ ظریفِ متصل‌کننده (انتخابِ مالک) — بدون درصد/استریک.
+// GoalStoryboard — نمای هدفِ فعال (DECISION-082؛ TASK-28، پیاده‌سازیِ مو‌به‌موی
+// mockups/goal-journey.html). بِنتو: «hero comp / path path».
+//   hero  = بَج + عنوان + روز X از Y + منو(…) + راهنما + آهنگ‌سازِ استوریِ امروز (bare)
+//   comp  = پنلِ «همراه» (طلایی، bare)
+//   path  = ریلِ سفر (JourneyRail) + راهنما
+// منبعِ حقیقت = props سرور؛ هر تغییر با router.refresh اعمال می‌شود.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { buildDaySlots } from "@/lib/goal/storyboard";
-import { GoalHeader } from "@/components/features/goal/GoalHeader";
+import { buildJourneyNodes } from "@/lib/goal/storyboard";
+import { GoalTypeBadge } from "@/components/features/goal/GoalTypeBadge";
 import { StoryComposer } from "@/components/features/goal/StoryComposer";
 import { CompanionPanel } from "@/components/features/goal/CompanionPanel";
-import { DayCard } from "@/components/features/goal/DayCard";
+import { JourneyRail } from "@/components/features/goal/JourneyRail";
 import { DayDetailModal } from "@/components/features/goal/DayDetailModal";
 import { ReminderSettingsModal } from "@/components/features/goal/ReminderSettingsModal";
+import { GoalEditModal } from "@/components/features/goal/GoalEditModal";
+import { GoalDeleteModal } from "@/components/features/goal/GoalDeleteModal";
 import type { ActiveGoalView } from "@/types/goal";
+
+function fa(n: number): string {
+  return n.toLocaleString("fa-IR");
+}
 
 export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; todayIso: string }) {
   const goal = view.goal!;
   const [openIso, setOpenIso] = useState<string | null>(null);
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const notStarted = goal.dayNumber < 1;
-  const slots = buildDaySlots(goal.startIso, goal.endIso, todayIso, view.stories, view.insights);
-  const openSlot = openIso ? slots.find((s) => s.iso === openIso) ?? null : null;
+  const nodes = buildJourneyNodes(goal.startIso, goal.endIso, todayIso, view.stories, view.insights);
+  const openSlot = openIso ? nodes.find((n) => n.iso === openIso) ?? null : null;
   const todayInsight = view.insights.find((i) => i.dayKey === todayIso) ?? null;
-  const todayStory = slots[0]?.iso === todayIso ? (slots[0]?.stories[0] ?? null) : null;
+  const todayNode = nodes.find((n) => n.iso === todayIso) ?? null;
+  const todayStory = todayNode?.stories[0] ?? null;
+  const canEdit = goal.dayNumber <= 1;
+
+  const remaining = goal.daysRemaining;
+  const remainingLabel =
+    remaining > 0
+      ? `${fa(remaining)} روز مانده`
+      : remaining === 0
+        ? "امروز روزِ پایان است"
+        : "به پایان رسیده";
 
   return (
-    <div className="space-y-5 animate-fade-up">
-      <GoalHeader
-        goal={goal}
-        todayIso={todayIso}
-        hasReminder={view.reminder.enabled}
-        onOpenReminder={() => setReminderOpen(true)}
-      />
+    <div className="animate-fade-up">
+      <p className="jp-title"><b>برنامه‌ریزی و چالش</b> — یک مسیرِ فعال در هر زمان</p>
 
-      {notStarted ? (
-        <div className="glass-strong rounded-3xl p-6 text-center shadow-paper">
-          <p className="text-sm leading-relaxed text-stone fa-num">
-            مسیرت از {goal.startLabel} شروع می‌شود. از همان روز می‌توانی بنویسی.
-          </p>
-        </div>
-      ) : (
-        <>
-          {/* نوشتن/ویرایشِ استوریِ امروز — slots[0] = امروز */}
-          <StoryComposer
-            goalId={goal.id}
-            todayLabel={slots[0]?.dayLabel ?? goal.startLabel}
-            weekdayLabel={slots[0]?.weekdayLabel ?? ""}
-            todayStory={todayStory}
-          />
+      <div className="jp-bento">
+        {/* ── هیرو ── */}
+        <div className="jp-tile jp-hero glass">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label="گزینه‌ها"
+            className="absolute left-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-stone transition-colors hover:bg-black/5"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+              <circle cx="8" cy="3" r="1.4" /><circle cx="8" cy="8" r="1.4" /><circle cx="8" cy="13" r="1.4" />
+            </svg>
+          </button>
 
-          {/* همراه */}
-          <CompanionPanel goalId={goal.id} companion={view.companion} todayInsight={todayInsight} />
-
-          {/* استوری‌بوردِ افقی */}
-          <div>
-            <div className="mb-2.5 flex items-center justify-between px-1">
-              <h2 className="text-xs font-medium text-stone">مسیرت تا اینجا</h2>
-              <span className="text-[11px] text-fog">برای دیدنِ هر روز، رویش بزن</span>
-            </div>
-
-            {slots.length === 0 ? (
-              <p className="rounded-2xl border border-bone bg-white/40 px-4 py-6 text-center text-[13px] text-fog">
-                هنوز روزی از مسیرت نگذشته.
-              </p>
-            ) : (
-              <div className="relative">
-                {/* خطِ زمانیِ ظریفِ متصل‌کننده */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute right-0 left-0 top-[1.45rem] h-px bg-gradient-to-l from-transparent via-stone/20 to-transparent"
-                />
-                <div className="flex snap-x gap-3 overflow-x-auto pb-3 [&::-webkit-scrollbar]:hidden" dir="rtl">
-                  {slots.map((slot) => (
-                    <DayCard key={slot.iso} slot={slot} onClick={() => setOpenIso(slot.iso)} />
-                  ))}
-                </div>
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-10" aria-hidden onClick={() => setMenuOpen(false)} />
+              <div className="absolute left-4 top-12 z-20 w-52 overflow-hidden rounded-2xl border border-black/8 bg-paper py-1 shadow-[0_12px_40px_rgba(26,26,31,0.16)]">
+                <button type="button" onClick={() => { setMenuOpen(false); setReminderOpen(true); }} className="flex w-full items-center justify-between px-4 py-2.5 text-right text-[13px] text-ink hover:bg-black/4">
+                  یادآوری {view.reminder.enabled && <span className="h-1.5 w-1.5 rounded-full bg-sage" />}
+                </button>
+                {canEdit && (
+                  <button type="button" onClick={() => { setMenuOpen(false); setEditOpen(true); }} className="block w-full px-4 py-2.5 text-right text-[13px] text-ink hover:bg-black/4">
+                    ویرایشِ هدف
+                  </button>
+                )}
+                <div className="mx-3 my-1 h-px bg-black/6" />
+                <button type="button" onClick={() => { setMenuOpen(false); setDeleteOpen(true); }} className="block w-full px-4 py-2.5 text-right text-[13px] text-stone hover:bg-ember/6 hover:text-ember">
+                  پایانِ مسیر
+                </button>
               </div>
-            )}
+            </>
+          )}
+
+          <GoalTypeBadge type={goal.type} />
+          <h1 className="jp-hero-title">{goal.title}</h1>
+          <div className="jp-hero-meta">
+            <span className="jp-hero-day fa-num">روز {fa(goal.dayNumber > 0 ? goal.dayNumber : 0)} از {fa(goal.totalDays)}</span>
+            <span className="text-[11px] text-fog fa-num">{remainingLabel}</span>
           </div>
-        </>
-      )}
+
+          {notStarted ? (
+            <p className="jp-story fa-num" style={{ marginTop: 14 }}>
+              مسیرت از {goal.startLabel} شروع می‌شود. از همان روز می‌توانی بنویسی.
+            </p>
+          ) : (
+            <>
+              <p className="jp-hero-hint">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 3 }}><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" /><path d="M12 8v.5M12 11.5v4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+                روزهای مسیرت را با فلش‌ها ببین؛ روزهای پُرمتن نشانِ طلایی دارند و با کلیک کامل باز می‌شوند
+              </p>
+              <div style={{ marginTop: 14 }}>
+                <StoryComposer
+                  goalId={goal.id}
+                  todayLabel={todayNode?.dayLabel ?? goal.startLabel}
+                  weekdayLabel={todayNode?.weekdayLabel ?? ""}
+                  todayStory={todayStory}
+                  bare
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── همراه ── */}
+        <div className="jp-tile jp-comp glass">
+          <CompanionPanel goalId={goal.id} companion={view.companion} todayInsight={todayInsight} bare />
+        </div>
+
+        {/* ── مسیر ── */}
+        <div className="jp-tile jp-path glass">
+          <span className="jp-lbl">مسیرت تا اینجا</span>
+          <JourneyRail nodes={nodes} onOpen={(iso) => setOpenIso(iso)} />
+        </div>
+      </div>
 
       {openSlot && <DayDetailModal slot={openSlot} onClose={() => setOpenIso(null)} />}
       {reminderOpen && (
-        <ReminderSettingsModal
-          goalId={goal.id}
-          config={view.reminder}
-          onClose={() => setReminderOpen(false)}
-        />
+        <ReminderSettingsModal goalId={goal.id} config={view.reminder} onClose={() => setReminderOpen(false)} />
       )}
+      {editOpen && <GoalEditModal goal={goal} todayIso={todayIso} onClose={() => setEditOpen(false)} />}
+      {deleteOpen && <GoalDeleteModal goalId={goal.id} goalTitle={goal.title} onClose={() => setDeleteOpen(false)} />}
     </div>
   );
 }
