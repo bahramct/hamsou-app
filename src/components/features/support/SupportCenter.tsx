@@ -28,6 +28,8 @@ interface Thread { id: string; subject: string; status: string; category: string
 interface Props {
   ticketingAllowed: boolean;
   initialTickets: TicketSummary[];
+  /** "tile" = کارت + دراور (پروفایل) · "drawer" = فقط دراور (داشبورد، با رویدادِ سراسری) */
+  variant?: "tile" | "drawer";
 }
 
 // دستهٔ تیکت — کلیدِ کاتالوگ ↔ برچسبِ کوتاهِ نمایشی (طبق mockup)
@@ -58,7 +60,7 @@ function faDateTime(iso: string): string {
   } catch { return iso; }
 }
 
-export function SupportCenter({ ticketingAllowed, initialTickets }: Props) {
+export function SupportCenter({ ticketingAllowed, initialTickets, variant = "tile" }: Props) {
   const [tickets, setTickets] = useState<TicketSummary[]>(initialTickets);
   const [open, setOpen] = useState(false);
 
@@ -84,6 +86,26 @@ export function SupportCenter({ ticketingAllowed, initialTickets }: Props) {
     return () => cancelAnimationFrame(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // بازکردن از هر صفحه با رویدادِ سراسری (لینکِ «پشتیبانی» در داشبورد، DECISION-102 #1)
+  useEffect(() => {
+    const handler = () => openDrawer();
+    window.addEventListener("open-support-drawer", handler);
+    return () => window.removeEventListener("open-support-drawer", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // حالتِ «فقط دراور» (داشبورد): کارت نمایش داده نمی‌شود، فقط دراورِ رویداد-محور
+  if (variant === "drawer") {
+    return open ? (
+      <SupportDrawer
+        ticketingAllowed={ticketingAllowed}
+        tickets={tickets}
+        onClose={() => setOpen(false)}
+        onRefresh={refresh}
+      />
+    ) : null;
+  }
 
   const preview = tickets.slice(0, 2);
 

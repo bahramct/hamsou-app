@@ -41,6 +41,9 @@ import { PulseTile } from "@/components/features/dashboard/PulseTile";
 import { RecentTile } from "@/components/features/dashboard/RecentTile";
 import { ReportTile, type ReportTileData } from "@/components/features/dashboard/ReportTile";
 import { PlanTile, type PlanTileData } from "@/components/features/dashboard/PlanTile";
+import { SupportCenter, type TicketSummary } from "@/components/features/support/SupportCenter";
+import { planAllows } from "@/lib/plans/access";
+import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import type { RecentEntry } from "@/components/features/history/RecentHistoryModal";
 import type { SerializedEntry } from "@/types/entry";
 import type { PendingFeedbackEntry } from "@/types/feedback";
@@ -325,6 +328,22 @@ export default async function DashboardPage() {
     feedbackStatus: r.feedback ? (r.feedback.status as "DONE" | "NOT_DONE") : null,
   }));
 
+  // پشتیبانی — دراورِ همین‌صفحه‌ای (DECISION-102 #1): لینکِ «پشتیبانی» در PlanTile بازش می‌کند
+  const ticketingAllowed = await planAllows(effectivePlan.plan, TICKETING_FEATURE_KEY);
+  const supportTicketsRaw = await prisma.supportTicket.findMany({
+    where: { userId: user.userId },
+    orderBy: { lastMessageAt: "desc" },
+    take: 50,
+    select: { id: true, subject: true, category: true, status: true, lastMessageAt: true },
+  });
+  const supportTickets: TicketSummary[] = supportTicketsRaw.map((t) => ({
+    id: t.id,
+    subject: t.subject,
+    category: t.category,
+    status: t.status,
+    lastMessageAt: t.lastMessageAt.toISOString(),
+  }));
+
   const monthLabel = JALALI_MONTH_NAMES[jalaaliTodayParts().jm - 1];
   const dateLabel = `${weekdayLabel}، ${todayLabel}`;
 
@@ -381,6 +400,9 @@ export default async function DashboardPage() {
           <ReportTile data={reportData} />
           <PlanTile data={planTileData} />
         </div>
+
+        {/* دراورِ پشتیبانی — فقط دراور (بدون کارت)؛ با لینکِ «پشتیبانی» در PlanTile باز می‌شود */}
+        <SupportCenter variant="drawer" ticketingAllowed={ticketingAllowed} initialTickets={supportTickets} />
       </div>
     </AppShell>
   );

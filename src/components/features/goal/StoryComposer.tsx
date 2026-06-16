@@ -61,6 +61,8 @@ export function StoryComposer({ goalId, todayLabel, weekdayLabel, todayStory, ba
           router.refresh();
         } else {
           toast.error(data.message ?? "مشکلی پیش آمد — دوباره تلاش کن");
+          // هدف یافت نشد (مثلاً تبِ کهنه پس از ریست/تغییرِ هدف) → بازخوانیِ صفحه برای همگام‌سازی
+          if (res.status === 404) router.refresh();
         }
       } catch {
         toast.error("اتصال برقرار نشد — دوباره تلاش کن");

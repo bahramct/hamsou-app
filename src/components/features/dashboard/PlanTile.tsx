@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import Link from "next/link";
+import { OpenSupportDrawerLink } from "@/components/features/support/OpenSupportDrawerLink";
 
 export interface PlanTileData {
   planLabel: string;
@@ -40,11 +41,11 @@ export function PlanTile({ data }: { data: PlanTileData }) {
       </div>
       {data.cycleLabel && <p className="dsh-plan-sub">{data.cycleLabel}</p>}
 
-      {/* کیف‌پول و پشتیبانی در پروفایل‌اند (ریدیزاین): کیف‌پول → بخشِ مالی،
-          پشتیبانی → دراورِ کشویی با پارامتر (نه صفحهٔ /support). */}
+      {/* کیف‌پول → بخشِ مالیِ پروفایل · پشتیبانی → دراورِ همین‌جا (DECISION-102 #1) ·
+          ارتقا → /plans. */}
       <div className="dsh-plan-links">
         <Link href="/settings/profile#finance">کیف‌پول</Link>
-        <Link href="/settings/profile?support=1">پشتیبانی</Link>
+        <OpenSupportDrawerLink>پشتیبانی</OpenSupportDrawerLink>
         <Link href="/plans">ارتقا / تمدید</Link>
       </div>
     </div>

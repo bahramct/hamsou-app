@@ -36,42 +36,44 @@ export function ReportTile({ data }: { data: ReportTileData }) {
     <div className="dsh-tile t-report glass">
       <div className="dsh-lbl">آخرین گزارشِ هفتگی</div>
 
-      {data.hasReport ? (
-        <>
-          <div className="dsh-report-week fa-num">
-            <CalendarIcon />
-            {data.jalaliStart} <span style={{ color: "var(--color-fog)" }}>←</span> {data.jalaliEnd}
-          </div>
-          <p className="dsh-report-quote line-clamp-4">«{data.text}»</p>
-          {data.categories.length > 0 && (
-            <div className="dsh-report-cats">
-              {data.categories.slice(0, 4).map((c, i) => (
-                <span key={c} className="dsh-cat">
-                  <span className="bar" style={{ background: BAR[i % BAR.length] }} />
-                  {c}
-                </span>
-              ))}
+      {/* بدنه — flex-1 + min-h-0 + overflow-hidden تا محتوا داخلِ قابِ ثابت کلیپ شود و
+          فوتِ لینک همیشه روی لبهٔ پایینِ کارت (با paddingِ تایل) بنشیند، هم‌تراز با بقیه (#3) */}
+      <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
+        {data.hasReport ? (
+          <>
+            <div className="dsh-report-week fa-num">
+              <CalendarIcon />
+              {data.jalaliStart} <span style={{ color: "var(--color-fog)" }}>←</span> {data.jalaliEnd}
             </div>
-          )}
-          <div className="dsh-foot">
-            <Link href="/reports/weekly" className="dsh-cta">خواندنِ گزارش <Chevron /></Link>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 py-4 text-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/4 text-stone">
+            <p className="dsh-report-quote line-clamp-2">«{data.text}»</p>
+            {data.categories.length > 0 && (
+              <div className="dsh-report-cats">
+                {data.categories.slice(0, 4).map((c, i) => (
+                  <span key={c} className="dsh-cat">
+                    <span className="bar" style={{ background: BAR[i % BAR.length] }} />
+                    {c}
+                  </span>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-2 text-center">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/4 text-stone">
               <CalendarIcon />
             </span>
-            <p className="max-w-[18rem] text-[13px] leading-relaxed text-stone">
+            <p className="max-w-[18rem] text-[12.5px] leading-relaxed text-stone">
               هنوز گزارشی نداری. پس از گذشتنِ یک هفته، گزارشِ عمیقِ مسیرت اینجا می‌آید.
             </p>
           </div>
-          <div className="dsh-foot">
-            <Link href="/reports/weekly" className="dsh-cta">گزارش‌های هفتگی <Chevron /></Link>
-          </div>
-        </>
-      )}
+        )}
+      </div>
+
+      <div className="dsh-foot">
+        <Link href="/reports/weekly" className="dsh-cta">
+          {data.hasReport ? "خواندنِ گزارش" : "گزارش‌های هفتگی"} <Chevron />
+        </Link>
+      </div>
     </div>
   );
 }
