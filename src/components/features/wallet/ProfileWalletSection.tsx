@@ -276,7 +276,7 @@ function TransactionsModal({
   return createPortal(
     <>
       <div className="pf-overlay" onClick={onClose} />
-      <div className="pf-modal glass-strong" role="dialog" aria-modal="true">
+      <div className="pf-modal" role="dialog" aria-modal="true">
         <div className="pf-modal-head">
           <h3>امور مالی و تراکنش‌ها</h3>
           <button className="pf-x-btn" onClick={onClose} aria-label="بستن">×</button>

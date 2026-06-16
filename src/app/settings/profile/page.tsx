@@ -11,7 +11,6 @@ import { prisma } from "@/lib/db/client";
 import { EditableAvatar } from "@/components/features/profile/EditableAvatar";
 import { PersonalInfoSection } from "@/components/features/profile/PersonalInfoSection";
 import { IdentityCard } from "@/components/features/profile/IdentityCard";
-import { PlanTile } from "@/components/features/profile/PlanTile";
 import { RemindersTile } from "@/components/features/profile/RemindersTile";
 import { SetPasswordModal } from "@/components/features/profile/SetPasswordModal";
 import { SupportCenter, type TicketSummary } from "@/components/features/support/SupportCenter";
@@ -129,9 +128,9 @@ export default async function ProfileSettingsPage() {
           style={{ background: `linear-gradient(135deg, ${color.bg}28 0%, rgba(var(--rgb-card),0.60) 55%)` }}
         >
           {/* ورودیِ کیف‌پول — آیکونِ فلتِ وکتوری + موجودی (در گوشهٔ خالیِ بالا-چپ) */}
-          <a className="pf-wallet-mini" href="#finance" title="کیف‌پول">
+          <a className="pf-wallet-mini" href="#finance" title="کیف پول شما">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H18a2 2 0 0 1 2 2v1H6a1 1 0 0 0 0 2h14a1 1 0 0 1 1 1v4a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5v-9Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><circle cx="16.5" cy="13.5" r="1.1" fill="currentColor" /></svg>
-            <span className="wm-label">کیف‌پول</span>
+            <span className="wm-label">کیف پول شما</span>
             <span className="wm-bal fa-num">{user.walletBalance.toLocaleString("fa-IR")} <i>تومان</i></span>
           </a>
 
@@ -210,12 +209,6 @@ export default async function ProfileSettingsPage() {
                 displayName={user.displayName}
                 bio={user.bio}
                 birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
-              />
-              <PlanTile
-                planLabel={planBadge.label}
-                planKey={effectivePlan.plan}
-                cycle={user.planCycle}
-                daysLeft={effectivePlan.daysLeft}
               />
             </div>
             {/* ستونِ چپ: امور مالی + یادآوری‌ها */}

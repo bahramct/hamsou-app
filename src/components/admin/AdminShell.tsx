@@ -156,7 +156,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
   );
 
   return (
-    <div className="min-h-dvh bg-paper flex">
+    <div className="admin-selectable min-h-dvh bg-paper flex">
       {/* ───── Sidebar (دسکتاپ) ───── */}
       <aside className="hidden md:flex w-60 shrink-0 flex-col border-l border-black/6 bg-white/40 backdrop-blur-sm sticky top-0 h-dvh">
         <div className="px-5 h-16 flex items-center gap-2.5 border-b border-black/6">

@@ -831,3 +831,39 @@ html.theme-anim *::after {
    محتوا با clampِ عنوان/استوری/همراه داخلِ قابِ ثابت جا می‌شود. (DECISION-099 follow-up) */
 .dsh-bento > .t-goal { overflow: visible; }
 .dsh-goal-title { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DECISION-102 — مودالِ «همهٔ تراکنش‌ها» و دراورِ پشتیبانی: سطحِ مات/تخت، نه شیشه‌ای
+   (#12 + #10). رسیدِ تراکنش بالاتر از مودالِ تراکنش‌ها می‌نشیند (#11، در JSX با z-[100]).
+   ─────────────────────────────────────────────────────────────────────────── */
+.pf-modal {
+  background: rgb(var(--rgb-card));
+  border: 1px solid rgba(var(--rgb-line), .08);
+  box-shadow: 0 24px 70px rgba(46, 44, 40, .22);
+}
+.pf-drawer {
+  background: rgb(var(--rgb-card));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DECISION-102 — بدونِ انتخاب/کپیِ متن در کلِ سایت (#4؛ سایت + بلاگ + صفحاتِ داخلی).
+   استثناها: ورودی‌ها (کاربر باید بتواند در فیلدِ خودش انتخاب کند) و کلِ پنلِ ادمین
+   (ادمین باید refCode/شماره/متن را کپی کند → .admin-selectable). autocomplete با
+   <DisableAutofill> سراسری خنثی است.
+   ─────────────────────────────────────────────────────────────────────────── */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, select, [contenteditable="true"], [contenteditable=""] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.admin-selectable, .admin-selectable * {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default;
+}

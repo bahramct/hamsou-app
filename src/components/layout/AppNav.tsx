@@ -113,16 +113,10 @@ export function AppNav() {
           {/* ناقوس اعلان — همیشه نمایان (دسکتاپ + موبایل) */}
           <NotificationBell />
 
-          {/* پروفایل */}
+          {/* پروفایل — اکشنِ خنثی (بدونِ حالتِ «انتخاب‌ماندنِ» چسبان) */}
           <Link
             href="/settings/profile"
-            className={`
-              hidden md:flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-250
-              ${isActive("/settings/profile")
-                ? "text-ink font-medium bg-black/6"
-                : "text-stone hover:text-ink hover:bg-black/4"
-              }
-            `}
+            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-250 text-stone hover:text-ink hover:bg-black/4"
           >
             <UserIcon />
             <span className="hidden lg:inline">پروفایل</span>
@@ -186,10 +180,7 @@ export function AppNav() {
           <Link
             href="/settings/profile"
             onClick={() => setMenuOpen(false)}
-            className={`
-              flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm transition-all duration-200
-              ${isActive("/settings/profile") ? "text-ink font-medium bg-black/6" : "text-stone hover:text-ink hover:bg-black/4"}
-            `}
+            className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm transition-all duration-200 text-stone hover:text-ink hover:bg-black/4"
           >
             <UserIcon />
             پروفایل
