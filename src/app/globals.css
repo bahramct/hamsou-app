@@ -794,11 +794,29 @@ html.theme-anim *::after {
    تثبیتِ بِنتو (DECISION-098) — جداسازیِ ستون‌ها تا تغییرِ ارتفاعِ یک تایل (وابسته به
    محتوا) همسایه‌ها را نکشد. هر ستون = flexِ مستقل؛ هیچ ردیفِ مشترکِ کوپل‌شده‌ای نیست.
    ═══════════════════════════════════════════════════════════════════════════════ */
-.dsh-bento { grid-template-areas: none; align-items: start; }
-.dsh-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .jp-bento { align-items: start; }
 .pf-bento { display: flex; flex-direction: column; }
 .pf-bento-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
 .pf-bento-cols .pf-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 @media (max-width: 860px) { .pf-bento-cols { grid-template-columns: 1fr; } }
-@media (max-width: 760px) { .dsh-bento { grid-template-columns: 1fr; } }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   داشبورد — سیستمِ قابِ ثابت (DECISION-099): گرید ۱۲ستونه + واحدِ ردیفِ ثابت.
+   اندازهٔ تایل از «اهمیت» می‌آید نه «حجمِ محتوا»؛ محتوا داخلِ قاب (clamp) جا می‌شود.
+   → تغییرِ محتوا اندازهٔ تایل را عوض نمی‌کند، پس تایل‌ها روی هم اثر نمی‌گذارند.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.dsh-bento { grid-template-columns: repeat(12, 1fr); grid-template-areas: none; grid-auto-rows: 206px; align-items: stretch; }
+.dsh-bento > .t-goal { grid-column: span 7; grid-row: span 2; }
+.dsh-bento > .t-pulse { grid-column: span 5; grid-row: span 1; }
+.dsh-bento > .t-hist { grid-column: span 5; grid-row: span 1; }
+.dsh-bento > .t-report { grid-column: span 7; grid-row: span 1; }
+.dsh-bento > .t-plan { grid-column: span 5; grid-row: span 1; }
+.dsh-bento > .dsh-tile { overflow: hidden; min-height: 0; }
+.dsh-goal-story { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dsh-cp-text, .dsh-cp-line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dsh-hist-text { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 760px) {
+  .dsh-bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
+  .dsh-bento > .t-goal, .dsh-bento > .t-pulse, .dsh-bento > .t-hist, .dsh-bento > .t-report, .dsh-bento > .t-plan { grid-column: 1 / -1; grid-row: auto; }
+  .dsh-bento > .dsh-tile { overflow: visible; }
+}

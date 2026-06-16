@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ماکاپ — سیستمِ بِنتوی منضبطِ واحدِ ثابت (همسو)</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31;
+  --glass-bg:rgba(255,255,255,.55); --glass-strong-bg:rgba(255,255,255,.72);
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1);
+  /* توکن‌های سیستم */
+  --u:206px;          /* واحدِ ردیفِ ثابت */
+  --gap:16px;         /* گاترِ واحد */
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218;
+  --glass-bg:rgba(41,36,30,.55); --glass-strong-bg:rgba(41,36,30,.72);
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:"PelakFA",Tahoma,sans-serif; background:var(--paper); color:var(--ink); font-weight:400;
+  min-height:100vh; position:relative; overflow-x:hidden; font-feature-settings:"ss01" on;}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 78% 8%, rgba(193,154,74,.10), transparent 60%),
+    radial-gradient(55% 45% at 12% 22%, rgba(155,180,199,.10), transparent 60%),
+    radial-gradient(50% 40% at 50% 100%, rgba(122,132,113,.08), transparent 65%);}
+.glass{background:var(--glass-bg); backdrop-filter:blur(18px); border:1px solid var(--line);
+  box-shadow:0 12px 40px rgba(46,44,40,.08), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.04);}
+.glass-strong{background:var(--glass-strong-bg); backdrop-filter:blur(28px); border:1px solid var(--line);
+  box-shadow:0 18px 50px rgba(46,44,40,.10), inset 0 1px 0 rgba(255,255,255,.5);}
+
+/* نوار بالا */
+.nav{position:sticky; top:0; z-index:40; background:var(--glass-strong-bg); backdrop-filter:blur(20px); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1024px; margin:0 auto; height:64px; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:24px;}
+.logo{font-weight:700; font-size:20px; color:var(--ink); display:flex; align-items:center; gap:8px;}
+.logo .dot{width:9px; height:9px; border-radius:50%; background:var(--ember);}
+.nav-items{display:flex; gap:4px; flex:1; justify-content:center;}
+.nav-items a{padding:8px 16px; border-radius:12px; font-size:14px; color:var(--stone); text-decoration:none;}
+.nav-items a.active{color:var(--ink); font-weight:500;}
+
+/* کانتینرِ واحد (هم‌عرضِ navbar) */
+.wrap{position:relative; z-index:10; max-width:1024px; margin:0 auto; padding:28px 24px 90px;}
+
+/* جداکنندهٔ بخش */
+.sec{display:flex; align-items:center; gap:14px; margin:30px 2px 16px;}
+.sec h2{font-size:13px; font-weight:600; color:var(--stone); white-space:nowrap;}
+.sec .rule{flex:1; height:1px; background:var(--line);}
+.sec .hint{font-size:11px; color:var(--fog);}
+
+/* ───────── سیستمِ گرید: ۱۲ ستون · واحدِ ردیفِ ثابت ───────── */
+.grid{display:grid; grid-template-columns:repeat(12,1fr); grid-auto-rows:var(--u); gap:var(--gap); position:relative;}
+/* پوششِ گرید (برای نمایشِ سیستم) */
+.grid.show-grid::before{content:""; position:absolute; inset:0; pointer-events:none; z-index:50; border-radius:8px;
+  background:repeating-linear-gradient(to left, rgba(199,93,60,.06) 0, rgba(199,93,60,.06) calc((100% - 11*var(--gap))/12),
+    transparent calc((100% - 11*var(--gap))/12), transparent calc((100% - 11*var(--gap))/12 + var(--gap)));}
+
+/* تایلِ پایه — قابِ ثابت؛ محتوا داخل جا می‌شود */
+.tile{border-radius:22px; padding:20px; display:flex; flex-direction:column; overflow:hidden; position:relative;
+  transition:transform .35s var(--ease-expo); min-height:0;}
+.tile:hover{transform:translateY(-2px);}
+.tile .lbl{font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--fog); margin-bottom:10px;}
+.tile .foot{margin-top:auto; padding-top:12px;}
+.cta{font-size:12px; color:var(--sage-deep); background:none; border:none; cursor:pointer; font-family:inherit; padding:0; display:inline-flex; gap:4px; align-items:center;}
+.scroll-y{overflow-y:auto; scrollbar-width:none; min-height:0;}
+.scroll-y::-webkit-scrollbar{display:none;}
+.clamp2{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+
+/* footprintها (span ثابت) */
+.f-hero{grid-column:span 6; grid-row:span 1;}     /* نوارِ بالا: دو نیمه */
+.t-goal{grid-column:span 7; grid-row:span 2;}      /* هیروی بِنتو: ۷×۲ */
+.t-pulse{grid-column:span 5; grid-row:span 1;}
+.t-recent{grid-column:span 5; grid-row:span 1;}
+.t-report{grid-column:span 7; grid-row:span 1;}
+.t-plan{grid-column:span 5; grid-row:span 1;}
+
+/* نوارِ بالا کمی بلندتر از واحد (today) */
+.grid.top{grid-auto-rows:300px;}
+
+/* محتوای نمونه */
+.h-title{font-size:15px; font-weight:500; color:var(--stone);}
+.clock{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;}
+.clock .t{font-size:34px; font-weight:300; letter-spacing:1px;}
+.clock .d{font-size:12px; color:var(--stone);}
+.week{display:flex; gap:6px; justify-content:center; margin-top:8px;}
+.week span{width:30px; height:38px; border-radius:10px; background:rgba(var(--rgb-line),.04); display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:11px; color:var(--stone);}
+.week span.on{background:rgba(199,93,60,.12); color:var(--ember);}
+.composer{flex:1; border-radius:16px; border:1px dashed var(--line); background:rgba(var(--rgb-line),.02); padding:14px; color:var(--fog); font-size:13px;}
+.bigbtn{margin-top:12px; padding:12px; border-radius:14px; background:var(--ink); color:var(--paper); text-align:center; font-size:14px;}
+
+.badge{font-size:11px; padding:3px 10px; border-radius:999px; display:inline-flex; gap:5px; align-items:center;}
+.b-sage{color:var(--sage); background:rgba(122,132,113,.12);}
+.goal-h{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.goal-t{font-size:17px; font-weight:600; margin-top:8px;}
+.goal-m{font-size:11px; color:var(--fog); margin-top:3px;}
+.rail{display:flex; align-items:center; gap:7px; margin:14px 0; padding:8px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+.rail i{width:9px; height:9px; border-radius:50%; background:var(--bone);}
+.rail i.on{background:var(--sage);} .rail i.now{background:var(--ember); box-shadow:0 0 0 4px rgba(199,93,60,.12);}
+.rail .ln{flex:1; height:2px; background:var(--line);}
+.story{font-size:13px; line-height:1.9; color:var(--ink);}
+.comp{margin-top:12px; border-radius:14px; padding:12px 14px; background:rgba(193,154,74,.06); border:1px solid rgba(193,154,74,.2);}
+.comp .h{font-size:11px; color:var(--gold); margin-bottom:5px;}
+.comp p{font-size:12px; color:var(--stone); line-height:1.8;}
+.empty-goal{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; color:var(--fog);}
+.empty-goal .big{width:46px; height:46px; border-radius:50%; background:rgba(var(--rgb-line),.05); display:flex; align-items:center; justify-content:center; color:var(--stone);}
+
+.rhythm{display:flex; gap:6px; margin:8px 0 10px;}
+.rhythm i{flex:1; height:30px; border-radius:8px; background:rgba(var(--rgb-line),.05);}
+.rhythm i.w{background:rgba(122,132,113,.3);} .rhythm i.t{background:rgba(199,93,60,.3);}
+.pulse-s{font-size:12.5px; color:var(--stone); line-height:1.8;}
+.hist{display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--line);}
+.hist:last-child{border:none;} .hist .dot{width:7px;height:7px;border-radius:50%;background:var(--sage);margin-top:5px;}
+.hist .x{font-size:10px;color:var(--fog);} .hist .y{font-size:12.5px;color:var(--ink); margin-top:2px;}
+.plan-name{font-size:18px;font-weight:700;} .plan-bar{height:7px;border-radius:999px;background:rgba(var(--rgb-line),.07);margin:12px 0 8px;overflow:hidden;}
+.plan-bar i{display:block;height:100%;width:62%;background:linear-gradient(90deg,var(--gold),var(--ember));}
+.report-n{font-size:30px;font-weight:300;} .report-s{font-size:12px;color:var(--stone);}
+
+/* پنلِ کنترلِ ماکاپ */
+.panel{position:fixed; bottom:16px; left:16px; z-index:80; display:flex; gap:8px; align-items:center;
+  background:var(--glass-strong-bg); border:1px solid var(--line); padding:8px 10px; border-radius:14px; box-shadow:0 8px 24px rgba(46,44,40,.12);}
+.panel button{font-family:inherit; font-size:12px; padding:7px 12px; border-radius:10px; border:1px solid var(--line); background:transparent; color:var(--stone); cursor:pointer;}
+.panel button.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+.note{position:fixed; bottom:16px; right:16px; z-index:80; font-size:11px; color:var(--fog); background:var(--glass-strong-bg); border:1px solid var(--line); padding:7px 12px; border-radius:999px;}
+
+@media (max-width:860px){
+  .grid, .grid.top{grid-template-columns:1fr; grid-auto-rows:auto;}
+  .f-hero,.t-goal,.t-pulse,.t-recent,.t-report,.t-plan{grid-column:1/-1; grid-row:auto;}
+  .tile{overflow:visible;}
+}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner">
+  <div class="logo"><span class="dot"></span>همسو</div>
+  <div class="nav-items"><a class="active">داشبورد</a><a>برنامه‌ریزی و چالش</a><a>گزارش هفتگی</a><a>پروفایل</a></div>
+  <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--sage),var(--sage-deep))"></div>
+</div></nav>
+
+<div class="wrap">
+  <!-- نوارِ بالا: دو نیمهٔ هم‌اندازه (۶+۶) با ارتفاعِ ثابت -->
+  <div class="grid top" id="gridTop">
+    <div class="tile glass f-hero">
+      <div class="clock">
+        <div class="t">۲:۵۷ صبح</div>
+        <div class="d">سه‌شنبه، ۲۶ خرداد ۱۴۰۵</div>
+        <div class="week"><span>ش<br>۲۳</span><span>ی<br>۲۴</span><span>د<br>۲۵</span><span class="on">س<br>۲۶</span><span>چ<br>۲۷</span><span>پ<br>۲۸</span><span>ج<br>۲۹</span></div>
+      </div>
+    </div>
+    <div class="tile glass-strong f-hero">
+      <div class="h-title">تعهد امروز</div>
+      <div class="composer">امروز چه می‌خواهی انجام دهی؟ یک تعهدِ واقعی به خودت…</div>
+      <div class="bigbtn">ثبت تعهد</div>
+    </div>
+  </div>
+
+  <div class="sec"><h2>مسیرِ من</h2><span class="rule"></span><span class="hint">قاب‌ها ثابت‌اند؛ محتوا داخل جا می‌شود</span></div>
+
+  <!-- بِنتوی واحدِ ثابت: ۱۲ ستون · grid-auto-rows ثابت -->
+  <div class="grid" id="gridMain">
+    <!-- هیرو: ۷×۲ ثابت — چه خالی چه پُر، هم‌اندازه -->
+    <div class="tile glass t-goal" id="goalTile">
+      <!-- حالتِ پُر -->
+      <div id="goalFull" style="display:flex; flex-direction:column; min-height:0; height:100%;">
+        <div class="goal-h"><span class="badge b-sage">هدف</span><span class="lbl" style="margin:0">روز ۳ از ۲۱</span></div>
+        <div class="goal-t">سه‌هفته نوشتنِ روزانه</div>
+        <div class="rail"><i class="on"></i><span class="ln"></span><i class="on"></i><span class="ln"></span><i class="now"></i><span class="ln"></span><i></i><span class="ln"></span><i></i></div>
+        <div class="story clamp2">امروز اولین قدمِ واقعی را برداشتم؛ نیم‌ساعت نوشتم و حالم بهتر شد — ادامه می‌دهم و سعی می‌کنم فردا هم همین ساعت بنشینم.</div>
+        <div class="comp">
+          <div class="h">✦ همراه</div>
+          <p class="clamp2">سه روزِ پیوسته نوشته‌ای؛ ریتمت رو به ساختن است. اگر امروز هم بنشینی، الگوی صبحگاهی تثبیت می‌شود.</p>
+        </div>
+        <div class="foot"><button class="cta">بازکردنِ هدف ›</button></div>
+      </div>
+      <!-- حالتِ خالی (همان قابِ ثابت) -->
+      <div id="goalEmpty" style="display:none; height:100%;">
+        <div class="empty-goal">
+          <div class="big"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 21l-4.9 2.6.9-5.5-4-3.9 5.5-.8L12 3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+          <div style="font-size:14px; color:var(--stone)">هنوز هدف یا چالشی نداری</div>
+          <div style="font-size:12px; max-width:240px; line-height:1.8">یک مسیرِ کوتاه برای خودت بساز؛ هر روز یک قدم.</div>
+          <button class="cta" style="margin-top:4px">ساختنِ مسیر ›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- نبض: ۵×۱ -->
+    <div class="tile glass t-pulse">
+      <div class="lbl">نبضِ این هفته</div>
+      <div class="rhythm"><i class="w"></i><i class="w"></i><i class="t"></i><i></i><i></i><i></i><i></i></div>
+      <div class="pulse-s">این هفته ۲ روز نوشتم؛ امروز روزِ سوم است.</div>
+      <div class="foot" style="display:flex; gap:12px; font-size:11px; color:var(--fog)"><span>● نوشتم</span><span>● امروز</span><span>○ مانده</span></div>
+    </div>
+
+    <!-- تاریخچه: ۵×۱ (لیست داخل اسکرول) -->
+    <div class="tile glass t-recent">
+      <div class="lbl">تاریخچهٔ اخیر</div>
+      <div class="scroll-y" style="flex:1">
+        <div class="hist"><span class="dot"></span><div><div class="x">سه‌شنبه، ۲۶ خرداد</div><div class="y clamp2">نیم‌ساعت نوشتن دربارهٔ مسیر</div></div></div>
+        <div class="hist"><span class="dot"></span><div><div class="x">دوشنبه، ۲۵ خرداد</div><div class="y clamp2">تماس با یک دوستِ قدیمی</div></div></div>
+        <div class="hist"><span class="dot"></span><div><div class="x">یکشنبه، ۲۴ خرداد</div><div class="y clamp2">پیاده‌رویِ صبحگاهی</div></div></div>
+      </div>
+      <div class="foot"><button class="cta">دیدنِ ۳۰ روزِ اخیر ›</button></div>
+    </div>
+
+    <!-- گزارش: ۷×۱ -->
+    <div class="tile glass t-report">
+      <div class="lbl">آخرین گزارشِ هفتگی</div>
+      <div style="display:flex; align-items:baseline; gap:8px"><span class="report-n">۵۷٪</span><span class="report-s">پیوستگیِ هفتهٔ گذشته</span></div>
+      <div class="story clamp2" style="margin-top:8px; color:var(--stone)">هفتهٔ متعادلی بود؛ سه روزِ پیوسته و یک فاصلهٔ کوتاه. تمرکزت روی صبح‌ها بیشتر جواب داده.</div>
+      <div class="foot"><button class="cta">خواندنِ گزارش ›</button></div>
+    </div>
+
+    <!-- پلن: ۵×۱ -->
+    <div class="tile glass t-plan">
+      <div class="lbl">پلن و اشتراک</div>
+      <div style="display:flex; align-items:center; justify-content:space-between"><span class="plan-name">پرو</span><span class="badge" style="background:rgba(199,93,60,.14); color:var(--ember)">۲۱۴ روز</span></div>
+      <div class="plan-bar"><i></i></div>
+      <div class="foot"><button class="cta">مدیریت پلن ›</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <button id="bGrid" onclick="toggleGrid()">نمایشِ گرید</button>
+  <button id="bGoal" onclick="toggleGoal()">حالتِ هدف: پُر</button>
+  <button onclick="toggleTheme()">تم</button>
+</div>
+<div class="note">قاب‌ها ثابت‌اند — کلیدِ «حالتِ هدف» را بزن: اندازه عوض نمی‌شود</div>
+
+<script>
+function toggleTheme(){const h=document.documentElement;h.setAttribute("data-theme",h.getAttribute("data-theme")==="dark"?"light":"dark");}
+let gridOn=false;
+function toggleGrid(){gridOn=!gridOn;document.getElementById("gridMain").classList.toggle("show-grid",gridOn);document.getElementById("gridTop").classList.toggle("show-grid",gridOn);document.getElementById("bGrid").classList.toggle("on",gridOn);}
+let goalFull=true;
+function toggleGoal(){goalFull=!goalFull;document.getElementById("goalFull").style.display=goalFull?"flex":"none";document.getElementById("goalEmpty").style.display=goalFull?"none":"block";document.getElementById("bGoal").textContent="حالتِ هدف: "+(goalFull?"پُر":"خالی");}
+</script>
+</body>
+</html>
