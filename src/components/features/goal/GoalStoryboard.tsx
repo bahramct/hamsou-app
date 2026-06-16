@@ -87,7 +87,16 @@ export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; today
             </>
           )}
 
-          <GoalTypeBadge type={goal.type} />
+          <div className="flex items-center gap-2.5" style={{ marginBottom: 2 }}>
+            <span className={`tile-ic ${goal.type === "challenge" ? "ic-ember" : "ic-sage"}`} aria-hidden>
+              {goal.type === "challenge" ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /></svg>
+              )}
+            </span>
+            <GoalTypeBadge type={goal.type} />
+          </div>
           <h1 className="jp-hero-title">{goal.title}</h1>
           <div className="jp-hero-meta">
             <span className="jp-hero-day fa-num">روز {fa(goal.dayNumber > 0 ? goal.dayNumber : 0)} از {fa(goal.totalDays)}</span>
@@ -124,7 +133,12 @@ export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; today
 
         {/* ── مسیر ── */}
         <div className="jp-tile jp-path glass">
-          <span className="jp-lbl">مسیرت تا اینجا</span>
+          <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+            <span className="tile-ic ic-mist" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" /><path d="M8 19h7a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h7" /></svg>
+            </span>
+            <span className="jp-lbl" style={{ marginBottom: 0 }}>مسیرت تا اینجا</span>
+          </div>
           <JourneyRail nodes={nodes} onOpen={(iso) => setOpenIso(iso)} />
         </div>
       </div>

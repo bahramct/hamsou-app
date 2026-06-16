@@ -162,7 +162,7 @@ export function CompanionPanel({ goalId, companion, todayInsight, bare = false }
 
 function CompanionMark() {
   return (
-    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sage/15 text-sage-deep">
+    <span className="flex h-7 w-7 items-center justify-center rounded-[9px] bg-sage/15 text-sage-deep">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden>
         <path d="M4 2v12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
         <path d="M4 2.75h7l-1.4 2.25L11 7.25H4Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
