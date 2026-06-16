@@ -366,18 +366,25 @@ export default async function DashboardPage() {
           <span className="hint">یک نگاهِ آرام به جایی که هستم</span>
         </div>
 
+        {/* بِنتو — دو ستونِ مستقل (DECISION-098): ارتفاعِ یک تایل همسایه‌ها را نمی‌کشد */}
         <div className="dsh-bento">
-          <GoalTile data={goalTileData} />
-          <PulseTile
-            days={weekActivity.days}
-            wroteCount={weekActivity.wroteCount}
-            freezeCount={weekActivity.freezeCount}
-            emptyCount={weekActivity.emptyCount}
-            todayWrote={weekActivity.todayWrote}
-          />
-          <RecentTile entries={recentEntries} />
-          <ReportTile data={reportData} />
-          <PlanTile data={planTileData} />
+          {/* ستونِ پهنِ راست: هدف + گزارش */}
+          <div className="dsh-col">
+            <GoalTile data={goalTileData} />
+            <ReportTile data={reportData} />
+          </div>
+          {/* ستونِ باریکِ چپ: نبض + تاریخچه + پلن */}
+          <div className="dsh-col">
+            <PulseTile
+              days={weekActivity.days}
+              wroteCount={weekActivity.wroteCount}
+              freezeCount={weekActivity.freezeCount}
+              emptyCount={weekActivity.emptyCount}
+              todayWrote={weekActivity.todayWrote}
+            />
+            <RecentTile entries={recentEntries} />
+            <PlanTile data={planTileData} />
+          </div>
         </div>
       </div>
     </AppShell>

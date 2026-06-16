@@ -194,33 +194,41 @@ export default async function ProfileSettingsPage() {
           <span className="rule" />
         </div>
 
-        {/* ───── بِنتوِ حساب ───── */}
+        {/* ───── بِنتوِ حساب — دو ستونِ مستقل + پشتیبانیِ تمام‌عرض (DECISION-098) ───── */}
         <div className="pf-bento">
-          <IdentityCard
-            phone={user.phone}
-            email={user.email}
-            emailVerified={user.emailVerifiedAt !== null}
-            username={user.username}
-            hasPassword={user.passwordHash !== null}
-          />
-          <PersonalInfoSection
-            displayName={user.displayName}
-            bio={user.bio}
-            birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
-          />
-          <PlanTile
-            planLabel={planBadge.label}
-            planKey={effectivePlan.plan}
-            cycle={user.planCycle}
-            daysLeft={effectivePlan.daysLeft}
-          />
-          <ProfileWalletSection
-            balance={user.walletBalance}
-            cardNumber={user.paymentCardNumber}
-            cardNumber2={user.paymentCardNumber2}
-            recentTxs={recentTxs}
-          />
-          <RemindersTile />
+          <div className="pf-bento-cols">
+            {/* ستونِ راست: هویت + اطلاعات شخصی + پلن */}
+            <div className="pf-col">
+              <IdentityCard
+                phone={user.phone}
+                email={user.email}
+                emailVerified={user.emailVerifiedAt !== null}
+                username={user.username}
+                hasPassword={user.passwordHash !== null}
+              />
+              <PersonalInfoSection
+                displayName={user.displayName}
+                bio={user.bio}
+                birthDate={user.birthDate ? user.birthDate.toISOString().split("T")[0] : ""}
+              />
+              <PlanTile
+                planLabel={planBadge.label}
+                planKey={effectivePlan.plan}
+                cycle={user.planCycle}
+                daysLeft={effectivePlan.daysLeft}
+              />
+            </div>
+            {/* ستونِ چپ: امور مالی + یادآوری‌ها */}
+            <div className="pf-col">
+              <ProfileWalletSection
+                balance={user.walletBalance}
+                cardNumber={user.paymentCardNumber}
+                cardNumber2={user.paymentCardNumber2}
+                recentTxs={recentTxs}
+              />
+              <RemindersTile />
+            </div>
+          </div>
           <SupportCenter ticketingAllowed={ticketingAllowed} initialTickets={tickets} />
         </div>
 
