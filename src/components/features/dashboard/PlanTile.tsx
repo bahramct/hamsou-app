@@ -40,9 +40,11 @@ export function PlanTile({ data }: { data: PlanTileData }) {
       </div>
       {data.cycleLabel && <p className="dsh-plan-sub">{data.cycleLabel}</p>}
 
+      {/* کیف‌پول و پشتیبانی در پروفایل‌اند (ریدیزاین): کیف‌پول → بخشِ مالی،
+          پشتیبانی → دراورِ کشویی با پارامتر (نه صفحهٔ /support). */}
       <div className="dsh-plan-links">
-        <Link href="/wallet">کیف‌پول</Link>
-        <Link href="/support">پشتیبانی</Link>
+        <Link href="/settings/profile#finance">کیف‌پول</Link>
+        <Link href="/settings/profile?support=1">پشتیبانی</Link>
         <Link href="/plans">ارتقا / تمدید</Link>
       </div>
     </div>

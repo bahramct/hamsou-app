@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export interface RecentEntry {
   id: string;
@@ -54,7 +55,9 @@ export function RecentHistoryModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -113,7 +116,8 @@ export function RecentHistoryModal({
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 

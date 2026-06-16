@@ -76,6 +76,15 @@ export function SupportCenter({ ticketingAllowed, initialTickets }: Props) {
     refresh();
   }
 
+  // ورود از داشبورد با ?support=1 → دراور خودکار باز شود (هم‌پیروی با الگوی کشویی)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("support") !== "1") return;
+    const id = requestAnimationFrame(() => openDrawer()); // defer تا setState همگام در افکت نباشد
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const preview = tickets.slice(0, 2);
 
   return (

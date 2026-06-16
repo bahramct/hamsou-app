@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { WeekDayActivity } from "@/lib/dashboard/activity";
 
 interface Props {
@@ -127,11 +128,14 @@ export function TodayPanel({ days, dateLabel, monthLabel, userName }: Props) {
         })}
       </div>
 
-      {tip.show && (
+      {/* Portal به body: jp-tip با position:fixed است؛ بدونِ Portal، backdrop-filterِ
+          .dsh-tp یک containing block می‌سازد و حباب جای اشتباه می‌افتد (نکته ۴). */}
+      {tip.show && typeof document !== "undefined" && createPortal(
         <div className="jp-tip show" style={{ left: tip.x, top: tip.y, width: 200 }}>
           <div className="d fa-num">{tip.title}</div>
           <div className="s" style={tip.faded ? { color: "var(--color-fog)" } : undefined}>{tip.text}</div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

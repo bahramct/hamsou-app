@@ -820,3 +820,14 @@ html.theme-anim *::after {
   .dsh-bento > .t-goal, .dsh-bento > .t-pulse, .dsh-bento > .t-hist, .dsh-bento > .t-report, .dsh-bento > .t-plan { grid-column: 1 / -1; grid-row: auto; }
   .dsh-bento > .dsh-tile { overflow: visible; }
 }
+
+/* هم‌ترازیِ عرضِ صفحات با navbar (DECISION-100): wrapها داخلِ flex-columnِ AppShell با
+   margin:auto در فلکس‌آیتم آن‌ها را به عرضِ محتوا جمع می‌کرد (width:100% هم جواب نداد).
+   راهِ مطمئن: عرضِ معین min(1024,100%) + align-self:center + حذفِ margin-inlineِ auto
+   → هم‌راستا با لوگو/تاگلِ navbar (که خودش ۱۰۲۴px وسط‌چین است). */
+.dsh-wrap, .pf-wrap, .jp-wrap { width: min(1024px, 100%); margin-inline: 0; align-self: center; }
+
+/* نکته ۵: تایلِ هدف overflow:visible تا پاپ‌اوورِ تایم‌لاین (dsh-tl-pop) کلیپ نشود؛
+   محتوا با clampِ عنوان/استوری/همراه داخلِ قابِ ثابت جا می‌شود. (DECISION-099 follow-up) */
+.dsh-bento > .t-goal { overflow: visible; }
+.dsh-goal-title { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
