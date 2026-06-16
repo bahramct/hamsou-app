@@ -178,9 +178,9 @@ const aboutWhy: SectionDef = {
 // ═══════════════════════ ۴) سه اصل ═══════════════════════
 function AboutPrinciples({ c }: SectionRenderProps) {
   const cards = [
-    { t: "card1Title", b: "card1Body", icon: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>, bg: "rgba(122,132,113,0.10)", bd: "rgba(122,132,113,0.20)", st: "var(--color-sage-deep)" },
-    { t: "card2Title", b: "card2Body", icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></>, bg: "rgba(155,180,199,0.10)", bd: "rgba(155,180,199,0.22)", st: "var(--color-mist)" },
-    { t: "card3Title", b: "card3Body", icon: <><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" /><line x1="16" y1="8" x2="2" y2="22" /><line x1="17.5" y1="15" x2="9" y2="15" /></>, bg: "rgba(193,154,74,0.08)", bd: "rgba(193,154,74,0.20)", st: "var(--color-gold)" },
+    { t: "card1Title", b: "card1Body", icon: <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>, tint: "ic-sage" },
+    { t: "card2Title", b: "card2Body", icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></>, tint: "ic-mist2" },
+    { t: "card3Title", b: "card3Body", icon: <><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" /><line x1="16" y1="8" x2="2" y2="22" /><line x1="17.5" y1="15" x2="9" y2="15" /></>, tint: "ic-gold" },
   ];
   return (
     <section className="relative z-10 py-16 px-6 lg:px-10" style={{ background: "rgba(var(--rgb-bone),0.28)" }}>
@@ -196,8 +196,8 @@ function AboutPrinciples({ c }: SectionRenderProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {cards.map((card) => (
             <div key={card.t} className="glass-strong rounded-3xl p-7 reveal hover-rise">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: card.bg, border: `1px solid ${card.bd}` }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={card.st} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className={`tile-ic ${card.tint} mb-6`}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   {card.icon}
                 </svg>
               </div>

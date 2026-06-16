@@ -897,6 +897,7 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
 .tile-ic.ic-gold     { color: var(--color-gold);      background: #c19a4a24; }
 .tile-ic.ic-mist     { color: var(--color-mist-deep); background: #5e7c931f; }
 .tile-ic.ic-mist2    { color: var(--color-mist-deep); background: #9bb4c724; }
+.tile-ic.ic-neutral  { color: var(--color-charcoal);  background: rgba(var(--rgb-line), .06); }
 
 /* هدرِ تایلِ داشبورد: آیکون + برچسبِ کوتاه (جایگزینِ dsh-lblِ تنها).
    آیکونِ کمی جمع‌تر (۳۰px) برای تراکمِ داشبورد در قابِ ثابت — هم‌سبک با pf اما متناسب. */

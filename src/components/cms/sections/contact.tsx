@@ -62,8 +62,8 @@ function ContactCard({ c }: SectionRenderProps) {
           {/* ایمیل */}
           <div className="p-7 flex items-center justify-between gap-4" style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.06)" }}>
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(122,132,113,0.10)", border: "1px solid rgba(122,132,113,0.18)" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="tile-ic ic-sage">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
                 </svg>
               </div>
@@ -76,8 +76,8 @@ function ContactCard({ c }: SectionRenderProps) {
           </div>
           {/* اینستاگرام */}
           <a href={`https://instagram.com/${ig}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-7 hover:bg-black/[0.02] transition-colors" style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.06)" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(199,93,60,0.07)", border: "1px solid rgba(199,93,60,0.14)" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-ember)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="tile-ic ic-ember">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
               </svg>
             </div>
@@ -91,8 +91,8 @@ function ContactCard({ c }: SectionRenderProps) {
           </a>
           {/* توییتر/X */}
           <a href={`https://x.com/${x}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-7 hover:bg-black/[0.02] transition-colors" style={{ borderBottom: "1px solid rgba(var(--rgb-line),0.06)" }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(var(--rgb-line),0.05)", border: "1px solid rgba(var(--rgb-line),0.10)" }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="var(--color-charcoal)">
+            <div className="tile-ic ic-neutral">
+              <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
             </div>
@@ -106,8 +106,8 @@ function ContactCard({ c }: SectionRenderProps) {
           </a>
           {/* زمان پاسخ */}
           <div className="p-7 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(193,154,74,0.08)", border: "1px solid rgba(193,154,74,0.16)" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="tile-ic ic-gold">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
@@ -199,8 +199,8 @@ function ContactExisting({ c }: SectionRenderProps) {
       <div className="max-w-lg mx-auto reveal">
         <div className="rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4" style={{ background: "rgba(122,132,113,0.06)", border: "1px solid rgba(122,132,113,0.12)" }}>
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: "rgba(122,132,113,0.12)" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-sage-deep)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <div className="tile-ic ic-sage mt-0.5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
               </svg>
             </div>
