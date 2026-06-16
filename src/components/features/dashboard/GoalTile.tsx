@@ -50,7 +50,10 @@ export function GoalTile({ data }: { data: GoalTileData }) {
   if (!data.hasGoal) {
     return (
       <div className="dsh-tile t-goal glass">
-        <div className="dsh-lbl">برنامه‌ریزی و چالش</div>
+        <div className="dsh-head">
+          <span className="tile-ic ic-sage" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 21V4M4 4h13l-2 4 2 4H4" /></svg></span>
+          <div className="dsh-lbl">برنامه‌ریزی و چالش</div>
+        </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-sage/12 text-sage-deep">
             <Sparkle />
@@ -70,7 +73,10 @@ export function GoalTile({ data }: { data: GoalTileData }) {
 
   return (
     <div className="dsh-tile t-goal glass">
-      <div className="dsh-lbl">هدفِ فعال</div>
+      <div className="dsh-head">
+        <span className="tile-ic ic-sage" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4" /></svg></span>
+        <div className="dsh-lbl">هدفِ فعال</div>
+      </div>
       <div className="dsh-goal-title">{data.title}</div>
       <div className="dsh-goal-meta">
         <span className="dsh-goal-day fa-num">روز {fa(Math.max(today, 1))} از {fa(data.totalDays)}</span>

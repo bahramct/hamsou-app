@@ -34,7 +34,10 @@ function Chevron() {
 export function ReportTile({ data }: { data: ReportTileData }) {
   return (
     <div className="dsh-tile t-report glass">
-      <div className="dsh-lbl">آخرین گزارشِ هفتگی</div>
+      <div className="dsh-head">
+        <span className="tile-ic ic-gold" aria-hidden><CalendarIcon /></span>
+        <div className="dsh-lbl">آخرین گزارشِ هفتگی</div>
+      </div>
 
       {/* بدنه — flex-1 + min-h-0 + overflow-hidden تا محتوا داخلِ قابِ ثابت کلیپ شود و
           فوتِ لینک همیشه روی لبهٔ پایینِ کارت (با paddingِ تایل) بنشیند، هم‌تراز با بقیه (#3) */}

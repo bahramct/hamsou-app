@@ -31,7 +31,10 @@ function caption(wrote: number, freeze: number, empty: number, todayWrote: boole
 export function PulseTile({ days, wroteCount, freezeCount, emptyCount, todayWrote }: Props) {
   return (
     <div className="dsh-tile t-pulse glass">
-      <div className="dsh-lbl">نبضِ این هفته</div>
+      <div className="dsh-head">
+        <span className="tile-ic ic-ember" aria-hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg></span>
+        <div className="dsh-lbl">نبضِ این هفته</div>
+      </div>
 
       <div className="dsh-legend">
         <span className="dsh-lg"><span className="sw wrote" />نوشتم</span>

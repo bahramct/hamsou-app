@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>سیستمِ یکدستِ آیکون — همسو (#5)</title>
+<style>
+  :root{
+    --ink:#1A1A1F; --stone:#5c6555; --fog:#9a958a; --bone:#e9e5dd;
+    --paper:#f6f3ec; --card:#ffffff; --line:26,26,31;
+    --sage:#7a8471; --sage-deep:#5c6555; --ember:#c75d3c; --gold:#c19a4a;
+    --mist:#9bb4c7; --mist-deep:#5e7c93;
+    --ease:cubic-bezier(.19,1,.22,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Vazirmatn,"Segoe UI",Tahoma,sans-serif;background:var(--paper);color:var(--ink);
+       line-height:1.8;padding:34px 24px 80px}
+  .wrap{max-width:1024px;margin:0 auto}
+  h1{font-size:22px;font-weight:700;margin:0 0 4px}
+  .lead{color:var(--stone);font-size:13.5px;max-width:720px;margin:0 0 30px}
+  .sec{display:flex;align-items:center;gap:14px;margin:42px 2px 18px}
+  .sec h2{color:var(--stone);font-size:13px;font-weight:600;white-space:nowrap;margin:0}
+  .sec .rule{flex:1;height:1px;background:rgba(var(--line),.08)}
+  .sec .hint{color:var(--fog);font-size:11px}
+
+  /* ───── استانداردِ آیکون (ملاک = pf-tile-ic) ───── */
+  .tile-ic{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .tile-ic svg{width:17px;height:17px}
+  .ic-sage{color:var(--sage-deep);background:#7a847124}
+  .ic-deepsage{color:var(--sage-deep);background:#5c655524}
+  .ic-ember{color:var(--ember);background:#c75d3c1f}
+  .ic-gold{color:var(--gold);background:#c19a4a24}
+  .ic-mist{color:var(--mist-deep);background:#5e7c931f}
+  .ic-mist2{color:var(--mist-deep);background:#9bb4c724}
+
+  /* spec board */
+  .spec{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  .spec .cell{background:var(--card);border:1px solid rgba(var(--line),.06);border-radius:16px;padding:16px;
+              display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center}
+  .spec .cell .nm{font-size:12px;color:var(--ink);font-weight:600}
+  .spec .cell .hx{font-size:10px;color:var(--fog);direction:ltr;font-family:monospace}
+  .specbox{background:var(--card);border:1px solid rgba(var(--line),.06);border-radius:18px;padding:20px 22px;margin-bottom:6px}
+  .specrow{display:flex;gap:26px;flex-wrap:wrap;font-size:12.5px;color:var(--stone)}
+  .specrow b{color:var(--ink)}
+
+  /* card grid (هر سطح) */
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .card{background:var(--card);border:1px solid rgba(var(--line),.06);border-radius:22px;padding:20px}
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .card-head h3{font-size:14px;font-weight:600;margin:0;color:var(--ink)}
+  .card-head .sub{font-size:11px;color:var(--fog);margin-top:1px}
+  .card p{font-size:12.5px;color:var(--stone);margin:6px 0 0}
+  .full{grid-column:1 / -1}
+  .badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:11px}
+  .badge.sage{color:var(--sage-deep);background:#7a847124}
+  .badge.ember{color:var(--ember);background:#c75d3c1f}
+  .note{font-size:11px;color:var(--fog);margin:8px 2px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>سیستمِ یکدستِ آیکون — همسو</h1>
+  <p class="lead">
+    ملاک = آیکونِ کارتِ «هویت و ورود» در پروفایل: یک <b>مربعِ گِردگوشهٔ ۳۴×۳۴</b> با
+    <b>پس‌زمینهٔ تینتِ ملایمِ دسته‌ای</b> و آیکونِ <b>خطی (stroke) ۱۷px</b>. همهٔ هدرهای کارت/بخش در
+    کلِ سایت به این الگو می‌آیند تا یکدست شوند. <b>navbar مستثناست.</b>
+    آیکون‌های درون‌خطی (فلش/شِورون/عقربهٔ ساعت) و بَجِ وضعیت تغییر نمی‌کنند — فقط «هدرِ کارت‌ها».
+  </p>
+
+  <!-- ───── ۱. استاندارد ───── -->
+  <div class="sec"><h2>۱. استانداردِ توکن</h2><span class="rule"></span><span class="hint">قاعدهٔ ثابت</span></div>
+  <div class="specbox">
+    <div class="specrow">
+      <span>قاب: <b>۳۴×۳۴px</b></span>
+      <span>گردی: <b>۱۱px</b></span>
+      <span>آیکون: <b>stroke ۱۷px</b>، ضخامت <b>۱.۶</b></span>
+      <span>فاصله تا عنوان: <b>۱۰px</b></span>
+      <span>پس‌زمینه: <b>تینتِ ۱۴–۲۴٪</b> رنگِ دسته</span>
+    </div>
+  </div>
+
+  <!-- ───── ۲. پالت دسته‌ای ───── -->
+  <div class="sec"><h2>۲. پالتِ دسته‌ای (رنگ ↔ معنا)</h2><span class="rule"></span></div>
+  <div class="spec">
+    <div class="cell"><div class="tile-ic ic-sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><span class="nm">رشد / مسیر</span><span class="hx">sage · 7a8471</span></div>
+    <div class="cell"><div class="tile-ic ic-ember"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><span class="nm">نبض / تپش</span><span class="hx">ember · c75d3c</span></div>
+    <div class="cell"><div class="tile-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 9h16M9 3v4M15 3v4"/></svg></div><span class="nm">گزارش / زمان</span><span class="hx">gold · c19a4a</span></div>
+    <div class="cell"><div class="tile-ic ic-deepsage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></div><span class="nm">مالی / پلن</span><span class="hx">deep-sage · 5c6555</span></div>
+    <div class="cell"><div class="tile-ic ic-mist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13a8 8 0 0 1 16 0M4 13v3a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2Zm16 0v3a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2Z"/></svg></div><span class="nm">پشتیبانی / حساب</span><span class="hx">mist-deep · 5e7c93</span></div>
+    <div class="cell"><div class="tile-ic ic-mist2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div><span class="nm">یادآوری / اعلان</span><span class="hx">mist · 9bb4c7</span></div>
+  </div>
+
+  <!-- ───── ۳. داشبورد ───── -->
+  <div class="sec"><h2>۳. داشبورد — تایل‌های «مسیرِ من»</h2><span class="rule"></span><span class="hint">الان: فقط برچسبِ متنی · بعد: هدرِ آیکون‌دار</span></div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><div><h3>هدفِ فعال</h3><div class="sub">مسیرِ جاری</div></div></div>
+      <p>سه‌هفته نوشتنِ روزانه — روز ۱ از ۱۴</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-ember"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div><h3>نبضِ این هفته</h3><div class="sub">یک نگاهِ آرام</div></div></div>
+      <p>این هفته ۴ روز نوشتم.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-mist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg></div><div><h3>۳۰ روزِ اخیر</h3><div class="sub">تعهدهای گذشته</div></div></div>
+      <p>سه تعهدِ آخر…</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2.5"/><path d="M4 9h16M9 3v4M15 3v4"/></svg></div><div><h3>آخرین گزارشِ هفتگی</h3><div class="sub">تأملِ هفته</div></div></div>
+      <p>«هفته‌ای از جنسِ بازگشت…»</p>
+    </div>
+    <div class="card full">
+      <div class="card-head"><div class="tile-ic ic-deepsage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg></div><div><h3>پلن و کیف‌پول</h3><div class="sub">اشتراک و موجودی</div></div></div>
+      <p>پرو — ۱۴٬۰۰۰ تومان موجودی</p>
+    </div>
+  </div>
+
+  <!-- ───── ۴. صفحهٔ هدف ───── -->
+  <div class="sec"><h2>۴. صفحهٔ هدف</h2><span class="rule"></span><span class="hint">هیرو/همراه/مسیر + بَج‌ها</span></div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V4M4 4h13l-2 4 2 4H4"/></svg></div><div><h3>هدفِ فعال <span class="badge sage">هدف</span></h3><div class="sub">روز ۱ از ۱۴</div></div></div>
+      <p>آهنگ‌سازِ استوریِ امروز…</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3Z"/></svg></div><div><h3>همراه</h3><div class="sub">بینشِ مسیر — Pro</div></div></div>
+      <p>«از روزِ دومِ مسیر در دسترس می‌شود.»</p>
+    </div>
+    <div class="card full">
+      <div class="card-head"><div class="tile-ic ic-mist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h7"/></svg></div><div><h3>مسیرت تا اینجا</h3><div class="sub">ریلِ روزها</div></div></div>
+      <p>ریلِ سفر…</p>
+      <p class="note">بَجِ نوع: <span class="badge sage">هدف</span> sage · <span class="badge ember">چالش</span> ember — هماهنگ با همین پالت.</p>
+    </div>
+  </div>
+
+  <!-- ───── ۵. گزارش هفتگی و پلن‌ها ───── -->
+  <div class="sec"><h2>۵. گزارشِ هفتگی و پلن‌ها</h2><span class="rule"></span></div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-5"/></svg></div><div><h3>گزارشِ هفتگی</h3><div class="sub">۲۶ خرداد ← ۲ تیر</div></div></div>
+      <p>completionRate · highlights · reflection</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-deepsage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 16l-4.9 2.2.9-5.5-4-3.9 5.5-.8L12 3Z"/></svg></div><div><h3>پلن‌ها</h3><div class="sub">رایگان · پلاس · پرو</div></div></div>
+      <p>کارت‌های قیمت‌گذاری — آیکونِ تیر هم‌پالت.</p>
+    </div>
+  </div>
+
+  <!-- ───── ۶. بلاگ و صفحات استاتیک ───── -->
+  <div class="sec"><h2>۶. بلاگ و صفحاتِ استاتیک</h2><span class="rule"></span><span class="hint">هدرِ بخش‌ها</span></div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-mist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg></div><div><h3>بلاگ</h3><div class="sub">نوشته‌ها</div></div></div>
+      <p>کارتِ مقاله / دسته‌بندی.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="tile-ic ic-mist2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></div><div><h3>تماس با ما</h3><div class="sub">پیام بفرست</div></div></div>
+      <p>فرمِ تماس / سؤالات.</p>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:34px">
+    پس از تأییدِ این سیستم، مو‌به‌مو پیاده می‌شود: یک کلاسِ مشترکِ <code>tile-ic</code> + ۶ تینتِ دسته‌ای،
+    و هر کارت یک هدرِ <code>[آیکون] [عنوان/زیرعنوان]</code> می‌گیرد. آیکون‌های درون‌خطی و navbar دست‌نخورده می‌مانند.
+  </p>
+</div>
+</body>
+</html>

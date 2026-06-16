@@ -880,3 +880,32 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
   font-size: 12px;
 }
 .dsh-plan-links button:hover { color: var(--color-ember); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DECISION-103 (#5) — سیستمِ یکدستِ آیکونِ هدرِ کارت‌ها (ملاک = pf-tile-ic).
+   توکنِ مشترکِ .tile-ic + ۶ تینتِ دسته‌ای؛ در داشبورد/هدف/گزارش/پلن/بلاگ به‌کار می‌رود.
+   navbar و آیکون‌های درون‌خطی (شِورون/عقربه) مستثنا.
+   ─────────────────────────────────────────────────────────────────────────── */
+.tile-ic {
+  width: 34px; height: 34px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.tile-ic svg { width: 17px; height: 17px; }
+.tile-ic.ic-sage     { color: var(--color-sage-deep); background: #7a847124; }
+.tile-ic.ic-deepsage { color: var(--color-sage-deep); background: #5c655524; }
+.tile-ic.ic-ember    { color: var(--color-ember);     background: #c75d3c1f; }
+.tile-ic.ic-gold     { color: var(--color-gold);      background: #c19a4a24; }
+.tile-ic.ic-mist     { color: var(--color-mist-deep); background: #5e7c931f; }
+.tile-ic.ic-mist2    { color: var(--color-mist-deep); background: #9bb4c724; }
+
+/* هدرِ تایلِ داشبورد: آیکون + برچسبِ کوتاه (جایگزینِ dsh-lblِ تنها).
+   آیکونِ کمی جمع‌تر (۳۰px) برای تراکمِ داشبورد در قابِ ثابت — هم‌سبک با pf اما متناسب. */
+.dsh-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.dsh-head .dsh-lbl { margin-bottom: 0; }
+.dsh-head .tile-ic { width: 30px; height: 30px; border-radius: 10px; }
+.dsh-head .tile-ic svg { width: 15px; height: 15px; }
+
+/* نبض — جمع‌کردنِ فاصله‌ها تا با هدرِ آیکون‌دار در قابِ ثابت جا شود (#5) */
+.t-pulse .dsh-legend { margin-bottom: 9px; }
+.t-pulse .dsh-rhythm { margin: 2px 0 10px; }
+.t-pulse .dsh-rh-pill { height: 40px; }
