@@ -173,12 +173,15 @@ export default async function WeeklyReportPage({ searchParams }: PageProps) {
     <AppShell>
       {/* محتوا */}
       <div className="flex-1 max-w-xl mx-auto w-full px-5 py-8 sm:py-12 space-y-4 animate-fade-up">
-        {/* عنوان صفحه */}
-        <div className="mb-6">
-          <h1 className="text-lg font-semibold text-ink">گزارش‌های هفتگی</h1>
-          <p className="text-xs text-fog mt-1">
-            هر هفته یک نگاه به مسیر طی‌شده
-          </p>
+        {/* عنوان صفحه — با آیکونِ هم‌سیستمِ سایت (DECISION-103 #5) */}
+        <div className="mb-6 flex items-center gap-3">
+          <span className="tile-ic ic-gold" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="M7 14l3-3 3 2 4-5" /></svg>
+          </span>
+          <div>
+            <h1 className="text-lg font-semibold text-ink">گزارش‌های هفتگی</h1>
+            <p className="text-xs text-fog mt-0.5">هر هفته یک نگاه به مسیر طی‌شده</p>
+          </div>
         </div>
 
         {/* ① کارت هفته جاری — همیشه نمایش داده می‌شود */}

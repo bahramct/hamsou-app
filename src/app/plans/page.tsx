@@ -127,6 +127,9 @@ export default async function PlansPage() {
       <PlanReturnToast />
       <div className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 sm:py-14 animate-fade-up">
         <div className="text-center mb-10 space-y-2">
+          <span className="tile-ic ic-deepsage mx-auto" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 16l-4.9 2.2.9-5.5-4-3.9 5.5-.8L12 3Z" /></svg>
+          </span>
           <h1 className="text-xl font-semibold text-ink">پلن‌ها</h1>
           <p className="text-sm text-fog max-w-xs mx-auto leading-relaxed">
             هر پلن را با امکاناتش مقایسه کن — خرید با کیف‌پول یا پرداخت آنلاین مستقیم.
