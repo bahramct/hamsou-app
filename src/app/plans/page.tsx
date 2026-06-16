@@ -125,7 +125,7 @@ export default async function PlansPage() {
   return (
     <AppShell>
       <PlanReturnToast />
-      <div className="flex-1 max-w-5xl mx-auto w-full px-5 py-10 sm:py-14 animate-fade-up">
+      <div className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 sm:py-14 animate-fade-up">
         <div className="text-center mb-10 space-y-2">
           <h1 className="text-xl font-semibold text-ink">پلن‌ها</h1>
           <p className="text-sm text-fog max-w-xs mx-auto leading-relaxed">
