@@ -16,10 +16,15 @@ function Chevron() {
   );
 }
 
+const MAX_CHARS = 50;
+function trunc(s: string): string {
+  return s.length > MAX_CHARS ? s.slice(0, MAX_CHARS).trimEnd() + "…" : s;
+}
+
 export function RecentTile({ entries }: { entries: RecentEntry[] }) {
   const [open, setOpen] = useState(false);
-  // ۲ موردِ اخیر تا با هدرِ آیکون‌دار در قابِ ثابت جا شود؛ «۳۰ روزِ اخیر» بقیه را نشان می‌دهد
-  const top3 = entries.slice(0, 2);
+  // ۳ موردِ اخیر؛ متنِ بلند تا ۵۰ کاراکتر + نقطه‌چین تا کارت کوتاه بماند (#2)
+  const top3 = entries.slice(0, 3);
 
   return (
     <div className="dsh-tile t-hist glass">
@@ -37,7 +42,7 @@ export function RecentTile({ entries }: { entries: RecentEntry[] }) {
               <span className={`dsh-hist-dot ${e.feedbackStatus === "DONE" ? "done" : "miss"}`} />
               <div className="dsh-hist-body">
                 <div className="dsh-hist-date fa-num">{e.weekdayLabel}، {e.dateLabel}</div>
-                <div className="dsh-hist-text">{e.content}</div>
+                <div className="dsh-hist-text">{trunc(e.content)}</div>
               </div>
             </div>
           ))

@@ -146,7 +146,7 @@ export function PersonalInfoSection({
 
       {/* دربارهٔ من — بلوکِ تمام‌عرض با «ویرایش» در سرستون */}
       <div className="pf-bio-field">
-        <div className="vrow" style={{ marginBottom: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 6 }}>
           <span className="k" style={{ fontSize: 12, color: "var(--color-stone)" }}>دربارهٔ من</span>
           <button type="button" className="pf-editlink" onClick={() => toggle("bio")}>
             {open === "bio" ? "بستن" : "ویرایش"}

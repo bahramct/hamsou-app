@@ -61,8 +61,13 @@ export function CompanionPanel({ goalId, companion, todayInsight, bare = false }
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // در حالتِ bare کارتِ بیرونی حذف می‌شود (تایلِ بِنتو خودش کارت است)
-  const wrap = (cls: string) => (bare ? "" : cls);
+  // در حالتِ bare کارتِ بیرونی حذف می‌شود (تایلِ بِنتو خودش کارت است) و پنل کلِ ارتفاعِ
+  // تایل را پر می‌کند تا بدنه بتواند داخلِ خودش اسکرول شود (سایزِ ثابت، DECISION-104 #3)
+  const wrap = (cls: string) => (bare ? "flex h-full min-h-0 flex-col" : cls);
+  // کلاسِ بدنهٔ اسکرول‌شونده (مخفیِ نوار) فقط در bare؛ بیرونِ bare طبیعی می‌ماند
+  const scrollBody = bare
+    ? "flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    : "";
 
   // ── دعوت به ارتقا (FREE/PLUS) ───────────────────────────────────────────────
   if (!companion.planAllowed) {
@@ -111,11 +116,13 @@ export function CompanionPanel({ goalId, companion, todayInsight, bare = false }
   if (todayInsight) {
     return (
       <div className={wrap("rounded-3xl border border-sage/20 bg-sage/5 p-5")}>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between shrink-0">
           {header}
           <span className="text-[11px] text-fog">راهنماییِ امروز</span>
         </div>
-        <InsightBody insight={todayInsight} />
+        <div className={scrollBody}>
+          <InsightBody insight={todayInsight} />
+        </div>
       </div>
     );
   }
