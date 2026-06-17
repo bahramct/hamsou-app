@@ -126,9 +126,11 @@ export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; today
           )}
         </div>
 
-        {/* ── همراه ── */}
+        {/* ── همراه ── (محتوا absolute پر می‌کند تا ارتفاعِ ردیف را بزرگ نکند و بدنه اسکرول شود) */}
         <div className="jp-tile jp-comp glass">
-          <CompanionPanel goalId={goal.id} companion={view.companion} todayInsight={todayInsight} bare />
+          <div className="jp-comp-fill">
+            <CompanionPanel goalId={goal.id} companion={view.companion} todayInsight={todayInsight} bare />
+          </div>
         </div>
 
         {/* ── مسیر ── */}

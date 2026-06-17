@@ -902,22 +902,32 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
 /* ─────────────────────────────────────────────────────────────────────────────
    DECISION-104 — رفعِ کوپلینگِ ارتفاع (parent مشترک) در داشبورد و صفحهٔ هدف.
    ─────────────────────────────────────────────────────────────────────────── */
-/* #1 — کلاکِ کادر سبز: زونِ کلاک ارتفاعِ طبیعی می‌گیرد و گروهِ [کلاک+خط+هفته] وسط‌چین
-   می‌شود؛ پس با کشیده‌شدنِ پنل (به‌خاطرِ کارتِ تعهد) فقط حاشیهٔ بالا/پایین تغییر می‌کند،
-   نه فاصلهٔ دورِ خودِ کلاک. سایزِ کلاک ۸۴px ثابت است. */
-.dsh-clockzone { flex: 0 0 auto; margin-top: auto; }
-.dsh-week { margin-bottom: auto; }
+/* #1 — کادر سبز (ساعت) دیگر به ارتفاعِ کارتِ تعهد کشیده نمی‌شود: هر ستون ارتفاعِ
+   طبیعیِ خودش را دارد (align-items:start). پس شکل و سایزِ ساعت در هر حالتِ کارتِ
+   تعهد (خالی/ثبت‌شده/فریز/بازتاب) دقیقاً ثابت می‌ماند. */
+.dsh-top { align-items: start; }
+.dsh-tp { height: auto; }
 
 /* #2 — کارتِ تاریخچه: ۳ موردِ فشرده تا با هدرِ آیکون‌دار در قابِ ثابت جا شود */
 .t-hist .dsh-head { margin-bottom: 8px; }
 .t-hist .dsh-hist-item { padding: 6px 0; }
 
-/* #3 — همراه هم‌ارتفاعِ هیروِ هدف می‌ماند (سایزِ پایدار) و متنِ بلند داخلِ خودش اسکرول
-   می‌شود (نه رشدِ باکس)؛ پس دیگر هیرو را هل نمی‌دهد. */
-.jp-comp { align-self: stretch; }
+/* #3 — همراه دقیقاً هم‌ارتفاعِ هیروِ هدف می‌ماند و متنِ بلند *واقعاً* داخلِ خودش اسکرول
+   می‌شود: محتوای پنل absolute پر می‌کند تا ارتفاعِ ردیف را بزرگ نکند (ردیف فقط با هیرو
+   تعیین می‌شود) و سپس بدنه در فضای ثابت اسکرول می‌کند. */
+.jp-comp { align-self: stretch; position: relative; padding: 0; }
+.jp-comp-fill { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 20px; overflow: hidden; }
+/* موبایل (تک‌ستونه): دیگر کوپلینگِ ارتفاع نیست → جریانِ طبیعی، بدونِ absolute/اسکرول */
+@media (max-width: 760px) {
+  .jp-comp { position: static; padding: 20px; }
+  .jp-comp-fill { position: static; height: auto; padding: 0; overflow: visible; }
+}
 
-/* #5 — کادرِ «نیاز به کمک داری؟» در پشتیبانی از بالا تراز شود (نه وسط‌چینِ کشیده) */
-.pf-sup-body { align-items: flex-start; }
+/* #5 — کادرِ «نیاز به کمک داری؟» هم‌ترازِ سرستونِ «ارتباط با پشتیبانی» از بالا قرار گیرد:
+   ستونِ راست (سرستون + متن + تیکت‌ها) و ستونِ چپ (کادر) کنارِ هم، تراز از بالا. */
+.pf-sup-grid { display: flex; gap: 18px; align-items: flex-start; }
+.pf-sup-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+@media (max-width: 860px) { .pf-sup-grid { flex-direction: column; } }
 
 /* هدرِ تایلِ داشبورد: آیکون + برچسبِ کوتاه (جایگزینِ dsh-lblِ تنها).
    آیکونِ کمی جمع‌تر (۳۰px) برای تراکمِ داشبورد در قابِ ثابت — هم‌سبک با pf اما متناسب. */

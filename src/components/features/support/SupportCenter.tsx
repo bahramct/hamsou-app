@@ -111,38 +111,41 @@ export function SupportCenter({ ticketingAllowed, initialTickets, variant = "til
 
   return (
     <section className="pf-tile pf-t-support glass">
-      <div className="pf-tile-head">
-        <div className="pf-tile-ic ic-sup"><HeadsetIcon /></div>
-        <div>
-          <h3>ارتباط با پشتیبانی</h3>
-          <div className="sub">تیکت‌ها و گفتگو با تیم همسو</div>
-        </div>
-      </div>
-
-      <div className="pf-sup-body">
-        <div className="pf-sup-copy">
-          <p>
-            سؤال، مشکل یا پیشنهادی داری؟ تیکت بفرست و گفتگو را همین‌جا — بدونِ ترکِ صفحه — دنبال کن.
-            تیمِ همسو معمولاً در کمتر از یک روز پاسخ می‌دهد.
-          </p>
-          {preview.length > 0 && (
-            <div className="pf-sup-tickets">
-              {preview.map((t) => {
-                const st = statusChip(t.status);
-                return (
-                  <button key={t.id} className="pf-sup-tk" onClick={openDrawer}>
-                    <div>
-                      <div className="s">{t.subject}</div>
-                      <div className="m fa-num">{catLabel(t.category)} · {faDate(t.lastMessageAt)}</div>
-                    </div>
-                    <span className={`pf-tkst ${st.cls}`}>{st.label}</span>
-                  </button>
-                );
-              })}
+      <div className="pf-sup-grid">
+        {/* ستونِ راست: سرستون + توضیح + تیکت‌ها */}
+        <div className="pf-sup-main">
+          <div className="pf-tile-head">
+            <div className="pf-tile-ic ic-sup"><HeadsetIcon /></div>
+            <div>
+              <h3>ارتباط با پشتیبانی</h3>
+              <div className="sub">تیکت‌ها و گفتگو با تیم همسو</div>
             </div>
-          )}
+          </div>
+          <div className="pf-sup-copy">
+            <p>
+              سؤال، مشکل یا پیشنهادی داری؟ تیکت بفرست و گفتگو را همین‌جا — بدونِ ترکِ صفحه — دنبال کن.
+              تیمِ همسو معمولاً در کمتر از یک روز پاسخ می‌دهد.
+            </p>
+            {preview.length > 0 && (
+              <div className="pf-sup-tickets">
+                {preview.map((t) => {
+                  const st = statusChip(t.status);
+                  return (
+                    <button key={t.id} className="pf-sup-tk" onClick={openDrawer}>
+                      <div>
+                        <div className="s">{t.subject}</div>
+                        <div className="m fa-num">{catLabel(t.category)} · {faDate(t.lastMessageAt)}</div>
+                      </div>
+                      <span className={`pf-tkst ${st.cls}`}>{st.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* ستونِ چپ: کادرِ کمک — از بالا هم‌ترازِ سرستون */}
         <div className="pf-sup-side">
           {ticketingAllowed ? (
             <>
