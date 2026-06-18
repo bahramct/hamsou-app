@@ -363,18 +363,10 @@ export default async function DashboardPage() {
   return (
     <AppShell>
       <div className="dsh-wrap animate-fade-up">
-        {/* ① ردیفِ بالا: تعهد امروز (راست) | کادر سبز (چپ) */}
+        {/* ① ردیفِ بالا: فقط کارتِ تعهد، وسط‌چین — ساعت به بِنتو رفت (DECISION-106) */}
         <div className="dsh-top">
           <div className="dsh-today-col">
             <div className="flex flex-1 items-center justify-center">{heroNode}</div>
-          </div>
-          <div className="dsh-green-col">
-            <TodayPanel
-              days={weekActivity.days}
-              dateLabel={dateLabel}
-              monthLabel={monthLabel}
-              userName={fullUser?.displayName ?? undefined}
-            />
           </div>
         </div>
 
@@ -385,8 +377,7 @@ export default async function DashboardPage() {
           <span className="hint">یک نگاهِ آرام به جایی که هستم</span>
         </div>
 
-        {/* بِنتو — سیستمِ قابِ ثابت (DECISION-099): هر تایل footprintِ ثابت (N×M)؛
-            ترتیبِ DOM = هدف، نبض، تاریخچه، گزارش، پلن → هدف ۷×۲ راست، بقیه چپ/پایین */}
+        {/* بِنتو — هدف ۷×۳؛ ترتیبِ چپ: نبض / ساعت / تاریخچه (DECISION-099 + DECISION-106) */}
         <div className="dsh-bento">
           <GoalTile data={goalTileData} />
           <PulseTile
@@ -395,6 +386,14 @@ export default async function DashboardPage() {
             freezeCount={weekActivity.freezeCount}
             emptyCount={weekActivity.emptyCount}
             todayWrote={weekActivity.todayWrote}
+          />
+          {/* ساعت + نوارِ هفته — ردیفِ دومِ ستونِ چپ (wrapper حذف شد — DECISION-104) */}
+          <TodayPanel
+            compact
+            days={weekActivity.days}
+            dateLabel={dateLabel}
+            monthLabel={monthLabel}
+            userName={fullUser?.displayName ?? undefined}
           />
           <RecentTile entries={recentEntries} />
           <ReportTile data={reportData} />

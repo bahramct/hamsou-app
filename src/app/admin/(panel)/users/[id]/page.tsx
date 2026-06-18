@@ -304,17 +304,20 @@ export default async function AdminUserDetailPage({
             <Meta label="بیو"           value={user.bio || "—"} />
           </section>
 
-          {/* اقدامات */}
-          <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
-            <UserActions
-              userId={user.id}
-              currentPlan={user.plan}
-              currentCycle={user.planCycle}
-              isBanned={user.isBanned}
-              canPlan={can(ctx, "users.plan.write")}
-              canBan={can(ctx, "users.ban")}
-            />
-          </section>
+          {/* وضعیت دسترسی (ban/unban) — پلن‌تغییری به ستون عریض‌تر منتقل شد (DECISION-106) */}
+          {can(ctx, "users.ban") && (
+            <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
+              <UserActions
+                userId={user.id}
+                currentPlan={user.plan}
+                currentCycle={user.planCycle}
+                planExpiresAt={user.planExpiresAt?.toISOString() ?? null}
+                isBanned={user.isBanned}
+                canPlan={false}
+                canBan={true}
+              />
+            </section>
+          )}
 
           {/* شارژ/اصلاحِ دستیِ کیف‌پول — فقط با دسترسیِ مالی (DECISION-089) */}
           {can(ctx, "payment.manage") && (
@@ -406,6 +409,21 @@ export default async function AdminUserDetailPage({
               </div>
             )}
           </section>
+
+          {/* تغییر پلن + تنظیمِ روزهای انقضا — در ستونِ عریض‌تر (فضای بیشتر برای کنترل‌ها) */}
+          {can(ctx, "users.plan.write") && (
+            <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
+              <UserActions
+                userId={user.id}
+                currentPlan={user.plan}
+                currentCycle={user.planCycle}
+                planExpiresAt={user.planExpiresAt?.toISOString() ?? null}
+                isBanned={user.isBanned}
+                canPlan={true}
+                canBan={false}
+              />
+            </section>
+          )}
 
           {/* چت آنلاین — دسترسی از planAllows (هم‌ترازی با سایت)، نه چکِ hardcode پلن */}
           <section className={`rounded-2xl border overflow-hidden ${liveChatAllowed ? "border-black/8 bg-white/45" : "border-black/6 bg-white/25"}`}>

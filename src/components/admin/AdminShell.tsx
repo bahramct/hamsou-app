@@ -3,8 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminShell — قالب پنل مدیریت (sidebar + header)
 // nav بر اساس permissionهای ادمین فیلتر می‌شود (DECISION-036).
-// ماژول‌های آینده با برچسب «به‌زودی» و غیرفعال نمایش داده می‌شوند تا نقشه راه
-// روشن باشد بدون لینک شکسته.
+// گروه‌بندی ناوبری: داشبورد / کاربران / پشتیبانی / مدیریت محتوا / زیرساخت‌ها / تنظیمات سایت
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback } from "react";
@@ -25,22 +24,56 @@ interface NavItem {
   badge?: BadgeKey;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { href: "/admin", label: "داشبورد", perm: "dashboard.view", icon: "grid", ready: true },
-  { href: "/admin/users", label: "کاربران", perm: "users.read", icon: "users", ready: true },
-  { href: "/admin/plans", label: "پلن‌ها", perm: "plans.read", icon: "card", ready: true },
-  { href: "/admin/ai", label: "هوش مصنوعی", perm: "ai.read", icon: "spark", ready: true },
-  { href: "/admin/sms", label: "پیامک", perm: "sms.read", icon: "message", ready: true },
-  { href: "/admin/email", label: "ایمیل", perm: "email.read", icon: "email", ready: true },
-  { href: "/admin/payment", label: "پرداخت", perm: "payment.read", icon: "wallet", ready: true, badge: "payments" },
-  { href: "/admin/support", label: "تیکت‌ها", perm: "support.read", icon: "headset", ready: true, badge: "tickets" },
-  { href: "/admin/livechat", label: "چت آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
-  { href: "/admin/contact", label: "پیام‌های تماس", perm: "support.read", icon: "inbox", ready: true, badge: "contacts" },
-  { href: "/admin/blog", label: "بلاگ", perm: "blog.read", icon: "book", ready: true, badge: "comments" },
-  { href: "/admin/settings", label: "تنظیمات سایت", perm: "settings.read", icon: "gear", ready: true },
-  { href: "/admin/admins", label: "ادمین‌ها", perm: "admins.manage", icon: "shield", ready: true },
-  { href: "/admin/roles", label: "نقش‌ها و دسترسی‌ها", perm: "roles.manage", icon: "key", ready: true },
-  { href: "/admin/audit", label: "لاگ ممیزی", perm: "audit.read", icon: "list", ready: true },
+interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    items: [
+      { href: "/admin", label: "داشبورد", perm: "dashboard.view", icon: "grid", ready: true },
+    ],
+  },
+  {
+    label: "کاربران",
+    items: [
+      { href: "/admin/users", label: "کاربران سایت", perm: "users.read", icon: "users", ready: true },
+      { href: "/admin/admins", label: "کاربران پنل مدیریت", perm: "admins.manage", icon: "shield", ready: true },
+    ],
+  },
+  {
+    label: "پشتیبانی",
+    items: [
+      { href: "/admin/support", label: "تیکت ها", perm: "support.read", icon: "headset", ready: true, badge: "tickets" },
+      { href: "/admin/livechat", label: "ارتباط آنلاین", perm: "support.read", icon: "chat", ready: true, badge: "chat" },
+      { href: "/admin/contact", label: "فرم تماس با ما", perm: "support.read", icon: "inbox", ready: true, badge: "contacts" },
+    ],
+  },
+  {
+    label: "مدیریت محتوا",
+    items: [
+      { href: "/admin/settings", label: "تنظیمات راهنما", perm: "settings.read", icon: "gear", ready: true },
+      { href: "/admin/blog", label: "بلاگ", perm: "blog.read", icon: "book", ready: true, badge: "comments" },
+    ],
+  },
+  {
+    label: "زیر ساخت ها",
+    items: [
+      { href: "/admin/ai", label: "هوش مصنوعی", perm: "ai.read", icon: "spark", ready: true },
+      { href: "/admin/sms", label: "سرویس پیامک", perm: "sms.read", icon: "message", ready: true },
+      { href: "/admin/email", label: "سرویس ایمیل", perm: "email.read", icon: "email", ready: true },
+      { href: "/admin/payment", label: "درگاه پرداخت", perm: "payment.read", icon: "wallet", ready: true, badge: "payments" },
+    ],
+  },
+  {
+    label: "تنظیمات سایت",
+    items: [
+      { href: "/admin/plans", label: "پلن های فروش", perm: "plans.read", icon: "card", ready: true },
+      { href: "/admin/audit", label: "مدیریت لاگ ها", perm: "audit.read", icon: "list", ready: true },
+      { href: "/admin/roles", label: "نقش ها و دسترسی ها", perm: "roles.manage", icon: "key", ready: true },
+    ],
+  },
 ];
 
 interface NavCounts {
@@ -66,10 +99,13 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
   const [mobileOpen, setMobileOpen] = useState(false);
   const [counts, setCounts] = useState<NavCounts>(initialCounts);
   const permSet = new Set(permissions);
-  const visible = NAV_ITEMS.filter((i) => permSet.has(i.perm));
   const canSeeBadges = permSet.has("support.read") || permSet.has("payment.read") || permSet.has("blog.moderate");
 
-  // poll آرامِ شمارهٔ badgeها (تیکت باز + چت خوانده‌نشده + شارژ در انتظار)
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    visibleItems: group.items.filter((i) => permSet.has(i.perm)),
+  })).filter((group) => group.visibleItems.length > 0);
+
   const refreshCounts = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/nav-counts", { cache: "no-store" });
@@ -110,55 +146,66 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
   }
 
   const nav = (
-    <nav className="flex flex-col gap-0.5">
-      {visible.map((item) => {
-        const active = isActive(item.href);
-        if (!item.ready) {
-          return (
-            <div
-              key={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-fog/70 cursor-default select-none"
-              title="به‌زودی"
-            >
-              <Icon name={item.icon} />
-              <span className="flex-1">{item.label}</span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/4 text-fog">به‌زودی</span>
+    <nav className="flex flex-col">
+      {visibleGroups.map((group, gIdx) => (
+        <div key={gIdx} className={gIdx > 0 ? "mt-4" : ""}>
+          {group.label && (
+            <div className="px-3 mb-1 text-[10px] font-medium text-fog/55 select-none tracking-wide">
+              {group.label}
             </div>
-          );
-        }
-        const count = badgeValue(item.badge);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-              active
-                ? "bg-ink text-paper font-medium"
-                : "text-stone hover:text-ink hover:bg-black/4"
-            }`}
-          >
-            <Icon name={item.icon} />
-            <span className="flex-1">{item.label}</span>
-            {count > 0 && (
-              <span
-                className={`min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center fa-num shrink-0 ${
-                  active ? "bg-paper/25 text-paper" : "bg-ember text-paper"
-                }`}
-              >
-                {count > 99 ? toFa(99) + "+" : toFa(count)}
-              </span>
-            )}
-          </Link>
-        );
-      })}
+          )}
+          <div className="flex flex-col gap-0.5">
+            {group.visibleItems.map((item) => {
+              const active = isActive(item.href);
+              if (!item.ready) {
+                return (
+                  <div
+                    key={item.href}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-fog/70 cursor-default select-none"
+                    title="به‌زودی"
+                  >
+                    <Icon name={item.icon} />
+                    <span className="flex-1 truncate">{item.label}</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/4 text-fog shrink-0">به‌زودی</span>
+                  </div>
+                );
+              }
+              const count = badgeValue(item.badge);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 ${
+                    active
+                      ? "bg-ink text-paper font-medium"
+                      : "text-stone hover:text-ink hover:bg-black/4"
+                  }`}
+                >
+                  <Icon name={item.icon} />
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {count > 0 && (
+                    <span
+                      className={`min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center fa-num shrink-0 ${
+                        active ? "bg-paper/25 text-paper" : "bg-ember text-paper"
+                      }`}
+                    >
+                      {count > 99 ? toFa(99) + "+" : toFa(count)}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 
   return (
     <div className="admin-selectable min-h-dvh bg-paper flex">
       {/* ───── Sidebar (دسکتاپ) ───── */}
-      <aside className="hidden md:flex w-60 shrink-0 flex-col border-l border-black/6 bg-white/40 backdrop-blur-sm sticky top-0 h-dvh">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col border-l border-black/6 bg-white/40 backdrop-blur-sm sticky top-0 h-dvh">
         <div className="px-5 h-16 flex items-center gap-2.5 border-b border-black/6">
           <div className="w-7 h-7 rounded-lg bg-ink text-paper flex items-center justify-center text-xs">ه</div>
           <div className="flex flex-col leading-tight flex-1">
@@ -167,7 +214,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
           </div>
           <ThemeToggle />
         </div>
-        <div className="flex-1 overflow-y-auto px-3 py-4">{nav}</div>
+        <div className="flex-1 overflow-y-auto scrollbar-none px-3 py-4">{nav}</div>
         <AdminUserCard admin={admin} role={role} />
       </aside>
 
@@ -176,7 +223,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
         {/* header موبایل */}
         <header className="md:hidden h-14 flex items-center justify-between px-4 border-b border-black/6 bg-white/60 backdrop-blur-sm sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-ink text-paper flex items-center justify-center text-[10px]">ه</div>
+            <div className="w-6 h-6 rounded-md bg-ink text-paper flex items-center justify-content text-[10px]">ه</div>
             <span className="text-sm font-semibold text-ink">پنل مدیریت</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -193,7 +240,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
 
         {/* منوی موبایل */}
         {mobileOpen && (
-          <div className="md:hidden border-b border-black/6 bg-white/70 backdrop-blur-sm px-3 py-3">
+          <div className="md:hidden border-b border-black/6 bg-white/70 backdrop-blur-sm px-3 py-3 overflow-y-auto scrollbar-none max-h-[80dvh]">
             {nav}
             <div className="mt-2 pt-2 border-t border-black/6">
               <AdminUserCard admin={admin} role={role} compact />

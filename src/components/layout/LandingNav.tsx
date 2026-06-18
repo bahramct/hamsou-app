@@ -14,6 +14,11 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 interface Props {
   /** فقط برای سازگاری با CmsPageShell — لینک‌ها در همهٔ صفحات یکسان‌اند. */
   landing?: boolean;
+  /**
+   * CTA سمت چپ — سرور ارسال می‌کند (Server Component slot).
+   * اگر داده نشود، «شروع کن» پیش‌فرض نمایش داده می‌شود.
+   */
+  cta?: React.ReactNode;
 }
 
 const NAV_LINKS = [
@@ -23,7 +28,7 @@ const NAV_LINKS = [
   { href: "/blog", label: "بلاگ" },
 ] as const;
 
-export function LandingNav({ landing: _landing = false }: Props) {
+export function LandingNav({ landing: _landing = false, cta }: Props) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -61,11 +66,13 @@ export function LandingNav({ landing: _landing = false }: Props) {
           })}
         </div>
 
-        {/* چپ: «شروع کن» و در انتها (گوشهٔ چپ) دکمهٔ تم */}
+        {/* چپ: CTA (لاگین‌کرده: داشبورد / مهمان: شروع کن) + دکمهٔ تم */}
         <div className="flex items-center gap-2.5">
-          <Link href="/login" className="btn btn-primary" style={{ padding: ".65rem 1.25rem", fontSize: "14px" }}>
-            شروع کن
-          </Link>
+          {cta ?? (
+            <Link href="/login" className="btn btn-primary" style={{ padding: ".65rem 1.25rem", fontSize: "14px" }}>
+              شروع کن
+            </Link>
+          )}
           <ThemeToggle />
         </div>
       </div>

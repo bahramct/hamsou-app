@@ -806,9 +806,12 @@ html.theme-anim *::after {
    → تغییرِ محتوا اندازهٔ تایل را عوض نمی‌کند، پس تایل‌ها روی هم اثر نمی‌گذارند.
    ═══════════════════════════════════════════════════════════════════════════════ */
 .dsh-bento { grid-template-columns: repeat(12, 1fr); grid-template-areas: none; grid-auto-rows: 206px; align-items: stretch; }
-.dsh-bento > .t-goal { grid-column: span 7; grid-row: span 2; }
+/* هدف ۳ ردیف می‌گیرد تا ساعت (t-week) بین نبض و تاریخچه جا شود (DECISION-106) */
+.dsh-bento > .t-goal { grid-column: span 7; grid-row: span 3; }
 .dsh-bento > .t-pulse { grid-column: span 5; grid-row: span 1; }
-.dsh-bento > .t-hist { grid-column: span 5; grid-row: span 1; }
+/* ساعت + نوارِ هفته — در بِنتو جایگزینِ dsh-green-col (DECISION-106) */
+.dsh-bento > .t-week  { grid-column: span 5; grid-row: span 1; min-height: 0; }
+.dsh-bento > .t-hist  { grid-column: span 5; grid-row: span 1; }
 .dsh-bento > .t-report { grid-column: span 7; grid-row: span 1; }
 .dsh-bento > .t-plan { grid-column: span 5; grid-row: span 1; }
 .dsh-bento > .dsh-tile { overflow: hidden; min-height: 0; }
@@ -817,7 +820,7 @@ html.theme-anim *::after {
 .dsh-hist-text { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 @media (max-width: 760px) {
   .dsh-bento { grid-template-columns: 1fr; grid-auto-rows: auto; }
-  .dsh-bento > .t-goal, .dsh-bento > .t-pulse, .dsh-bento > .t-hist, .dsh-bento > .t-report, .dsh-bento > .t-plan { grid-column: 1 / -1; grid-row: auto; }
+  .dsh-bento > .t-goal, .dsh-bento > .t-pulse, .dsh-bento > .t-week, .dsh-bento > .t-hist, .dsh-bento > .t-report, .dsh-bento > .t-plan { grid-column: 1 / -1; grid-row: auto; }
   .dsh-bento > .dsh-tile { overflow: visible; }
 }
 
@@ -902,11 +905,20 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
 /* ─────────────────────────────────────────────────────────────────────────────
    DECISION-104 — رفعِ کوپلینگِ ارتفاع (parent مشترک) در داشبورد و صفحهٔ هدف.
    ─────────────────────────────────────────────────────────────────────────── */
-/* #1 — کادر سبز (ساعت) دیگر به ارتفاعِ کارتِ تعهد کشیده نمی‌شود: هر ستون ارتفاعِ
-   طبیعیِ خودش را دارد (align-items:start). پس شکل و سایزِ ساعت در هر حالتِ کارتِ
-   تعهد (خالی/ثبت‌شده/فریز/بازتاب) دقیقاً ثابت می‌ماند. */
-.dsh-top { align-items: start; }
+/* #1 — کادر سبز حذف شد؛ dsh-top به یک ستونه تبدیل شد تا today-col کل عرض را بگیرد. */
+.dsh-green-col { display: none; }
+.dsh-top { grid-template-columns: 1fr; grid-template-areas: "today"; align-items: center; }
+/* مینیفای‌شده dsh-tp را height:100% می‌دهد؛ در خارج از t-week نباید این باشد */
 .dsh-tp { height: auto; }
+/* ساعتِ ۶۰px با pivot صحیح تا در ۲۰۶px overflow نشود (اصلِ ۸۴px) */
+.t-week .dsh-clockzone { padding: 4px 0; gap: 12px; justify-content: space-evenly;}
+.t-week .dsh-tp-rule { margin-bottom: 8px; }
+.t-week .dsh-clock { width: 60px; height: 60px; }
+.t-week .dsh-mk { transform-origin: 50% 30px; }
+.t-week .dsh-hand.h { height: 15px; }
+.t-week .dsh-hand.m { height: 21px; }
+.t-week .dsh-hand.s { height: 22px; }
+.t-week .dsh-hand.s::after { height: 5px; bottom: -5px; }
 
 /* #2 — کارتِ تاریخچه: ۳ موردِ فشرده تا با هدرِ آیکون‌دار در قابِ ثابت جا شود */
 .t-hist .dsh-head { margin-bottom: 8px; }
@@ -940,3 +952,158 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
 .t-pulse .dsh-legend { margin-bottom: 9px; }
 .t-pulse .dsh-rhythm { margin: 2px 0 10px; }
 .t-pulse .dsh-rh-pill { height: 40px; }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Scrollbar utilities
+   ─────────────────────────────────────────────────────────────────────────── */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-105 — بازطراحیِ JourneyRail: پیکان‌های زنجیره‌ای RTL
+   روزِ ۱ در راست (گذشته)، روزِ آخر در چپ (آینده)؛ نوکِ پیکان به سمتِ چپ
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* scrollLeft منظم (LTR) تا ریاضیِ موقعیت‌یابی پیچیده نشود */
+.jp-rail-vp { direction: ltr; display: flex; justify-content: center; padding-bottom: 14px; padding-top: 14px;}
+
+/* فلش‌ها به مرکزِ پیکان تنظیم می‌شوند (top=52 = cm-area(28) + chev/2(24)) */
+.jp-rail-arrow { top: 52px; }
+
+/* ── ریلِ track با absolute children ── */
+.jp-chev-track {
+  position: relative;
+  direction: rtl; /* محتوا و فونت‌ها دوباره RTL می‌شوند */
+  height: 176px;  /* top(28) + chev(48) + gap(8) + bubble(80) + pad(12) */
+}
+
+/* ── کادرِ هر روز (absolute داخلِ track) ── */
+.jp-cv-wrap {
+  position: absolute;
+  top: 0;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* گلوِ تابشِ امروز (drop-shadow روی والد کار می‌کند چون clip-path فرزند) */
+.jp-cv-today { filter: drop-shadow(0 2px 12px rgba(193, 154, 74, 0.38)); }
+
+/* ── ناحیهٔ بالا: جایِ نشانِ همراه (ثابت ۲۸px) ── */
+.jp-cv-top {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+/* ── دکمهٔ نشانِ همراه ── */
+.jp-cv-cm {
+  width: 22px;
+  height: 22px;
+  background: #c19a4a2e;
+  border: 1px solid #c19a4a73;
+  border-radius: 50%;
+  color: var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform .2s var(--ease-expo);
+}
+.jp-cv-cm:hover { transform: scale(1.16); }
+
+/* ── شکلِ پیکان ── */
+.jp-chev {
+  width: 88px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(0% 50%, 14px 0%, 100% 0%, 100% 100%, 14px 100%);
+  transition: filter .15s;
+}
+.jp-chev[style*="pointer"]:hover { filter: brightness(1.09); }
+
+/* امروز: gold نه ember — حسِ گرم بدون هیستری (DECISION-105 fix) */
+.jp-chev-today  { background: var(--color-gold); }
+.jp-chev-done   { background: var(--color-sage); }
+.jp-chev-empty  { background: rgba(var(--rgb-line), .16); }
+.jp-chev-future { background: rgba(var(--rgb-line), .08); }
+
+/* ── برچسبِ روز داخلِ پیکان ── */
+.jp-cv-lbl {
+  color: rgba(255, 255, 255, .94);
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  direction: rtl;
+  padding-right: 6px; /* جبرانِ نوکِ پیکان برای تراز بصری */
+}
+.jp-chev-empty .jp-cv-lbl,
+.jp-chev-future .jp-cv-lbl {
+  color: var(--color-fog);
+}
+
+/* ── حبابِ استوری ── */
+.jp-cv-bubble {
+  width: 80px;
+  height: 80px;
+  background: rgba(var(--rgb-card), .8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--rgb-line), .08);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 9.5px;
+  line-height: 1.75;
+  color: var(--color-stone);
+  direction: rtl;
+  text-align: right;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  cursor: pointer;
+  margin-top: 8px;
+  flex-shrink: 0;
+  transition: border-color .2s, background .2s;
+}
+.jp-cv-bubble:hover {
+  border-color: rgba(var(--rgb-line), .18);
+  background: rgba(var(--rgb-card), .95);
+}
+
+/* ── نشانِ کوچکِ همراه در راهنمای پایین ── */
+.jp-cv-cm-sm {
+  width: 16px;
+  height: 16px;
+  background: #c19a4a2e;
+  border: 1px solid #c19a4a73;
+  border-radius: 50%;
+  color: var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── پیکانِ کوچک در راهنما ── */
+.jp-leg-chev {
+  width: 20px;
+  height: 12px;
+  clip-path: polygon(0% 50%, 5px 0%, 100% 0%, 100% 100%, 5px 100%);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.jp-leg-chev.done   { background: var(--color-sage); }
+.jp-leg-chev.today  { background: var(--color-gold); }
+.jp-leg-chev.future { background: rgba(var(--rgb-line), .12); }

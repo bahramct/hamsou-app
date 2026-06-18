@@ -111,7 +111,7 @@ export function GoalStoryboard({ view, todayIso }: { view: ActiveGoalView; today
             <>
               <p className="jp-hero-hint">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, marginTop: 3 }}><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" /><path d="M12 8v.5M12 11.5v4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
-                روزهای مسیرت را با فلش‌ها ببین؛ روزهای پُرمتن نشانِ طلایی دارند و با کلیک کامل باز می‌شوند
+                روزهای مسیرت را با فلش‌ها در تایم‌لاین ببین؛ روی هر پیکان کلیک کن تا جزئیاتِ آن روز باز شود
               </p>
               <div style={{ marginTop: 14 }}>
                 <StoryComposer

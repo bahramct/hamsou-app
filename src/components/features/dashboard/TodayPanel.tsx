@@ -18,6 +18,8 @@ interface Props {
   monthLabel: string;
   /** نامِ کاربر برای سلام (اختیاری) */
   userName?: string;
+  /** حالتِ فشرده — داخلِ تایلِ بِنتو (dsh-tile به‌جای dsh-tp تا ساختار یکسان باشد) */
+  compact?: boolean;
 }
 
 function fa(n: number | string): string {
@@ -26,7 +28,7 @@ function fa(n: number | string): string {
 
 interface TipState { show: boolean; x: number; y: number; title: string; text: string; faded: boolean; }
 
-export function TodayPanel({ days, dateLabel, monthLabel, userName }: Props) {
+export function TodayPanel({ days, dateLabel, monthLabel, userName, compact }: Props) {
   const hRef = useRef<HTMLDivElement>(null);
   const mRef = useRef<HTMLDivElement>(null);
   const sRef = useRef<HTMLDivElement>(null);
@@ -86,7 +88,7 @@ export function TodayPanel({ days, dateLabel, monthLabel, userName }: Props) {
     days.length > 0 ? `${fa(days[0].jalaliDay)}–${fa(days[days.length - 1].jalaliDay)} ${monthLabel}` : monthLabel;
 
   return (
-    <div className="dsh-tp glass">
+    <div className={compact ? "dsh-tile glass t-week" : "dsh-tp glass"}>
       <div className="dsh-tp-head">
         <span className="dsh-tp-lbl">این هفته</span>
         <span className="dsh-tp-mon fa-num">{rangeLabel}</span>

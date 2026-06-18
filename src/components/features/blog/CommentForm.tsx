@@ -40,6 +40,7 @@ export function CommentForm({
   const [body, setBody] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [busy, setBusy] = useState(false);
+  const [faWarning, setFaWarning] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,10 +112,19 @@ export function CommentForm({
         placeholder={parentId ? "پاسخت را بنویس…" : "کامنتت را بنویس…"}
         value={body}
         maxLength={COMMENT_MAX_LEN}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => {
+          const val = e.target.value;
+          setBody(val);
+          setFaWarning(/[a-zA-Z]{2,}/.test(val));
+        }}
         rows={compact ? 3 : 4}
         style={{ ...inputStyle, resize: "vertical", lineHeight: 1.8 }}
       />
+      {faWarning && (
+        <p style={{ fontSize: "11px", color: "var(--color-stone)", margin: "-4px 0 0", lineHeight: 1.6 }}>
+          لطفاً کیبورد را به فارسی تغییر دهید
+        </p>
+      )}
 
       <div className="flex items-center gap-2">
         <button

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LandingEffects } from "@/components/features/landing/LandingEffects";
-import { LandingNav } from "@/components/layout/LandingNav";
+import { LandingNavServer } from "@/components/layout/LandingNavServer";
+import { PublicPageTracker } from "@/components/system/PublicPageTracker";
 import { LandingFooter } from "@/components/layout/LandingFooter";
 import { PostsExplorer, type ExplorerPost } from "@/components/features/blog/PostsExplorer";
 import { BlogSidebar } from "@/components/features/blog/BlogSidebar";
@@ -88,7 +89,8 @@ export default async function BlogPage({ searchParams }: Props) {
         <div className="blob blob-3" />
       </div>
 
-      <LandingNav />
+      <PublicPageTracker />
+      <LandingNavServer returnPath="/blog" />
 
       {/* HERO — جمع‌وجور */}
       <section className="relative z-10 pt-28 pb-10 px-6 lg:px-10">

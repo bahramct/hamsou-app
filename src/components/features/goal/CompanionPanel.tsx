@@ -6,7 +6,7 @@
 // لحنِ آرام؛ بدون قضاوت/استریک. FREE/PLUS → کارتِ دعوت به ارتقا.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Spinner } from "@/components/ui/Spinner";
@@ -69,6 +69,25 @@ export function CompanionPanel({ goalId, companion, todayInsight, bare = false }
     ? "flex-1 min-h-0 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     : "";
 
+  // fade — فقط وقتی bare=true، محتوا overflow دارد، و هنوز به انتها نرسیده
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showFade, setShowFade] = useState(false);
+  useEffect(() => {
+    if (!bare || !todayInsight) { setShowFade(false); return; }
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      const hasOverflow = el.scrollHeight > el.clientHeight + 8;
+      const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+      setShowFade(hasOverflow && !atEnd);
+    };
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, [bare, todayInsight]);
+
   // ── دعوت به ارتقا (FREE/PLUS) ───────────────────────────────────────────────
   if (!companion.planAllowed) {
     return (
@@ -120,9 +139,19 @@ export function CompanionPanel({ goalId, companion, todayInsight, bare = false }
           {header}
           <span className="text-[11px] text-fog">راهنماییِ امروز</span>
         </div>
-        <div className={scrollBody}>
+        <div ref={scrollRef} className={scrollBody}>
           <InsightBody insight={todayInsight} />
         </div>
+        {showFade && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-14"
+            style={{
+              background: "linear-gradient(to bottom, transparent, rgba(var(--rgb-card), 0.65))",
+              borderRadius: "0 0 22px 22px",
+            }}
+            aria-hidden
+          />
+        )}
       </div>
     );
   }

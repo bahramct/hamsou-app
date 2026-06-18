@@ -18,12 +18,14 @@ interface Props {
   userId: string;
   currentPlan: string;
   currentCycle?: string | null;
+  /** ISO رشتهٔ تاریخِ انقضای پلن — null = دائمی */
+  planExpiresAt?: string | null;
   isBanned: boolean;
   canPlan: boolean;
   canBan: boolean;
 }
 
-export function UserActions({ userId, currentPlan, currentCycle, isBanned, canPlan, canBan }: Props) {
+export function UserActions({ userId, currentPlan, currentCycle, planExpiresAt, isBanned, canPlan, canBan }: Props) {
   const router = useRouter();
   const [plan, setPlan] = useState(currentPlan);
   const [cycle, setCycle] = useState<"monthly" | "annual">(
@@ -33,6 +35,8 @@ export function UserActions({ userId, currentPlan, currentCycle, isBanned, canPl
   const [pending, startTransition] = useTransition();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [adjustVal, setAdjustVal] = useState("30");
+  const [adjustError, setAdjustError] = useState("");
 
   async function changePlan(next: string) {
     if (next === plan || busy) return;
@@ -78,6 +82,28 @@ export function UserActions({ userId, currentPlan, currentCycle, isBanned, canPl
     }
   }
 
+  async function doAdjustDays(sign: 1 | -1) {
+    const n = parseInt(adjustVal, 10);
+    if (!n || n <= 0 || busy) return;
+    const days = sign * n;
+    setBusy(true);
+    setAdjustError("");
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/plan-adjust-days`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ days }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setAdjustError(data.error ?? "خطا در تنظیمِ روز."); return; }
+      startTransition(() => router.refresh());
+    } catch {
+      setAdjustError("اتصال به سرور برقرار نشد.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (!canPlan && !canBan) {
     return (
       <p className="text-xs text-fog italic">
@@ -89,10 +115,10 @@ export function UserActions({ userId, currentPlan, currentCycle, isBanned, canPl
   return (
     <div className="space-y-5">
       {canPlan && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <p className="text-[11px] text-fog uppercase tracking-widest">تغییر پلن</p>
 
-          {/* چرخهٔ صورتحساب — فقط برای پلن‌های پولی */}
+          {/* چرخهٔ صورتحساب */}
           <div className="flex gap-2">
             {(["monthly", "annual"] as const).map((c) => (
               <button
@@ -125,6 +151,51 @@ export function UserActions({ userId, currentPlan, currentCycle, isBanned, canPl
                 {p.label}
               </button>
             ))}
+          </div>
+
+          {/* تنظیمِ روزهای انقضا */}
+          <div className="space-y-2 rounded-xl border border-bone bg-white/40 p-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-fog uppercase tracking-widest">تنظیمِ روز</p>
+              {planExpiresAt ? (
+                <span className="text-[11px] text-stone">
+                  انقضا: {new Date(planExpiresAt).toLocaleDateString("fa-IR")}
+                </span>
+              ) : plan !== "FREE" ? (
+                <span className="text-[11px] text-fog">دائمی</span>
+              ) : null}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => doAdjustDays(-1)}
+                disabled={busy || pending}
+                title="کم کردن از انقضا"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-bone bg-white/60 text-stone transition-all hover:border-ember/40 hover:text-ember disabled:opacity-40"
+              >
+                −
+              </button>
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={adjustVal}
+                  onChange={(e) => setAdjustVal(e.target.value.replace(/\D/g, ""))}
+                  className="w-full rounded-lg border border-bone bg-white/60 px-3 py-2 text-center text-sm text-ink outline-none focus:border-black/20"
+                />
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-fog">روز</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => doAdjustDays(1)}
+                disabled={busy || pending}
+                title="افزودن به انقضا"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-bone bg-white/60 text-stone transition-all hover:border-sage/50 hover:text-sage-deep disabled:opacity-40"
+              >
+                +
+              </button>
+            </div>
+            {adjustError && <p className="text-[11px] text-ember">{adjustError}</p>}
           </div>
         </div>
       )}

@@ -172,7 +172,7 @@ export function CommentsSection({
           <CommentForm slug={slug} authorName={currentUser.name} onSubmitted={addPending} />
         </div>
       ) : (
-        <RegisterGate />
+        <RegisterGate slug={slug} />
       )}
 
       {/* فهرستِ کامنت‌ها */}
@@ -208,7 +208,9 @@ export function CommentsSection({
 }
 
 // ─── کارتِ دعوت به عضویت (مهمان) ────────────────────────────────────────────
-function RegisterGate() {
+// returnUrl = /blog/slug#comments تا پس از لاگین مستقیم به همین بخش برگردد
+function RegisterGate({ slug }: { slug: string }) {
+  const returnUrl = encodeURIComponent(`/blog/${slug}#comments`);
   return (
     <div
       className="rounded-2xl p-6 mb-10 text-center"
@@ -218,7 +220,7 @@ function RegisterGate() {
         برای ثبت نظر باید عضو همسو شوی.
       </p>
       <Link
-        href="/login"
+        href={`/login?returnUrl=${returnUrl}`}
         className="btn btn-primary mt-4 inline-flex"
         style={{ fontSize: "14px", padding: "0.6rem 1.6rem" }}
       >

@@ -34,25 +34,46 @@ function hardenAll(root: ParentNode) {
   root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach(harden);
 }
 
+// در cleanup باید attrها برداشته شوند تا React Strict Mode (double-invoke)
+// بین VDom (بدون attr) و DOM (با attr از اثرِ اول) تفاوت نبیند.
+function restoreAll() {
+  document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach((el) => {
+    el.removeAttribute("autocomplete");
+    el.removeAttribute("autocorrect");
+    el.removeAttribute("autocapitalize");
+    el.removeAttribute("data-lpignore");
+    el.removeAttribute("data-1p-ignore");
+    el.removeAttribute("data-form-type");
+  });
+}
+
 export function DisableAutofill() {
   useEffect(() => {
-    hardenAll(document);
+    // requestAnimationFrame — بعد از اتمام commit/hydration ری‌اکت اجرا می‌شود،
+    // از mismatch جلوگیری می‌کند (در صورتی که ری‌اکت هنوز DOM را reconcile می‌کند).
+    const rafInit = requestAnimationFrame(() => hardenAll(document));
 
     // ورودی‌هایی که بعداً به DOM اضافه می‌شوند (مودال، لیست پویا، …) هم پوشش بده.
     const observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        m.addedNodes.forEach((node) => {
-          if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
-            harden(node);
-          } else if (node instanceof HTMLElement) {
-            hardenAll(node);
-          }
-        });
-      }
+      requestAnimationFrame(() => {
+        for (const m of mutations) {
+          m.addedNodes.forEach((node) => {
+            if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
+              harden(node);
+            } else if (node instanceof HTMLElement) {
+              hardenAll(node);
+            }
+          });
+        }
+      });
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(rafInit);
+      observer.disconnect();
+      restoreAll();
+    };
   }, []);
 
   return null;

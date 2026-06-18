@@ -109,8 +109,9 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (session.valid && (pathname === "/" || pathname === "/login")) {
-    // کاربر وارد شده روی صفحات عمومی → به dashboard
+  if (session.valid && pathname === "/login") {
+    // کاربر لاگین‌شده روی /login → به dashboard (یا returnUrl اگر موجود باشد — LoginPage server component handle می‌کند)
+    // "/" عمدی حذف شد: کاربر باید بتواند بعد از لاگین به همان صفحه‌ی عمومی برگردد (navbar متفاوت رندر می‌شود)
     const dashboardUrl = req.nextUrl.clone();
     dashboardUrl.pathname = "/dashboard";
     return NextResponse.redirect(dashboardUrl);

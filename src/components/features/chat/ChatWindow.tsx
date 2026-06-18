@@ -87,6 +87,7 @@ export function ChatWindow({ isOpen, onClose, companionName, userName }: Props) 
   const [isSending, setIsSending] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [faWarning, setFaWarning] = useState(false);
 
   // روزهایی که کاربر باز کرده‌ — امروز همیشه باز است
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
@@ -186,6 +187,8 @@ export function ChatWindow({ isOpen, onClose, companionName, userName }: Props) 
       setInput(text);
     } finally {
       setIsSending(false);
+      // کرسر همیشه در تکست‌باکس بماند
+      setTimeout(() => inputRef.current?.focus(), 60);
     }
   }, [input, isSending]);
 
@@ -372,12 +375,21 @@ export function ChatWindow({ isOpen, onClose, companionName, userName }: Props) 
             </div>
           )}
           {error && <p className="text-[11px] text-ember text-center px-4 pt-2">{error}</p>}
+          {faWarning && !isAtLimit && (
+            <p className="text-[10px] text-stone text-center px-4 pt-1">
+              لطفاً کیبورد را به فارسی تغییر دهید
+            </p>
+          )}
 
           <div className="flex items-end gap-2 px-3 py-3">
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setInput(val);
+                setFaWarning(/[a-zA-Z]{2,}/.test(val));
+              }}
               onKeyDown={handleKeyDown}
               disabled={isSending || isAtLimit}
               placeholder={isAtLimit ? "فردا ادامه می‌دهیم" : "بنویس..."}

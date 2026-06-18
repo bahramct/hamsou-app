@@ -12,25 +12,36 @@ import { PageRenderer } from "./PageRenderer";
 import { PRIVACY_HERO_TYPES } from "./sections/privacy";
 import type { SectionInstance } from "@/lib/cms/types";
 
+// نگاشتِ pageKey به مسیرِ واقعی — برای returnUrl بعد از لاگین
+const PAGE_PATHS: Record<string, string> = {
+  landing: "/",
+  about: "/about",
+  contact: "/contact",
+  privacy: "/privacy",
+  story: "/story",
+};
+
 // ─── dispatcher: chrome + بدنهٔ مخصوصِ هر صفحه ──────────────────────────────
 export function CmsPageView({ pageKey, sections }: { pageKey: string; sections: SectionInstance[] }) {
+  const returnPath = PAGE_PATHS[pageKey] ?? `/${pageKey}`;
+
   if (pageKey === "landing") {
     return (
-      <CmsPageShell landing blobCount={4}>
+      <CmsPageShell landing blobCount={4} returnPath={returnPath}>
         <PageRenderer sections={sections} />
       </CmsPageShell>
     );
   }
   if (pageKey === "privacy") {
     return (
-      <CmsPageShell blobOpacity={0.45} blobCount={2}>
+      <CmsPageShell blobOpacity={0.45} blobCount={2} returnPath={returnPath}>
         <PrivacyBody sections={sections} />
       </CmsPageShell>
     );
   }
   const op = pageKey === "story" ? 0.4 : pageKey === "contact" ? 0.55 : 0.6;
   return (
-    <CmsPageShell blobOpacity={op}>
+    <CmsPageShell blobOpacity={op} returnPath={returnPath}>
       <PageRenderer sections={sections} />
     </CmsPageShell>
   );

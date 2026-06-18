@@ -99,7 +99,7 @@ export function GoalTile({ data }: { data: GoalTileData }) {
                     <>
                       <div className="d fa-num">{n.kind === "today" ? "امروز · روز " + fa(n.dayNumber) : "روز " + fa(n.dayNumber) + " · " + n.weekdayLabel}</div>
                       <div className="s">{n.preview ?? "خالی ماند."}</div>
-                      {n.hasMore && <div className="more">برای متنِ کامل، بازکن →</div>}
+                      {/* {n.hasMore && <div className="more">برای متنِ کامل، بازکن →</div>} */}
                     </>
                   )}
                 </div>
@@ -109,13 +109,13 @@ export function GoalTile({ data }: { data: GoalTileData }) {
         </div>
       )}
 
-      {/* استوریِ امروز */}
+      {/* استوریِ امروز
       {data.todayStory && (
         <div className="dsh-goal-story">
           <div className="q">استوریِ امروز</div>
           {data.todayStory}
         </div>
-      )}
+      )} */}
 
       {/* پنلِ همراه */}
       {data.companionPlanAllowed ? (

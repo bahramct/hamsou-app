@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LandingEffects } from "@/components/features/landing/LandingEffects";
-import { LandingNav } from "@/components/layout/LandingNav";
+import { LandingNavServer } from "@/components/layout/LandingNavServer";
+import { PublicPageTracker } from "@/components/system/PublicPageTracker";
 import { LandingFooter } from "@/components/layout/LandingFooter";
 import { RelatedPostCard } from "@/components/features/blog/RelatedPostCard";
 import { ViewBeacon } from "@/components/features/blog/ViewBeacon";
@@ -114,7 +115,8 @@ export default async function BlogPostPage({ params }: Props) {
         <div className="blob blob-3" />
       </div>
 
-      <LandingNav />
+      <PublicPageTracker />
+      <LandingNavServer returnPath={`/blog/${slug}`} />
 
       {/* HEADER */}
       <article>
