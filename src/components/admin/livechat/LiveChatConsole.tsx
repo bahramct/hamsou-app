@@ -22,6 +22,7 @@ interface ConvItem {
   displayName: string | null;
   phone: string | null;
   avatarPreset: number;
+  avatarImage: string | null;
   label: string;
   isToday: boolean;
   lastActivity: string;
@@ -214,10 +215,15 @@ export function LiveChatConsole({ canRespond }: Props) {
                     }`}
                   >
                     <div
-                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                      style={{ backgroundColor: preset.bg, color: preset.fg }}
+                      className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 overflow-hidden"
+                      style={c.avatarImage ? undefined : { backgroundColor: preset.bg, color: preset.fg }}
                     >
-                      {(c.displayName?.trim()?.[0]) ?? "ه"}
+                      {c.avatarImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.avatarImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        (c.displayName?.trim()?.[0]) ?? "ه"
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">

@@ -150,14 +150,6 @@ export default async function AdminUsersPage({
           ))}
         </div>
 
-        {(q || planFilter) && (
-          <Link
-            href="/admin/users"
-            className="px-3 py-2.5 rounded-xl text-sm text-stone hover:text-ink hover:bg-black/4 transition-colors"
-          >
-            پاک
-          </Link>
-        )}
       </div>
 
       {/* ─── کارت‌ها ─── */}

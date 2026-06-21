@@ -41,7 +41,19 @@ export interface PlanFeatureDef {
   defaults: Record<PlanKey, number | boolean>;
 }
 
+// ترتیب این آرایه = ترتیبِ نمایش در کارت‌های پلن (بدون sort مجدد در UI).
+// ردیف‌ها به‌صورت جهانی هم‌تراز هستند: ابتدا آیتم‌هایی که هر سه پلن دارند،
+// سپس Plus+Pro، در انتها Pro-only.
 export const PLAN_FEATURES: PlanFeatureDef[] = [
+  // ── تیر ۱: هر سه پلن ───────────────────────────────────────────────────────
+  {
+    key: "goal.planning",
+    label: "برنامه‌ریزیِ هدف و استوری روزانه",
+    description: "تعریفِ یک هدفِ بازه‌ای و نوشتنِ استوریِ روایی روزانه دربارهٔ مسیر.",
+    group: "goal",
+    type: "boolean",
+    defaults: { FREE: true, PLUS: true, PRO: true },
+  },
   {
     key: "chat.dailyLimit",
     label: "سقف پیام روزانهٔ همدم",
@@ -51,6 +63,16 @@ export const PLAN_FEATURES: PlanFeatureDef[] = [
     unit: "پیام در روز",
     defaults: { FREE: 10, PLUS: 20, PRO: 30 },
   },
+  {
+    key: "social.network",
+    label: "شبکهٔ اجتماعی همسو",
+    description: "قابلیت‌های اجتماعی (به‌زودی).",
+    group: "social",
+    type: "boolean",
+    comingSoon: true,
+    defaults: { FREE: true, PLUS: true, PRO: true },
+  },
+  // ── تیر ۲: Plus و Pro ──────────────────────────────────────────────────────
   {
     key: "weekly.reflection",
     label: "تب «تأمل» در گزارش هفتگی",
@@ -65,28 +87,16 @@ export const PLAN_FEATURES: PlanFeatureDef[] = [
     description: "ارسال تیکت و پیگیری پاسخ.",
     group: "support",
     type: "boolean",
-    // ساخته شد (DECISION-044) → دیگر «به‌زودی» نیست؛ برای پلاس و پرو فعال، با امکان روشن/خاموش‌کردن
-    // برای هر پلن از پنل (به‌محض تغییر، enforcement همان‌جا دسترسی می‌دهد).
     defaults: { FREE: false, PLUS: true, PRO: true },
   },
+  // ── تیر ۳: فقط Pro ─────────────────────────────────────────────────────────
   {
     key: "support.liveChat",
     label: "چت آنلاین پشتیبانی",
     description: "گفتگوی زندهٔ متنی با پشتیبان انسانی در ساعات کاری (DECISION-049).",
     group: "support",
     type: "boolean",
-    // فقط پرو (خواستهٔ مالک). قابل روشن‌کردن برای هر پلن از پنل — به‌محض روشن‌شدن،
-    // enforcement همین‌جا دسترسی می‌دهد (هم‌ترازی پنل↔پروژه).
     defaults: { FREE: false, PLUS: false, PRO: true },
-  },
-  {
-    key: "goal.planning",
-    label: "برنامه‌ریزیِ هدف و استوری روزانه",
-    description: "تعریفِ یک هدفِ بازه‌ای و نوشتنِ استوریِ روایی روزانه دربارهٔ مسیر.",
-    group: "goal",
-    type: "boolean",
-    // برای همهٔ پلن‌ها باز است (journaling پایه قفل نمی‌شود) — اما owner می‌تواند از پنل کنترل کند.
-    defaults: { FREE: true, PLUS: true, PRO: true },
   },
   {
     key: "goal.companion",
@@ -94,16 +104,6 @@ export const PLAN_FEATURES: PlanFeatureDef[] = [
     description: "تحلیلِ روند و راهنماییِ روزانهٔ کوچِ AI «همراه» در مسیرِ هدف (از روزِ سوم، روزی یک‌بار).",
     group: "goal",
     type: "boolean",
-    // فقط پرو (خواستهٔ مالک). قابل روشن‌کردن برای هر پلن از پنل — به‌محض روشن‌شدن enforcement همین‌جا.
-    defaults: { FREE: false, PLUS: false, PRO: true },
-  },
-  {
-    key: "social.network",
-    label: "شبکهٔ اجتماعی همسو",
-    description: "قابلیت‌های اجتماعی (به‌زودی).",
-    group: "social",
-    type: "boolean",
-    comingSoon: true,
     defaults: { FREE: false, PLUS: false, PRO: true },
   },
 ];

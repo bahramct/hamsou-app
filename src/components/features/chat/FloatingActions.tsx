@@ -78,8 +78,18 @@ export function FloatingActions({
     if (isPro) void refreshUnread();
   };
 
-  // ادمین یا کاربر غیراحرازهویت‌شده: نمایش داده نمی‌شود
-  if (!isAuthenticated || pathname.startsWith("/admin")) return null;
+  // صفحاتِ عمومی/بازاریابی: چت فقط داخل اپلیکیشن در دسترس است
+  const PUBLIC_PREFIXES = [
+    "/login", "/plans", "/about", "/contact", "/story",
+    "/privacy", "/blog", "/share", "/reset-password",
+    "/forgot-password", "/verify-email",
+  ];
+  const isPublicPage =
+    pathname === "/" ||
+    PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+
+  // ادمین، کاربر غیراحرازهویت‌شده، یا صفحهٔ عمومی: نمایش داده نمی‌شود
+  if (!isAuthenticated || pathname.startsWith("/admin") || isPublicPage) return null;
 
   const fabsVisible = openChat === null;
 

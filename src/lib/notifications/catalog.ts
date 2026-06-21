@@ -76,7 +76,7 @@ const CATALOG: Record<string, CatalogEntry> = {
       return {
         title: "کیف‌پول شارژ شد",
         body: amount > 0 ? `${amount.toLocaleString("fa-IR")} تومان به کیف‌پول شما اضافه شد.` : "کیف‌پول شما شارژ شد.",
-        link: "/wallet",
+        link: "/settings/profile#finance",
       };
     },
   },
@@ -90,7 +90,7 @@ const CATALOG: Record<string, CatalogEntry> = {
       return {
         title: "شارژ کیف‌پول تأیید نشد",
         body: reason ? `دلیل: ${reason}` : "درخواست شارژ شما تأیید نشد. با پشتیبانی در تماس باش.",
-        link: "/wallet",
+        link: "/settings/profile#finance",
       };
     },
   },
@@ -108,7 +108,7 @@ const CATALOG: Record<string, CatalogEntry> = {
           amount >= 0
             ? `${abs} تومان به کیف‌پول شما اضافه شد.`
             : `${abs} تومان از کیف‌پول شما کسر شد.`,
-        link: "/wallet",
+        link: "/settings/profile#finance",
       };
     },
   },
@@ -212,6 +212,54 @@ const CATALOG: Record<string, CatalogEntry> = {
         body: weekLabel ? `گزارش هفتهٔ ${weekLabel} آماده شد.` : "گزارش هفتگی جدید آماده شد.",
         link: "/reports/weekly",
       };
+    },
+  },
+
+  // کد تخفیف اختصاصی صادرشده توسط ادمین برای کاربر (DECISION-109)
+  // data: { code, kind:"percent"|"fixed", value, reason, displayName?, daysLeft?, maxUses? }
+  "discount.personal": {
+    tone: "success",
+    icon: "plan",
+    describe: (d) => {
+      const code = str(d.code) ?? "—";
+      const reason = str(d.reason);
+      const kind = str(d.kind);
+      const value = typeof d.value === "number" ? d.value : null;
+      const daysLeft = typeof d.daysLeft === "number" ? d.daysLeft : null;
+      const maxUses = typeof d.maxUses === "number" && d.maxUses > 0 ? d.maxUses : null;
+
+      let valueStr = "";
+      if (value !== null) {
+        valueStr = kind === "percent"
+          ? `${value.toLocaleString("fa-IR")}٪ تخفیف`
+          : `${value.toLocaleString("fa-IR")} تومان تخفیف`;
+      }
+
+      const parts: string[] = [];
+      if (reason) parts.push(`«${reason}»`);
+      parts.push(`کد ${code}`);
+      if (valueStr) parts.push(`— ${valueStr}`);
+      if (maxUses != null && maxUses > 1) parts.push(`· تا ${maxUses.toLocaleString("fa-IR")} بار قابل استفاده`);
+      if (daysLeft != null && daysLeft > 0) parts.push(`· تا ${daysLeft.toLocaleString("fa-IR")} روز اعتبار دارد`);
+
+      return {
+        title: "کد تخفیف اختصاصی برای شما",
+        body: parts.join(" "),
+        link: "/plans",
+      };
+    },
+  },
+
+  // پیام مستقیم ادمین به کاربر (targeted یا broadcast) — DECISION-109
+  // data: { title?, body?, link? }
+  "admin.message": {
+    tone: "info",
+    icon: "info",
+    describe: (d) => {
+      const title = str(d.title) ?? "پیام از همسو";
+      const body = str(d.body) ?? undefined;
+      const link = str(d.link) ?? undefined;
+      return { title, body, link };
     },
   },
 };

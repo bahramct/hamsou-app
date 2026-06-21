@@ -2,12 +2,14 @@
 // /api/plans/validate-discount — اعتبارسنجی عمومی کد تخفیف (DECISION-040)
 //   POST { code, cycle } → برای هر پلن فعال، قیمت با تخفیف را برمی‌گرداند.
 // عمومی (بدون ورود) — فقط نمایش قیمت؛ مصرف واقعی موکول به درگاه پرداخت.
+// کد اختصاصی (targetUserId≠null): فقط کاربر هدف، پیام «کد نامعتبر» برای بقیه (DECISION-109).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { getNow } from "@/lib/dev/time";
 import { applyDiscount, type BillingCycle } from "@/lib/plans/discount-shared";
+import { getSessionUser } from "@/lib/utils/auth-server";
 
 export async function POST(req: NextRequest) {
   const b = (await req.json().catch(() => null)) as Record<string, unknown> | null;
@@ -18,6 +20,14 @@ export async function POST(req: NextRequest) {
 
   const row = await prisma.discountCode.findUnique({ where: { code: rawCode } });
   if (!row) return NextResponse.json({ ok: false, reason: "کد نامعتبر است." }, { status: 200 });
+
+  // کد اختصاصی — فقط کاربر هدف می‌تواند از آن استفاده کند (DECISION-109)
+  if (row.targetUserId) {
+    const session = await getSessionUser();
+    if (!session || session.userId !== row.targetUserId) {
+      return NextResponse.json({ ok: false, reason: "کد نامعتبر است." }, { status: 200 });
+    }
+  }
 
   const now = getNow();
   // بررسی‌های سراسری (پیام واحد)

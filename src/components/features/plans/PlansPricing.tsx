@@ -42,8 +42,6 @@ interface DiscountResult {
 
 const faNum = (n: number) => n.toLocaleString("fa-IR");
 
-// رتبهٔ نمایشِ ویژگی برای مرتب‌سازی: فعال (تیک) → به‌زودی → غیرفعال (DECISION-087)
-const featureRank = (f: PublicFeature) => (f.disabled ? 2 : f.comingSoon ? 1 : 0);
 
 export function PlansPricing({
   plans, isLoggedIn, walletBalance = 0, currentPlanKey = "FREE", planDaysLeft = null,
@@ -265,12 +263,10 @@ function PlanCard({ plan, cycle, isLoggedIn, walletBalance, appliedCode, discoun
 
       <div className="h-px bg-black/6" />
 
-      {/* ویژگی‌ها — مرتب‌شده تا تیک‌ها پشت‌سرهم از بالا باشند (DECISION-087):
-          ابتدا فعال‌ها، سپس «به‌زودی»، در انتها غیرفعال‌ها (خط‌خورده). مرتب‌سازی پایدار. */}
+      {/* ویژگی‌ها — ترتیبِ کاتالوگ جهانی (PLAN_FEATURES در features.ts):
+          تیر ۱ همهٔ پلن‌ها · تیر ۲ Plus+Pro · تیر ۳ Pro. ترتیب در همهٔ پلن‌ها یکسان است. */}
       <ul className="space-y-3.5">
-        {[...plan.features]
-          .sort((a, b) => featureRank(a) - featureRank(b))
-          .map((f, i) => <FeatureRow key={i} feature={f} />)}
+        {plan.features.map((f, i) => <FeatureRow key={i} feature={f} />)}
       </ul>
     </div>
   );

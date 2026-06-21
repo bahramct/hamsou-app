@@ -64,6 +64,7 @@ export const ADMIN_PERMISSIONS = [
 
   { key: "content.read", label: "مشاهده محتوا", group: "content" },
   { key: "content.write", label: "ویرایش محتوا و اعلان‌ها", group: "content" },
+  { key: "notification.broadcast", label: "اعلان عمومی", group: "content" },
 
   { key: "blog.read", label: "مشاهده بلاگ", group: "blog" },
   { key: "blog.write", label: "نوشتن و ویرایش مقالات", group: "blog" },

@@ -97,6 +97,7 @@ model User {
   notifications  Notification[]
   supportChatSessions SupportChatSession[]
   goals          Goal[]
+  personalDiscounts DiscountCode[] @relation("PersonalDiscounts")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -668,13 +669,18 @@ model DiscountCode {
   usedCount   Int       @default(0)
   startsAt    DateTime?
   expiresAt   DateTime?
-  isActive    Boolean   @default(true)
-  note        String?
-  createdById String? // AdminUser.id
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  isActive     Boolean   @default(true)
+  note         String?
+  targetUserId String?   // null = عمومی؛ set = فقط این کاربر می‌تواند استفاده کند (DECISION-109)
+  reason       String?   // دلیلِ صدور — عیناً در نوتیفیکیشن کاربر نمایش داده می‌شود (برای کد شخصی اجباری)
+  createdById  String?   // AdminUser.id
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  targetUser User? @relation("PersonalDiscounts", fields: [targetUserId], references: [id], onDelete: SetNull)
 
   @@index([isActive])
+  @@index([targetUserId])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -527,11 +527,16 @@ function ShareButton({
         type="button"
         onClick={() => setOpen(true)}
         aria-label="اشتراک‌گذاری و دانلود گزارش"
-        className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
-          text-xs font-medium transition-colors duration-200
-          ${isShared ? "text-ember hover:text-ember/70" : "text-stone/60 hover:text-stone"}`}
+        className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl
+          text-xs font-medium text-stone/60 hover:text-stone transition-colors duration-200"
       >
-        <ShareGlyph />
+        {/* نقطهٔ کوچک وقتی گزارش به‌اشتراک گذاشته شده — بدون تغییر رنگ کل دکمه */}
+        <span className="relative shrink-0">
+          <ShareGlyph />
+          {isShared && (
+            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-sage" />
+          )}
+        </span>
         <span>اشتراک‌گذاری و دانلود</span>
       </button>
       <ShareModal

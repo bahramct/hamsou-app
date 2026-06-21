@@ -2,10 +2,10 @@
 // GET /api/wallet/topup/callback — بازگشت از درگاهِ پرداخت (DECISION-071)
 // زرین‌پال با ?Authority=...&Status=OK|NOK به اینجا redirect می‌کند.
 //   ۱. tx را با authority پیدا می‌کند (مبلغ از همین tx — هرگز از query)
-//   ۲. Status=NOK → fail + redirect /wallet?pay=cancel
+//   ۲. Status=NOK → fail + redirect /settings/profile?pay=cancel
 //   ۳. verifyPayment روی آداپتر → موفق: confirmGatewayTopup (اتمیک، idempotent) +
-//      اعلان wallet.topup.approved + redirect /wallet?pay=success
-//   ۴. verify ناموفق → fail + redirect /wallet?pay=failed
+//      اعلان wallet.topup.approved + redirect /settings/profile?pay=success
+//   ۴. verify ناموفق → fail + redirect /settings/profile?pay=failed
 //
 // امنیت: شارژ فقط پس از verify؛ idempotent (گاردِ status)؛ مبلغ از tx.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ import { findTopupByAuthority, confirmGatewayTopup, failGatewayTopup } from "@/l
 import { createNotification } from "@/lib/notifications/server";
 
 function redirectTo(req: NextRequest, pay: string, ref?: string): NextResponse {
-  const url = new URL("/wallet", req.url);
+  const url = new URL("/settings/profile", req.url);
   url.searchParams.set("pay", pay);
   if (ref) url.searchParams.set("ref", ref);
   return NextResponse.redirect(url);

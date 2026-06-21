@@ -35,8 +35,8 @@ export function WalletReturnToast() {
         toast.error("تراکنش یافت نشد یا نامعتبر بود.");
     }
 
-    // پاک‌کردنِ query از URL بدونِ افزودن به history + رفرشِ موجودی/تاریخچه
-    router.replace("/wallet");
+    // پاک‌کردنِ query از URL و اسکرول به بخش امور مالی
+    router.replace("/settings/profile#finance");
     router.refresh();
   }, [router]);
 

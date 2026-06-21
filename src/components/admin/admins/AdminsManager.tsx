@@ -46,6 +46,7 @@ export function AdminsManager({ admins, roles, isOwnerViewing }: Props) {
   const [resetTarget, setResetTarget] = useState<AdminRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminRow | null>(null);
   const [transferTarget, setTransferTarget] = useState<AdminRow | null>(null);
+  const [roleTarget, setRoleTarget] = useState<AdminRow | null>(null);
 
   function refresh() { router.refresh(); }
 
@@ -84,6 +85,7 @@ export function AdminsManager({ admins, roles, isOwnerViewing }: Props) {
         onReset={setResetTarget}
         onDelete={setDeleteTarget}
         onTransfer={setTransferTarget}
+        onChangeRole={setRoleTarget}
       />
 
       {/* modalها */}
@@ -113,6 +115,14 @@ export function AdminsManager({ admins, roles, isOwnerViewing }: Props) {
           admin={transferTarget}
           onClose={() => setTransferTarget(null)}
           onTransferred={() => { setTransferTarget(null); refresh(); }}
+        />
+      )}
+      {roleTarget && (
+        <ChangeRoleModal
+          admin={roleTarget}
+          roles={roles}
+          onClose={() => setRoleTarget(null)}
+          onChanged={() => { setRoleTarget(null); refresh(); }}
         />
       )}
     </div>
@@ -211,6 +221,7 @@ function AdminsTable({
   onReset,
   onDelete,
   onTransfer,
+  onChangeRole,
 }: {
   admins: AdminRow[];
   roles: RoleOption[];
@@ -220,6 +231,7 @@ function AdminsTable({
   onReset: (a: AdminRow) => void;
   onDelete: (a: AdminRow) => void;
   onTransfer: (a: AdminRow) => void;
+  onChangeRole: (a: AdminRow) => void;
 }) {
   return (
     <div className="rounded-2xl border border-black/8 bg-white/40 overflow-hidden">
@@ -248,6 +260,7 @@ function AdminsTable({
               onReset={onReset}
               onDelete={onDelete}
               onTransfer={onTransfer}
+              onChangeRole={onChangeRole}
             />
           ))}
         </tbody>
@@ -265,6 +278,7 @@ function AdminRowItem({
   onReset,
   onDelete,
   onTransfer,
+  onChangeRole,
 }: {
   admin: AdminRow;
   roles: RoleOption[];
@@ -274,24 +288,9 @@ function AdminRowItem({
   onReset: (a: AdminRow) => void;
   onDelete: (a: AdminRow) => void;
   onTransfer: (a: AdminRow) => void;
+  onChangeRole: (a: AdminRow) => void;
 }) {
   const [busy, setBusy] = useState(false);
-
-  async function changeRole(roleKey: string) {
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/admin/admins/${admin.id}/role`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roleKey }),
-      });
-      const data = await res.json();
-      if (!res.ok) { toast.error(data.error ?? "خطا در تغییر نقش."); return; }
-      toast.success("نقش ادمین تغییر کرد");
-      onChanged();
-    } catch { toast.error("اتصال برقرار نشد."); }
-    finally { setBusy(false); }
-  }
 
   async function toggleActive() {
     setBusy(true);
@@ -345,16 +344,22 @@ function AdminRowItem({
             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-ember/10 text-ember">مالک</span>
           </span>
         ) : (
-          <select
-            value={admin.roleKey}
-            disabled={admin.isSelf || busy}
-            onChange={(e) => changeRole(e.target.value)}
-            className="rounded-lg px-2 py-1 text-xs bg-white/70 border border-bone text-ink focus:outline-none focus:border-sage disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {roles.map((r) => (
-              <option key={r.key} value={r.key}>{r.label}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-ink">{admin.roleLabel}</span>
+            {isOwnerViewing && !admin.isSelf && (
+              <button
+                onClick={() => onChangeRole(admin)}
+                disabled={busy}
+                title="تغییر نقش"
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-black/5 text-stone hover:bg-black/10 hover:text-ink transition-colors disabled:opacity-40"
+              >
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
+                  <path d="M2 8h3.5M10.5 8H14M8 2v3.5M8 10.5V14" />
+                  <circle cx="8" cy="8" r="2.5" />
+                </svg>
+              </button>
+            )}
+          </div>
         )}
       </td>
       <td className="px-4 py-3 text-fog text-xs hidden md:table-cell fa-num">{admin.lastLoginLabel ?? "—"}</td>
@@ -401,19 +406,6 @@ function AdminRowItem({
                 <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
               </svg>
             </ActionBtn>
-
-            {/* انتقال مالکیت — فقط برای غیر-owner */}
-            {!admin.isOwner && !admin.isSelf && (
-              <ActionBtn
-                title="انتقال مالکیت به این ادمین"
-                onClick={() => onTransfer(admin)}
-                color="text-sage-deep hover:text-sage-deep"
-              >
-                <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                  <path fillRule="evenodd" d="M10 2a.75.75 0 01.75.75v.258a33.186 33.186 0 016.668.83.75.75 0 01-.336 1.461 31.28 31.28 0 00-1.103-.232l1.702 7.545a.75.75 0 01-.387.832A4.981 4.981 0 0115 14c-.825 0-1.606-.2-2.294-.556a.75.75 0 01-.387-.832l1.77-7.849a31.743 31.743 0 00-3.339-.254v11.505a20.1 20.1 0 013.78.501.75.75 0 11-.339 1.462A18.6 18.6 0 0010 17.75a18.6 18.6 0 00-4.191.482.75.75 0 11-.34-1.462 20.1 20.1 0 013.781-.501V4.509a31.742 31.742 0 00-3.339.254l1.77 7.85a.75.75 0 01-.387.83A4.981 4.981 0 015 14a4.98 4.98 0 01-2.294-.556.75.75 0 01-.387-.832L4.02 5.067c-.37.07-.735.148-1.103.232a.75.75 0 01-.336-1.462 33.186 33.186 0 016.668-.829V2.75A.75.75 0 0110 2z" clipRule="evenodd" />
-                </svg>
-              </ActionBtn>
-            )}
 
             {/* حذف — نه مالک، نه خود */}
             {!admin.isOwner && !admin.isSelf && (
@@ -867,6 +859,86 @@ function TransferOwnershipModal({
         >
           {busy && <Spinner size={14} />}
           انتقال مالکیت
+        </button>
+        <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm text-stone hover:bg-black/5 transition-colors">
+          انصراف
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── modal تغییر نقش ادمین (مالک) ────────────────────────────────────────────
+function ChangeRoleModal({
+  admin,
+  roles,
+  onClose,
+  onChanged,
+}: {
+  admin: AdminRow;
+  roles: RoleOption[];
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const [roleKey, setRoleKey] = useState(admin.roleKey);
+  const [busy, setBusy] = useState(false);
+
+  async function save() {
+    if (busy || roleKey === admin.roleKey) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/admins/${admin.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roleKey }),
+      });
+      const d = await res.json();
+      if (!res.ok) { toast.error(d.error ?? "خطا در تغییر نقش."); return; }
+      toast.success("نقش ادمین تغییر کرد");
+      onChanged();
+    } catch {
+      toast.error("اتصال برقرار نشد.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal onClose={onClose}>
+      <h2 className="text-base font-semibold text-ink mb-3">تغییر نقش ادمین</h2>
+      <p className="text-sm text-stone mb-4">
+        نقش <strong>{admin.displayName}</strong> ({admin.username}) را انتخاب کن:
+      </p>
+      <div className="flex flex-col gap-2 mb-5">
+        {roles.filter((r) => r.key !== "owner").map((r) => (
+          <label
+            key={r.key}
+            className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+              roleKey === r.key
+                ? "border-sage/40 bg-sage/8 text-ink"
+                : "border-black/8 bg-white/40 text-stone hover:border-black/15"
+            }`}
+          >
+            <input
+              type="radio"
+              name="role"
+              value={r.key}
+              checked={roleKey === r.key}
+              onChange={() => setRoleKey(r.key)}
+              className="accent-sage-deep"
+            />
+            <span className="text-sm">{r.label}</span>
+          </label>
+        ))}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={save}
+          disabled={busy || roleKey === admin.roleKey}
+          className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors disabled:opacity-40"
+        >
+          {busy && <Spinner size={14} />}
+          ذخیره نقش
         </button>
         <button onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm text-stone hover:bg-black/5 transition-colors">
           انصراف

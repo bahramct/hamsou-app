@@ -7,17 +7,10 @@ import Link from "next/link";
 import { requirePermission } from "@/lib/admin/auth-server";
 import { AutoRefresh } from "@/components/admin/AutoRefresh";
 import { prisma } from "@/lib/db/client";
-import {
-  TICKET_STATUSES,
-  TICKET_PRIORITIES,
-  TICKET_CATEGORIES,
-  Statuses,
-  Priorities,
-  Categories,
-  OPEN_STATUSES,
-} from "@/lib/support/tickets";
+import { Statuses, Priorities, Categories, OPEN_STATUSES } from "@/lib/support/tickets";
 import { StatusBadge, PriorityBadge } from "@/components/features/support/badges";
 import { toFaDigits } from "@/lib/utils/digits";
+import { AdminTicketFilters } from "@/components/admin/support/AdminTicketFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +35,10 @@ export default async function AdminSupportPage({
   await requirePermission("support.read");
 
   const sp = await searchParams;
-  const statusF = Statuses.is(sp.status ?? "") ? sp.status! : "";
+  // اگر status در URL نباشد → پیش‌فرض «باز»؛ انتخاب «همه» status را حذف می‌کند
+  const statusF = sp.status === undefined
+    ? "open"
+    : (Statuses.is(sp.status) ? sp.status : "");
   const priorityF = Priorities.is(sp.priority ?? "") ? sp.priority! : "";
   const categoryF = Categories.is(sp.category ?? "") ? sp.category! : "";
   const q = (sp.q ?? "").trim();
@@ -72,7 +68,6 @@ export default async function AdminSupportPage({
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const hasFilter = Boolean(statusF || priorityF || categoryF || q);
 
   function pageHref(p: number) {
     const params = new URLSearchParams();
@@ -91,41 +86,13 @@ export default async function AdminSupportPage({
         <div>
           <h1 className="text-xl font-semibold text-ink">تیکت‌های پشتیبانی</h1>
           <p className="text-sm text-stone mt-1 fa-num">
-            {toFa(total)} تیکت{hasFilter ? " (با فیلتر)" : ""} · {toFa(openCount)} باز
+            {toFa(total)} تیکت · {toFa(openCount)} باز
           </p>
         </div>
       </header>
 
-      {/* فیلترها */}
-      <form method="GET" className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 items-end">
-        <Labeled label="وضعیت">
-          <select name="status" defaultValue={statusF} className={ctrl}>
-            <option value="">همه</option>
-            {TICKET_STATUSES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
-          </select>
-        </Labeled>
-        <Labeled label="اولویت">
-          <select name="priority" defaultValue={priorityF} className={ctrl}>
-            <option value="">همه</option>
-            {TICKET_PRIORITIES.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
-          </select>
-        </Labeled>
-        <Labeled label="دسته">
-          <select name="category" defaultValue={categoryF} className={ctrl}>
-            <option value="">همه</option>
-            {TICKET_CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
-          </select>
-        </Labeled>
-        <Labeled label="جستجوی موضوع">
-          <input name="q" defaultValue={q} placeholder="موضوع…" className={ctrl} />
-        </Labeled>
-        <div className="flex items-center gap-2">
-          <button type="submit" className="px-4 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors">فیلتر</button>
-          {hasFilter && (
-            <Link href="/admin/support" className="px-3 py-2.5 rounded-xl text-sm text-stone hover:text-ink hover:bg-black/4 transition-colors">پاک</Link>
-          )}
-        </div>
-      </form>
+      {/* فیلترها — live (client component) */}
+      <AdminTicketFilters statusF={statusF} priorityF={priorityF} categoryF={categoryF} q={q} />
 
       {/* جدول */}
       {tickets.length === 0 ? (
@@ -184,13 +151,3 @@ export default async function AdminSupportPage({
   );
 }
 
-const ctrl = "w-full rounded-xl px-3 py-2.5 text-sm bg-white/60 border border-bone text-ink focus:outline-none focus:border-sage";
-
-function Labeled({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-[11px] font-medium text-stone">{label}</label>
-      {children}
-    </div>
-  );
-}

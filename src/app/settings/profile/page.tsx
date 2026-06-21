@@ -15,6 +15,7 @@ import { RemindersTile } from "@/components/features/profile/RemindersTile";
 import { SetPasswordModal } from "@/components/features/profile/SetPasswordModal";
 import { SupportCenter, type TicketSummary } from "@/components/features/support/SupportCenter";
 import { ProfileWalletSection, type ProfileWalletTx } from "@/components/features/wallet/ProfileWalletSection";
+import { WalletReturnToast } from "@/components/features/wallet/WalletReturnToast";
 import { AVATAR_COLOR } from "@/lib/profile/avatarPresets";
 import { planAllows } from "@/lib/plans/access";
 import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
@@ -120,6 +121,7 @@ export default async function ProfileSettingsPage() {
   return (
     <AppShell>
       {needsPassword && <SetPasswordModal userDisplayName={user.displayName} />}
+      <WalletReturnToast />
       <div className="pf-wrap animate-fade-up">
 
         {/* ───── Hero (دست‌نخورده) + ورودیِ کیف‌پول ───── */}

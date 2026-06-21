@@ -29,7 +29,9 @@ export function ChangePasswordForm({ forced }: { forced: boolean }) {
   const lenOk = next.length >= 10;
   const classesOk = countClasses(next) >= 3;
   const matchOk = next.length > 0 && next === confirm;
-  const canSubmit = lenOk && classesOk && matchOk && current.length > 0 && !loading;
+  // دکمه فقط وقتی رمزها match هستند و رمز فعلی وارد شده فعال می‌شود؛
+  // اعتبارسنجی پیچیدگی در سرور انجام می‌شود و با toast خطا نشان داده می‌شود.
+  const canSubmit = matchOk && current.length > 0 && !loading;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

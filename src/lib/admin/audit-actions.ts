@@ -64,9 +64,12 @@ export const AUDIT_ACTIONS: Record<string, AuditActionDef> = {
 
   // ── پلن‌ها و تخفیف ──────────────────────────────────────────────────────
   "plan.update":         { label: "ویرایش پلن",                  category: "plans",  tone: "update" },
-  "discount.create":     { label: "ساخت کد تخفیف",               category: "plans",  tone: "create" },
-  "discount.update":     { label: "ویرایش کد تخفیف",             category: "plans",  tone: "update" },
-  "discount.delete":     { label: "حذف کد تخفیف",                category: "plans",  tone: "danger" },
+  "discount.create":          { label: "ساخت کد تخفیف",               category: "plans",  tone: "create" },
+  "discount.personal.create": { label: "کد تخفیف اختصاصی برای کاربر",  category: "plans",  tone: "create" },
+  "discount.update":          { label: "ویرایش کد تخفیف",             category: "plans",  tone: "update" },
+  "discount.delete":          { label: "حذف کد تخفیف",                category: "plans",  tone: "danger" },
+  "notification.send":        { label: "ارسال اعلان به کاربر",          category: "users",  tone: "create" },
+  "notification.broadcast":   { label: "اطلاعیه همگانی",               category: "users",  tone: "create" },
 
   // ── هوش مصنوعی ──────────────────────────────────────────────────────────
   "ai.service.create":   { label: "افزودن سرویس هوش مصنوعی",      category: "ai",     tone: "create" },

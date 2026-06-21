@@ -2138,6 +2138,75 @@ look-check شود. منتظرِ نظرِ مالک.
 
 ---
 
+### DECISION-110 | بهبودهای پنل ادمین — آواتار چت / فیلترِ زنده / نقشِ ادمین / اعلانِ عمومی
+- **تاریخ:** ۱۴۰۵-۰۳-۳۱
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** چند ایرادِ رابط‌کاربری و دسترسی در پنل ادمین شناسایی شد.
+- **تصمیم:**
+  - **چت آنلاین:** آواتارِ واقعیِ کاربر (`avatarImage`) در صفِ گفتگوهای LiveChatConsole نمایش داده می‌شود (در صورتِ وجود؛ fallback به حرفِ اول).
+  - **تیکت‌ها:** پیش‌فرضِ فیلترِ وضعیت روی «باز» (`open`) تغییر کرد. فرمِ GET با `<AdminTicketFilters>` (client component) جایگزین شد — دکمهٔ «فیلتر» حذف شد؛ هر dropdown فوری navigate می‌کند.
+  - **کاربران:** دکمهٔ «پاک» از فیلترِ تبیِ پلن حذف شد (انتخابِ تب خودش URL را به‌روز می‌کند).
+  - **نمایشِ نقشِ ادمین:** ستونِ نقش برای ادمین‌های غیر-owner از `<select>` به متنِ برچسبِ نقش + یک دکمهٔ دایره‌ای (icon) تبدیل شد. کلیکِ دکمه `ChangeRoleModal` را باز می‌کند (radio list، تأیید با «ذخیره نقش»).
+  - **Permission جدید:** `notification.broadcast` در گروهِ `content` به `ADMIN_PERMISSIONS` افزوده شد. نقشِ `admin` این دسترسی را به‌صورتِ پیش‌فرض دارد؛ نقشِ `content` ندارد. Broadcast API از `isOwner()` به `can(ctx, "notification.broadcast")` تغییر کرد. نویگیشنِ AdminShell از `admins.manage` به `notification.broadcast` به‌روز شد.
+- **پیامدها:**
+  - ادمین سیستم (نقشِ admin) اکنون می‌تواند اطلاعیهٔ همگانی ارسال کند (قبلاً فقط owner داشت).
+  - seed دوباره اجرا شد — ۳۱ permission، admin=29، content=6.
+
+---
+
+### DECISION-109 | کد تخفیف اختصاصی + سیستمِ اعلانِ ادمین (targeted + broadcast)
+- **تاریخ:** ۱۴۰۵-۰۴-۰۱
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:**
+  - ادمین نیاز داشت برای کاربران خاص کدِ تخفیفِ شخصی‌سازی‌شده صادر کند (برای موردهایی مثل جبران، خوشامدگویی، یا هر دلیل خدماتی).
+  - دلیلِ صدور باید عیناً در نوتیفیکیشنِ کاربر نمایش داده شود (شفافیت).
+  - ادمین باید بتواند مستقیماً نوتیفیکیشنِ متنیِ دلخواه برای یک کاربرِ خاص ارسال کند.
+  - ارسالِ اطلاعیهٔ همگانی (به همه یا یک بخشِ پلنی) — محدودِ به owner.
+- **تصمیم:**
+  - **Schema:** `targetUserId String?` و `reason String?` به `DiscountCode` افزوده شد.
+    - `targetUserId=null` = عمومی؛ `targetUserId≠null` = فقط آن کاربر می‌تواند استفاده کند.
+    - `reason` اجباری برای کدِ اختصاصی — عیناً در نوتیف نمایش داده می‌شود.
+    - `maxUses=1` برای کدِ اختصاصی (enforce در API).
+    - `@@index([targetUserId])` اضافه شد.
+  - **validate-discount:** اگر `targetUserId` set است → session گرفته می‌شود؛ اگر کاربر لاگین نباشد یا userId برابر نباشد → «کد نامعتبر است» (بدون توضیح اضافه).
+  - **نوتیفیکیشن catalog:**
+    - `discount.personal`: کدِ تخفیف اختصاصی با reason + code + value + daysLeft.
+    - `admin.message`: پیامِ آزادِ ادمین (title + body + link اختیاری).
+  - **API routes:**
+    - `POST /api/admin/users/[id]/discounts` — enforce `plans.write`؛ reason اجباری.
+    - `POST /api/admin/users/[id]/notify` — enforce `users.write`؛ title اجباری.
+    - `POST /api/admin/broadcast/notify` — enforce `isOwner()` (فقط owner)؛ segment: all|FREE|PLUS|PRO؛ ارسال دسته‌ای ۵۰‌تایی.
+  - **صفحهٔ broadcast:** `/admin/broadcast` — gated با `requirePermission("admins.manage")` (که admin ندارد).
+  - **نویگیشن:** «اطلاعیه همگانی» با `perm: "admins.manage"` در گروهِ «مدیریت محتوا» در AdminShell.
+  - **audit log:** `discount.personal.create` / `notification.send` / `notification.broadcast` در audit-actions.ts.
+- **پیامدها:**
+  - اگر کاربری کدِ اختصاصیِ دیگری را وارد کند، سیستم به‌صورتِ عمد اطلاعِ اضافه‌ای نمی‌دهد (security-by-obscurity مناسب).
+  - ارسالِ broadcast روی کاربرانِ banned اعمال نمی‌شود (`isBanned: false` در query).
+  - صفحهٔ broadcast شمارِ کاربرانِ هر بخش را نشان می‌دهد قبل از ارسال (UX).
+
+---
+
+### DECISION-108 | حذفِ صفحهٔ مستقلِ /wallet و ادغام در پروفایل + مخفی‌کردنِ چت در صفحاتِ عمومی + یکسان‌سازیِ ترتیبِ فیچرِ پلن‌ها
+- **تاریخ:** ۱۴۰۵-۰۳-۳۱
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:**
+  - `/wallet` به‌عنوان صفحهٔ مستقل با مانیفستِ محصول در تضاد بود؛ ProfileWalletSection در `/settings/profile` همان کارکرد را داشت.
+  - دکمه‌های چت (همدم + پشتیبانی) روی صفحاتِ عمومی (landing, /plans, /about, …) برای کاربرانِ لاگین‌کرده نمایش داده می‌شد — این قابلیت فقط داخلِ اپلیکیشن معنا دارد.
+  - کارت‌های پلن هر کدام ترتیبِ جداگانه‌ای از فیچرها داشتند (sort پر-پلن) که خواندنِ مقایسه‌ای را سخت می‌کرد.
+  - شبکهٔ اجتماعی برای همهٔ پلن‌ها باید در دسترس باشد (خواستهٔ مالک).
+- **تصمیم:**
+  - `/wallet/page.tsx` → `redirect("/settings/profile#finance")` (صفحه حذف، لینک‌های قدیمی کار می‌کنند)
+  - callback درگاه شارژ → `/settings/profile?pay=...` (نه `/wallet`)؛ `WalletReturnToast` به پروفایل افزوده شد
+  - لینک‌های نوتیفیکیشنِ کیف‌پول در catalog.ts → `/settings/profile#finance`
+  - `FloatingActions` با لیستِ `PUBLIC_PREFIXES` چت را روی صفحاتِ عمومی مخفی می‌کند
+  - `PLAN_FEATURES` بازمرتب شد: تیر ۱ (همهٔ پلن‌ها) → تیر ۲ (Plus+Pro) → تیر ۳ (Pro). sort پر-پلن از PlansPricing حذف شد.
+  - `social.network` defaults: همهٔ پلن‌ها `true` (اما `comingSoon: true` حفظ شد)
+- **پیامدها:**
+  - هر لینکِ `/wallet` از جای دیگری در پروژه باید به `/settings/profile#finance` اشاره کند
+  - فیچرهای پنل ادمین (PlanFeatureRows) بر اساسِ ترتیبِ جدیدِ `PLAN_FEATURES` نمایش داده می‌شوند
+
+---
+
 ### DECISION-107 | اندیکاتورِ اسکرول در CompanionPanel + هشدارِ فارسی در chat/blog
 - **تاریخ:** ۱۴۰۵-۰۳-۲۸
 - **وضعیت:** ✅ تأیید شده

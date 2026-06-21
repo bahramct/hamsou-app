@@ -22,6 +22,8 @@ import { TICKETING_FEATURE_KEY } from "@/lib/support/tickets";
 import { getNow } from "@/lib/dev/time";
 import { getOnboardingConfig, motiveLabelFromConfig } from "@/lib/onboarding/config";
 import { AdminWalletCharge } from "@/components/admin/users/AdminWalletCharge";
+import { AdminPersonalDiscount } from "@/components/admin/users/AdminPersonalDiscount";
+import { AdminNotifyUser } from "@/components/admin/users/AdminNotifyUser";
 
 export const dynamic = "force-dynamic";
 
@@ -336,6 +338,20 @@ export default async function AdminUserDetailPage({
                 hasPassword={Boolean(user.passwordHash)}
                 canWrite={can(ctx, "users.write")}
               />
+            </section>
+          )}
+
+          {/* کد تخفیف اختصاصی — فقط با دسترسیِ پلن (DECISION-109) */}
+          {can(ctx, "plans.write") && (
+            <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
+              <AdminPersonalDiscount userId={user.id} />
+            </section>
+          )}
+
+          {/* ارسال اعلان به کاربر — فقط با دسترسیِ کاربران (DECISION-109) */}
+          {can(ctx, "users.write") && (
+            <section className="rounded-2xl border border-black/8 bg-white/45 p-5">
+              <AdminNotifyUser userId={user.id} />
             </section>
           )}
         </div>
