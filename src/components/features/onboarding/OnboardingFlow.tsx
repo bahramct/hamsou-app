@@ -15,6 +15,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Spinner } from "@/components/ui/Spinner";
 import { toast } from "@/lib/notifications/toast";
+import { motiveToSlugs } from "@/lib/onboarding/motives";
 import type { OnboardingSlide } from "@/lib/onboarding/config";
 
 const MAX_NAME = 50;
@@ -28,7 +29,7 @@ interface Props {
 export function OnboardingFlow({ slides, initialDisplayName, initialMotive }: Props) {
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState(initialDisplayName);
-  const [motive, setMotive] = useState(initialMotive);
+  const [motives, setMotives] = useState<string[]>(motiveToSlugs(initialMotive));
   const [saving, setSaving] = useState(false);
 
   const total = slides.length;
@@ -45,10 +46,10 @@ export function OnboardingFlow({ slides, initialDisplayName, initialMotive }: Pr
     if (saving) return;
     setSaving(true);
     try {
-      const payload: { displayName?: string; motive?: string } = {};
+      const payload: { displayName?: string; motives?: string[] } = {};
       if (!skip) {
         if (displayName.trim()) payload.displayName = displayName.trim();
-        if (motive) payload.motive = motive;
+        if (motives.length) payload.motives = motives;
       }
       const res = await fetch("/api/onboarding/complete", {
         method: "POST",
@@ -90,7 +91,7 @@ export function OnboardingFlow({ slides, initialDisplayName, initialMotive }: Pr
           <NameStep slide={current} value={displayName} onChange={setDisplayName} onNext={next} />
         )}
         {current.type === "motive" && (
-          <MotiveStep slide={current} value={motive} onChange={setMotive} onNext={next} />
+          <MotiveStep slide={current} values={motives} onChange={setMotives} onNext={next} />
         )}
         {current.type === "final" && (
           <FinalStep slide={current} saving={saving} displayName={displayName} onFinish={() => finish(false)} />
@@ -193,32 +194,37 @@ function NameStep({
   );
 }
 
-// ─── پردهٔ انگیزه ─────────────────────────────────────────────────────────────
+// ─── پردهٔ انگیزه (چندگزینه‌ای) ──────────────────────────────────────────────
 function MotiveStep({
   slide,
-  value,
+  values,
   onChange,
   onNext,
 }: {
   slide: { title: string; subtitle: string; options: { slug: string; label: string }[]; buttonText: string };
-  value: string;
-  onChange: (v: string) => void;
+  values: string[];
+  onChange: (v: string[]) => void;
   onNext: () => void;
 }) {
+  function toggle(slug: string) {
+    onChange(values.includes(slug) ? values.filter((s) => s !== slug) : [...values, slug]);
+  }
+
   return (
     <div className="flex flex-col items-center gap-7 w-full">
       <div className="space-y-2">
         {slide.title && <h2 className="text-xl font-semibold text-ink">{slide.title}</h2>}
         {slide.subtitle && <p className="text-xs text-stone leading-relaxed max-w-xs">{slide.subtitle}</p>}
+        <p className="text-[11px] text-fog">می‌توانی چند گزینه انتخاب کنی</p>
       </div>
       <div className="grid grid-cols-2 gap-2.5 w-full max-w-xs">
         {slide.options.map((m) => {
-          const on = value === m.slug;
+          const on = values.includes(m.slug);
           return (
             <button
               key={m.slug}
               type="button"
-              onClick={() => onChange(on ? "" : m.slug)}
+              onClick={() => toggle(m.slug)}
               aria-pressed={on}
               className={`px-3 py-3 rounded-xl text-sm font-medium transition-all border ${
                 on ? "bg-ink text-paper border-ink" : "bg-white/60 text-stone border-bone hover:border-sage"

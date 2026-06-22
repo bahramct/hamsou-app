@@ -195,11 +195,15 @@ export async function getOnboardingConfig(): Promise<OnboardingConfig> {
   }
 }
 
-/** برچسبِ یک slugِ انگیزه از پیکربندیِ فعلی (fallback به کاتالوگِ ثابت). */
-export function motiveLabelFromConfig(config: OnboardingConfig, slug: string | null | undefined): string | null {
-  if (!slug) return null;
-  const motive = config.slides.find((s): s is MotiveSlide => s.type === "motive");
-  const fromCfg = motive?.options.find((o) => o.slug === slug)?.label;
-  if (fromCfg) return fromCfg;
-  return ONBOARDING_MOTIVES.find((m) => m.slug === slug)?.label ?? null;
+/** برچسبِ یک یا چند slugِ انگیزه (جداشده با کاما) از پیکربندیِ فعلی. */
+export function motiveLabelFromConfig(config: OnboardingConfig, raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const motiveSlide = config.slides.find((s): s is MotiveSlide => s.type === "motive");
+  const labels = raw.split(",").map((slug) => {
+    const s = slug.trim();
+    const fromCfg = motiveSlide?.options.find((o) => o.slug === s)?.label;
+    if (fromCfg) return fromCfg;
+    return ONBOARDING_MOTIVES.find((m) => m.slug === s)?.label ?? null;
+  }).filter(Boolean) as string[];
+  return labels.length ? labels.join("، ") : null;
 }

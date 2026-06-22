@@ -35,10 +35,8 @@ export default async function AdminSupportPage({
   await requirePermission("support.read");
 
   const sp = await searchParams;
-  // اگر status در URL نباشد → پیش‌فرض «باز»؛ انتخاب «همه» status را حذف می‌کند
-  const statusF = sp.status === undefined
-    ? "open"
-    : (Statuses.is(sp.status) ? sp.status : "");
+  // پیش‌فرض: همه تیکت‌ها (statusF=""). انتخاب «همه» در دراپ‌داون status را از URL حذف می‌کند
+  const statusF = Statuses.is(sp.status ?? "") ? sp.status! : "";
   const priorityF = Priorities.is(sp.priority ?? "") ? sp.priority! : "";
   const categoryF = Categories.is(sp.category ?? "") ? sp.category! : "";
   const q = (sp.q ?? "").trim();
@@ -51,22 +49,43 @@ export default async function AdminSupportPage({
     ...(q ? { subject: { contains: q } } : {}),
   };
 
-  const [total, openCount, tickets] = await Promise.all([
-    prisma.supportTicket.count({ where }),
-    prisma.supportTicket.count({ where: { status: { in: [...OPEN_STATUSES] } } }),
+  const PRIORITY_ORDER: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
+  const OPEN_SET = new Set<string>(OPEN_STATUSES);
+
+  const [rawTickets, openCount] = await Promise.all([
     prisma.supportTicket.findMany({
       where,
-      orderBy: { lastMessageAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
       select: {
-        id: true, subject: true, category: true, status: true, priority: true, lastMessageAt: true,
+        id: true, subject: true, category: true, status: true, priority: true,
+        lastMessageAt: true, createdAt: true,
         user: { select: { displayName: true, phone: true, email: true } },
         _count: { select: { messages: true } },
       },
     }),
+    prisma.supportTicket.count({ where: { status: { in: [...OPEN_STATUSES] } } }),
   ]);
 
+  const sorted = [...rawTickets].sort((a, b) => {
+    const aOpen = OPEN_SET.has(a.status);
+    const bOpen = OPEN_SET.has(b.status);
+    // گروه‌بندی: باز قبل از غیرباز
+    if (aOpen !== bOpen) return aOpen ? -1 : 1;
+
+    const p = (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99);
+    if (aOpen) {
+      // باز: اولویت بالاتر → قدیمی‌تر اول
+      if (p !== 0) return p;
+      return a.lastMessageAt.getTime() - b.lastMessageAt.getTime();
+    } else {
+      // غیرباز: جدیدتر اول → اولویت بالاتر
+      const dateDiff = b.lastMessageAt.getTime() - a.lastMessageAt.getTime();
+      if (dateDiff !== 0) return dateDiff;
+      return p;
+    }
+  });
+
+  const total = sorted.length;
+  const tickets = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function pageHref(p: number) {

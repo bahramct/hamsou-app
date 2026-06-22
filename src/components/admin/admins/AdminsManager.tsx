@@ -211,7 +211,7 @@ function CreateForm({
   );
 }
 
-// ─── جدول ─────────────────────────────────────────────────────────────────────
+// ─── گرید کارت‌محور ────────────────────────────────────────────────────────────
 function AdminsTable({
   admins,
   roles,
@@ -234,37 +234,21 @@ function AdminsTable({
   onChangeRole: (a: AdminRow) => void;
 }) {
   return (
-    <div className="rounded-2xl border border-black/8 bg-white/40 overflow-hidden">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-black/6 text-[11px] text-fog">
-            <th className="text-right font-medium px-4 py-3">نام</th>
-            <th className="text-right font-medium px-4 py-3 hidden sm:table-cell">نام کاربری</th>
-            <th className="text-right font-medium px-4 py-3">نقش</th>
-            <th className="text-right font-medium px-4 py-3 hidden md:table-cell">آخرین ورود</th>
-            <th className="text-right font-medium px-4 py-3">وضعیت</th>
-            {isOwnerViewing && (
-              <th className="text-right font-medium px-4 py-3">عملیات</th>
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {admins.map((a) => (
-            <AdminRowItem
-              key={a.id}
-              admin={a}
-              roles={roles}
-              isOwnerViewing={isOwnerViewing}
-              onChanged={onChanged}
-              onEdit={onEdit}
-              onReset={onReset}
-              onDelete={onDelete}
-              onTransfer={onTransfer}
-              onChangeRole={onChangeRole}
-            />
-          ))}
-        </tbody>
-      </table>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      {admins.map((a) => (
+        <AdminRowItem
+          key={a.id}
+          admin={a}
+          roles={roles}
+          isOwnerViewing={isOwnerViewing}
+          onChanged={onChanged}
+          onEdit={onEdit}
+          onReset={onReset}
+          onDelete={onDelete}
+          onTransfer={onTransfer}
+          onChangeRole={onChangeRole}
+        />
+      ))}
     </div>
   );
 }
@@ -309,12 +293,14 @@ function AdminRowItem({
   }
 
   return (
-    <tr className="border-b border-black/4 last:border-0">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          {/* آواتار کوچک */}
+    <div className="relative rounded-2xl border border-black/8 bg-white/55 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.09)] hover:border-black/14 transition-all duration-250 overflow-hidden">
+      <div className="absolute top-0 inset-x-0 h-px bg-black/8 rounded-t-2xl" />
+
+      <div className="px-4 pt-4 pb-3.5 space-y-3">
+        {/* ردیف اول: آواتار + نام + وضعیت */}
+        <div className="flex items-start gap-3">
           <div
-            className="shrink-0 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-sm font-medium"
+            className="shrink-0 w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center text-sm font-semibold"
             style={{ background: "rgba(var(--rgb-sage),0.18)", color: "var(--color-sage-deep)" }}
           >
             {admin.avatarImage ? (
@@ -324,105 +310,97 @@ function AdminRowItem({
               admin.displayName.charAt(0)
             )}
           </div>
-          <div>
-            <div className="text-ink text-sm">
-              {admin.displayName}
-              {admin.isSelf && <span className="mr-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-black/6 text-fog">شما</span>}
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-sm font-semibold text-ink leading-tight truncate">
+                {admin.displayName}
+              </span>
+              {admin.isSelf && (
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-black/6 text-fog">شما</span>
+              )}
               {admin.mustChangePassword && (
-                <span className="mr-1.5 text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">رمز موقت</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">رمز موقت</span>
               )}
             </div>
-            <div className="text-[11px] text-fog fa-num">عضو از {admin.createdLabel}</div>
+            <p className="text-[11px] text-fog mt-0.5 num-latin" dir="ltr">@{admin.username}</p>
           </div>
-        </div>
-      </td>
-      <td className="px-4 py-3 text-stone hidden sm:table-cell num-latin" dir="ltr">{admin.username}</td>
-      <td className="px-4 py-3">
-        {admin.isOwner ? (
-          <span className="inline-flex items-center gap-1 text-xs text-ink">
-            {admin.roleLabel}
-            <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-ember/10 text-ember">مالک</span>
-          </span>
-        ) : (
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-ink">{admin.roleLabel}</span>
-            {isOwnerViewing && !admin.isSelf && (
+
+          {/* وضعیت (toggle) */}
+          <div className="shrink-0">
+            {admin.isOwner ? (
+              <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-sage/15 text-sage-deep">فعال</span>
+            ) : (
               <button
-                onClick={() => onChangeRole(admin)}
-                disabled={busy}
-                title="تغییر نقش"
-                className="w-6 h-6 rounded-full flex items-center justify-center bg-black/5 text-stone hover:bg-black/10 hover:text-ink transition-colors disabled:opacity-40"
+                onClick={toggleActive}
+                disabled={admin.isSelf || busy}
+                className={`text-[10px] px-2.5 py-0.5 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  admin.isActive
+                    ? "bg-sage/15 text-sage-deep hover:bg-sage/25"
+                    : "bg-ember/10 text-ember hover:bg-ember/20"
+                }`}
               >
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3">
-                  <path d="M2 8h3.5M10.5 8H14M8 2v3.5M8 10.5V14" />
-                  <circle cx="8" cy="8" r="2.5" />
-                </svg>
+                {admin.isActive ? "فعال" : "غیرفعال"}
               </button>
             )}
           </div>
-        )}
-      </td>
-      <td className="px-4 py-3 text-fog text-xs hidden md:table-cell fa-num">{admin.lastLoginLabel ?? "—"}</td>
-      <td className="px-4 py-3">
-        {admin.isOwner ? (
-          <span className="text-xs px-3 py-1 rounded-full bg-sage/15 text-sage-deep">فعال</span>
-        ) : (
-          <button
-            onClick={toggleActive}
-            disabled={admin.isSelf || busy}
-            className={`text-xs px-3 py-1 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
-              admin.isActive
-                ? "bg-sage/15 text-sage-deep hover:bg-sage/25"
-                : "bg-ember/10 text-ember hover:bg-ember/20"
-            }`}
-          >
-            {admin.isActive ? "فعال" : "غیرفعال"}
-          </button>
-        )}
-      </td>
+        </div>
 
-      {/* ستون عملیات — فقط مالک */}
-      {isOwnerViewing && (
-        <td className="px-4 py-3">
-          <div className="flex items-center gap-1">
-            {/* ویرایش */}
-            <ActionBtn
-              title="ویرایش پروفایل"
-              onClick={() => onEdit(admin)}
-              color="text-stone hover:text-ink"
-            >
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                <path d="M2.695 14.762l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 6.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
-              </svg>
-            </ActionBtn>
+        {/* ردیف دوم: نقش + آمار + عملیات */}
+        <div className="flex items-center border-t border-black/5 pt-2.5 gap-2">
+          {/* نقش */}
+          <div className="flex-1 flex items-center gap-1.5 min-w-0">
+            {admin.isOwner ? (
+              <span className="inline-flex items-center gap-1 text-[11px] text-stone">
+                {admin.roleLabel}
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-ember/10 text-ember">مالک</span>
+              </span>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-stone truncate">{admin.roleLabel}</span>
+                {isOwnerViewing && !admin.isSelf && (
+                  <button
+                    onClick={() => onChangeRole(admin)}
+                    disabled={busy}
+                    title="تغییر نقش"
+                    className="w-5 h-5 rounded-full flex items-center justify-center bg-black/5 text-stone hover:bg-black/10 hover:text-ink transition-colors disabled:opacity-40 shrink-0"
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-2.5 h-2.5">
+                      <path d="M2 8h3.5M10.5 8H14M8 2v3.5M8 10.5V14" />
+                      <circle cx="8" cy="8" r="2.5" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+            <span className="text-[10px] text-fog/60 fa-num mr-auto">{admin.lastLoginLabel ? `ورود: ${admin.lastLoginLabel}` : "هنوز وارد نشده"}</span>
+          </div>
 
-            {/* بازنشانی رمز */}
-            <ActionBtn
-              title="بازنشانی رمز عبور"
-              onClick={() => onReset(admin)}
-              color="text-amber-600 hover:text-amber-700"
-            >
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-              </svg>
-            </ActionBtn>
-
-            {/* حذف — نه مالک، نه خود */}
-            {!admin.isOwner && !admin.isSelf && (
-              <ActionBtn
-                title="حذف این ادمین"
-                onClick={() => onDelete(admin)}
-                color="text-ember hover:text-ember/80"
-              >
+          {/* عملیات — فقط مالک */}
+          {isOwnerViewing && (
+            <div className="flex items-center gap-0.5 shrink-0">
+              <ActionBtn title="ویرایش پروفایل" onClick={() => onEdit(admin)} color="text-stone hover:text-ink">
                 <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                  <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                  <path d="M2.695 14.762l-1.262 3.154a.5.5 0 00.65.65l3.155-1.262a4 4 0 001.343-.885L17.5 6.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
                 </svg>
               </ActionBtn>
-            )}
-          </div>
-        </td>
-      )}
-    </tr>
+              <ActionBtn title="بازنشانی رمز عبور" onClick={() => onReset(admin)} color="text-amber-600 hover:text-amber-700">
+                <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                  <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                </svg>
+              </ActionBtn>
+              {!admin.isOwner && !admin.isSelf && (
+                <ActionBtn title="حذف این ادمین" onClick={() => onDelete(admin)} color="text-ember hover:text-ember/80">
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                    <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
+                  </svg>
+                </ActionBtn>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

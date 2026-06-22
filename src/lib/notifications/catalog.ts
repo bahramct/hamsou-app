@@ -48,7 +48,7 @@ const CATALOG: Record<string, CatalogEntry> = {
       return {
         title: "پاسخ جدید پشتیبانی",
         body: subject ? `به تیکت «${subject}» پاسخ داده شد.` : "به یکی از تیکت‌های شما پاسخ داده شد.",
-        link: ticketId ? `/support/${ticketId}` : "/support",
+        link: "/dashboard?support=1",
       };
     },
   },

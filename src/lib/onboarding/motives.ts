@@ -22,13 +22,29 @@ export const ONBOARDING_MOTIVES: readonly MotiveOption[] = [
 
 export const MOTIVE_SLUGS = ONBOARDING_MOTIVES.map((m) => m.slug);
 
-/** آیا این slug یکی از گزینه‌های معتبر است؟ (اعتبارسنجیِ سرور) */
-export function isValidMotive(slug: string): boolean {
-  return MOTIVE_SLUGS.includes(slug);
+/** آیا این slug (یا رشتهٔ چندتایی جداشده با کاما) معتبر است؟ (اعتبارسنجیِ سرور) */
+export function isValidMotive(raw: string): boolean {
+  if (!raw) return false;
+  return raw.split(",").every((s) => MOTIVE_SLUGS.includes(s.trim()));
 }
 
-/** برچسبِ فارسیِ یک slug — برای نمایش (پنل/پایانِ سفر). ناشناخته → null. */
+/** برچسبِ فارسیِ یک slug یا چند slug جداشده با کاما — برای نمایش. ناشناخته → null. */
 export function motiveLabel(slug: string | null | undefined): string | null {
   if (!slug) return null;
-  return ONBOARDING_MOTIVES.find((m) => m.slug === slug)?.label ?? null;
+  const labels = slug
+    .split(",")
+    .map((s) => ONBOARDING_MOTIVES.find((m) => m.slug === s.trim())?.label)
+    .filter(Boolean) as string[];
+  return labels.length ? labels.join("، ") : null;
+}
+
+/** تبدیلِ رشتهٔ ذخیره‌شده به آرایه (backward-compatible) */
+export function motiveToSlugs(raw: string | null | undefined): string[] {
+  if (!raw) return [];
+  return raw.split(",").map((s) => s.trim()).filter((s) => MOTIVE_SLUGS.includes(s));
+}
+
+/** تبدیلِ آرایه به رشتهٔ ذخیره‌شده */
+export function slugsToMotive(slugs: string[]): string {
+  return slugs.join(",");
 }

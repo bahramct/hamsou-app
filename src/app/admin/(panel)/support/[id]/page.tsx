@@ -22,13 +22,16 @@ function faDateTime(d: Date): string {
 
 export default async function AdminTicketPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const ctx = await requirePermission("support.read");
   const canRespond = can(ctx, "support.respond");
 
-  const { id } = await params;
+  const [{ id }, { from }] = await Promise.all([params, searchParams]);
+  const backHref = from?.startsWith("/admin/") ? from : "/admin/support";
   const ticket = await prisma.supportTicket.findUnique({
     where: { id },
     include: {
@@ -54,7 +57,9 @@ export default async function AdminTicketPage({
 
   return (
     <div className="space-y-5">
-      <Link href="/admin/support" className="text-xs text-stone hover:text-ink">→ بازگشت به تیکت‌ها</Link>
+      <Link href={backHref} className="text-xs text-stone hover:text-ink">
+        → {backHref.startsWith("/admin/users/") ? "بازگشت به پروفایل کاربر" : "بازگشت به تیکت‌ها"}
+      </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
         {/* ستون اصلی: گفتگو */}

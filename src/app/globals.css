@@ -954,12 +954,15 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
 .t-pulse .dsh-rh-pill { height: 40px; }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Scrollbar utilities
+   قانون قطعی: اسکرول‌بار در هیچ عنصری (کارت، مودال، صفحه) نمایش داده نمی‌شود
    ─────────────────────────────────────────────────────────────────────────── */
-.scrollbar-none {
+* {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
+*::-webkit-scrollbar { display: none; }
+/* کلاس scrollbar-none برای backward-compat حفظ می‌شود */
+.scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
 /* ═══════════════════════════════════════════════════════════════════════════════

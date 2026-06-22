@@ -71,6 +71,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "تنظیمات سایت",
     items: [
       { href: "/admin/plans", label: "پلن های فروش", perm: "plans.read", icon: "card", ready: true },
+      { href: "/admin/settings/livechat", label: "تنظیمات چت آنلاین", perm: "support.respond", icon: "chat", ready: true },
       { href: "/admin/audit", label: "مدیریت لاگ ها", perm: "audit.read", icon: "list", ready: true },
       { href: "/admin/roles", label: "نقش ها و دسترسی ها", perm: "roles.manage", icon: "key", ready: true },
     ],
@@ -143,7 +144,7 @@ export function AdminShell({ admin, role, permissions, initialCounts, children }
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
-    return pathname.startsWith(href);
+    return pathname === href || pathname.startsWith(href + "/");
   }
 
   const nav = (

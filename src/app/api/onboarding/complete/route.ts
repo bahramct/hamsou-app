@@ -12,13 +12,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
 import { getNow } from "@/lib/dev/time";
-import { isValidMotive } from "@/lib/onboarding/motives";
+import { isValidMotive, slugsToMotive } from "@/lib/onboarding/motives";
 
 export async function POST(req: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ ok: false }, { status: 401 });
 
-  let body: { displayName?: unknown; motive?: unknown } | null = null;
+  let body: { displayName?: unknown; motive?: unknown; motives?: unknown } | null = null;
   try {
     body = await req.json();
   } catch {
@@ -45,11 +45,18 @@ export async function POST(req: NextRequest) {
     if (val) data.displayName = val;
   }
 
-  // انگیزهٔ ورود — فقط slugهای معتبرِ کاتالوگ ذخیره می‌شوند (ناشناخته نادیده گرفته می‌شود)
-  if (body && "motive" in body) {
-    const raw = body.motive;
-    const val = typeof raw === "string" ? raw.trim() : "";
-    if (val && isValidMotive(val)) data.onboardingMotive = val;
+  // انگیزهٔ ورود — پشتیبانی از آرایه (چندگزینه‌ای) یا رشتهٔ تکی
+  // body.motives: string[] (جدید) | body.motive: string (قدیم — backward-compat)
+  const rawMotives = body && "motives" in body ? body.motives : (body && "motive" in body ? body.motive : undefined);
+  if (rawMotives !== undefined) {
+    let slugs: string[] = [];
+    if (Array.isArray(rawMotives)) {
+      slugs = rawMotives.filter((s): s is string => typeof s === "string").map((s) => s.trim()).filter(Boolean);
+    } else if (typeof rawMotives === "string") {
+      slugs = rawMotives.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    const joined = slugsToMotive(slugs);
+    if (joined && isValidMotive(joined)) data.onboardingMotive = joined;
   }
 
   await prisma.user.update({

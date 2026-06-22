@@ -2138,6 +2138,80 @@ look-check شود. منتظرِ نظرِ مالک.
 
 ---
 
+### DECISION-114 | بهبودهای UI — scrollbar سراسری + priority تیکت + انتقالِ تنظیماتِ چت
+- **تاریخ:** ۱۴۰۵-۰۴-۰۲
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** سه ایراد: ۱) اسکرول‌بار در چت آنلاین مرئی بود؛ ۲) کاربر در دراور پشتیبانی نمی‌توانست اولویت تیکت انتخاب کند؛ ۳) تنظیمات چت آنلاین در مسیر `/admin/livechat/settings` بود نه در گروه «تنظیمات سایت» سایدبار.
+- **تصمیم:**
+  - **scrollbar قانون سراسری:** در `globals.css` قانون `* { scrollbar-width: none }` اضافه شد. **قانون قطعی:** در هیچ عنصری (کارت، مودال، صفحه، هر چیز) اسکرول‌بار نمایش داده نمی‌شود.
+  - **priority در SupportCenter:** `TICKET_PRIORITIES` import شد؛ state `priority` اضافه شد؛ chip‌های انتخاب اولویت زیر دسته‌بندی در `pf-compose` اضافه شد؛ `priority: "normal"` hardcoded حذف شد.
+  - **تنظیمات چت → تنظیمات سایت:** صفحه منتقل شد به `/admin/settings/livechat`؛ `/admin/livechat/settings` redirect می‌دهد؛ در sidebar گروه «تنظیمات سایت» آیتم «تنظیمات چت آنلاین» (perm: support.respond) اضافه شد؛ لینک «تنظیمات چت» در LiveChatConsole بروزرسانی شد.
+- **پیامدها:**
+  - `src/app/globals.css`: قانون `*` برای scrollbar
+  - `src/components/features/support/SupportCenter.tsx`: priority state + chips
+  - `src/app/admin/(panel)/settings/livechat/page.tsx`: صفحهٔ جدید
+  - `src/app/admin/(panel)/livechat/settings/page.tsx`: redirect
+  - `src/components/admin/AdminShell.tsx`: آیتم sidebar جدید
+  - `src/components/admin/livechat/LiveChatConsole.tsx`: لینک بروزشد
+
+---
+
+### DECISION-113 | اصلاحاتِ رابط‌کاربری پنل ادمین (موقعیت کیف‌پول + غیرفعال‌سازیِ چت مخفی)
+- **تاریخ:** ۱۴۰۵-۰۴-۰۲
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** دو ایراد UI: کیف‌پول در ردیف تاریخ (پایین hero) نمایش می‌داد که کاربر اشتباه می‌دانست؛ باکس پاسخ در LiveChatConsole حتی وقتی کاربر چت را مخفی کرده بود فعال می‌ماند.
+- **تصمیم:**
+  - **کیف‌پول:** از ردیف تاریخ خارج شد → به انتهای چپِ ردیف نام منتقل شد. ردیف نام حالا یک `flex items-center gap-3` خارجی دارد که نام+badge‌ها را در یک `flex-1` داخلی نگه می‌دارد و `WalletTrigger` را به عنوان آخرین فرزند (= چپ‌ترین در RTL) قرار می‌دهد. درخواست کاربر: «بالای کارت هیرو، سمت چپ».
+  - **غیرفعال‌سازیِ پاسخ چت:** در `LiveChatConsole.tsx`، وقتی `detail.hiddenUntil` کلِ تاریخچهٔ پیام‌ها را پوشش می‌دهد (`hiddenUntil >= lastMsgAt`)، باکس پاسخ `opacity-40 pointer-events-none` می‌گیرد و textarea/دکمه `disabled` می‌شود. یک پیام توضیحی زیر باکس نمایش داده می‌شود.
+- **پیامدها:**
+  - `src/app/admin/(panel)/users/[id]/page.tsx`: ردیف نام بازطراحی شد؛ WalletTrigger از date row به ردیف نام منتقل شد.
+  - `src/components/admin/livechat/LiveChatConsole.tsx`: بخش reply با IIFE بازنویسی شد تا `isSessionHidden` محاسبه و اعمال شود.
+
+---
+
+### DECISION-112 | بهبودهای داشبورد + پنل ادمین (بِنتو swap، کارت‌گرید ادمین‌ها، چت badge، sort تیکت)
+- **تاریخ:** ۱۴۰۵-۰۴-۰۲
+- **وضعیت:** ✅ تأیید شده
+- **زمینه:** چهار ایراد رابط‌کاربری گزارش شد: جای کارت‌های بِنتو اشتباه بود، لیست ادمین‌ها جدولی بود نه کارتی، badge چت همیشه «فعال» نشان می‌داد، و sort تیکت‌ها نادرست اعمال می‌شد.
+- **تصمیم:**
+  - **بِنتو swap:** ترتیب `TodayPanel` (ساعت) قبل از `PulseTile` (نبض هفته) شد.
+  - **ادمین‌ها کارت‌گرید:** `AdminsTable` از `<table>` به `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3` تبدیل شد — هم‌ترازی با صفحهٔ کاربران سایت.
+  - **badge چت:** به‌جای `status` فیلد DB، منطق date-based: `dayKey=امروز→فعال`، `dayKey≠امروز→گذشته`، `createdAt≤user.supportChatHiddenUntil→غیر فعال`.
+  - **sort تیکت:** دو‌گروهه: باز (open, in_progress) → اولویت بالاتر → قدیمی‌تر اول؛ غیرباز (answered, closed) → جدیدتر اول → اولویت بالاتر.
+- **پیامدها:**
+  - `dashboard/page.tsx`: ترتیب TodayPanel و PulseTile در bento عوض شد.
+  - `AdminsManager.tsx`: AdminsTable و AdminRowItem از table/tr به div/card بازنویسی شدند.
+  - `users/[id]/page.tsx`: import `iranTodayKey`، `supportChatHiddenUntil` به query اضافه شد، `chatBadge()` helper تعریف شد.
+  - `support/page.tsx`: sort JS به منطق دو‌گروهه تغییر کرد.
+
+---
+
+### DECISION-111 | بازطراحیِ صفحهٔ جزئیاتِ کاربر + multi-select انگیزه onboarding
+- **تاریخ:** ۱۴۰۵-۰۴-۰۱
+- **وضعیت:** ✅ تأیید شده (v2 — اصلاح جای‌گذاری wallet/ban + رفع باگ‌های پشتیبانی ۱۴۰۵-۰۴-۰۲)
+- **زمینه:** صفحهٔ `/admin/users/[id]` کارت‌های زیادِ پراکنده داشت (آمار، مسدودسازی، کیف‌پول هر کدام یک کارت جداگانه). Onboarding motive تک‌انتخابی بود.
+- **تصمیم:**
+  - **حذف آمار:** کارت‌های ۴‌گانهٔ (تعهدها / فاصله‌ها / گزارش هفتگی / پیام چت) حذف شدند — داده حساس است و صفحه را شلوغ می‌کرد.
+  - **مسدودسازی → مودال:** لینک «مسدودسازی/رفع مسدودی» **زیرِ آواتار** در Hero + `BanModal` با Portal pattern.
+  - **کیف‌پول → بدون کادر:** نمایشِ بی‌مرز (icon + عدد) در ردیفِ اطلاعاتِ Hero (کنارِ تاریخ عضویت) → `WalletModal` با Portal pattern.
+  - **ترتیبِ ستونِ چپ:** تیکت‌ها → چت آنلاین → کارتِ ادغام‌شدهٔ (پلن | تخفیف).
+  - **کارتِ ادغام‌شده:** تغییر پلن و کد تخفیف اختصاصی در یک کارت با طرح‌بندیِ دو‌ستونهٔ side-by-side.
+  - **Onboarding multi-select:** `onboardingMotive` به‌صورت comma-separated slugs ذخیره می‌شود (backward-compatible). UI چندگزینه‌ای شد.
+  - **وضعیتِ چت:** `CHAT_STATUS` به `active/archived` اصلاح شد (مطابق schema واقعی DB).
+  - **لینکِ تیکت‌ها از صفحهٔ کاربر:** `?from=/admin/users/{id}` به URL تیکت اضافه می‌شود تا بک‌لینک به صفحهٔ همان کاربر برگردد.
+  - **لینکِ اعلان تیکت:** `link` در `support.replied` به `/dashboard?support=1` تغییر کرد (drawer را auto-open می‌کند).
+  - **فیلترِ تیکت‌ها:** پیش‌فرض «همه» (نه «باز»). Sort: باز اول → اولویت → قدیمی‌تر (JS-level sort).
+- **پیامدها:**
+  - `BanModal.tsx`، `BanTrigger.tsx`، `WalletModal.tsx`، `WalletTrigger.tsx` اضافه شدند.
+  - `motives.ts`: `isValidMotive`، `motiveLabel`، `motiveToSlugs`، `slugsToMotive` آپدیت/اضافه شدند.
+  - `config.ts`: `motiveLabelFromConfig` چند slug comma-separated را پشتیبانی می‌کند.
+  - API `/api/onboarding/complete`: `motives: string[]` می‌پذیرد (علاوه بر `motive: string` قدیم).
+  - `support/page.tsx`: fetch-all + JS sort (بدون DB pagination برای ترتیب‌بندی دقیق).
+  - `support/[id]/page.tsx`: `searchParams.from` → backHref امن (فقط مسیرهای `/admin/` مجاز).
+  - `notifications/catalog.ts`: `support.replied.link` → `/dashboard?support=1`.
+
+---
+
 ### DECISION-110 | بهبودهای پنل ادمین — آواتار چت / فیلترِ زنده / نقشِ ادمین / اعلانِ عمومی
 - **تاریخ:** ۱۴۰۵-۰۳-۳۱
 - **وضعیت:** ✅ تأیید شده

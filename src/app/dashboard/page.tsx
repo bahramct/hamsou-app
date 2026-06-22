@@ -377,23 +377,23 @@ export default async function DashboardPage() {
           <span className="hint">یک نگاهِ آرام به جایی که هستم</span>
         </div>
 
-        {/* بِنتو — هدف ۷×۳؛ ترتیبِ چپ: نبض / ساعت / تاریخچه (DECISION-099 + DECISION-106) */}
+        {/* بِنتو — هدف ۷×۳؛ ترتیبِ چپ: ساعت / نبض / تاریخچه */}
         <div className="dsh-bento">
           <GoalTile data={goalTileData} />
-          <PulseTile
-            days={weekActivity.days}
-            wroteCount={weekActivity.wroteCount}
-            freezeCount={weekActivity.freezeCount}
-            emptyCount={weekActivity.emptyCount}
-            todayWrote={weekActivity.todayWrote}
-          />
-          {/* ساعت + نوارِ هفته — ردیفِ دومِ ستونِ چپ (wrapper حذف شد — DECISION-104) */}
+          {/* ساعت + نوارِ هفته — ردیفِ اولِ ستونِ چپ */}
           <TodayPanel
             compact
             days={weekActivity.days}
             dateLabel={dateLabel}
             monthLabel={monthLabel}
             userName={fullUser?.displayName ?? undefined}
+          />
+          <PulseTile
+            days={weekActivity.days}
+            wroteCount={weekActivity.wroteCount}
+            freezeCount={weekActivity.freezeCount}
+            emptyCount={weekActivity.emptyCount}
+            todayWrote={weekActivity.todayWrote}
           />
           <RecentTile entries={recentEntries} />
           <ReportTile data={reportData} />

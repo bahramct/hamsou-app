@@ -567,6 +567,19 @@
 
 ---
 
+### TASK-ADMIN-USER-DETAIL-111 | بازطراحی صفحهٔ جزئیاتِ کاربر + multi-select onboarding — ✅ ۲۰۲۶-۰۶-۲۲ (DECISION-111)
+- [x] حذف کارت آمار ۴گانه (تعهدها/فاصله‌ها/گزارش/پیام)
+- [x] مسدودسازی: `BanTrigger` + `BanModal` (Portal) در Hero — حذف کارت قدیمی
+- [x] کیف‌پول: `WalletTrigger` + `WalletModal` (Portal) زیر آواتار در Hero — حذف کارت قدیمی
+- [x] ترتیب ستون چپ: تیکت‌ها → چت آنلاین → کارت ادغام‌شده (پلن | تخفیف side-by-side)
+- [x] Onboarding multi-select: ذخیره comma-separated slugs، UI چندگزینه‌ای
+- [x] `motives.ts`: توابع `motiveToSlugs`/`slugsToMotive` + اعتبارسنجی آرایه
+- [x] `config.ts`: `motiveLabelFromConfig` چند slug را پشتیبانی می‌کند
+- [x] API `/api/onboarding/complete`: `motives: string[]` (جدید) + `motive: string` (قدیم) backward-compat
+- [x] `tsc --noEmit` ✅
+
+---
+
 ## ✅ انجام‌شده
 
 ### TASK-ADMIN-SIDEBAR-REFACTOR | بازطراحی ساید بار پنل ادمین — ✅ ۲۰۲۶-۰۶-۱۷

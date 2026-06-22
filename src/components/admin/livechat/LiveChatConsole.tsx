@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LiveChatConsole — کنسول چت آنلاین پشتیبانی در پنل (DECISION-049)
+// LiveChatConsole — کنسول چت آنلاین پشتیبانی در پنل (DECISION-049, DECISION-114)
 // دو-پنل: صفِ گفتگوها (poll ~۵ث) + نمای گفتگوی انتخاب‌شده (poll ~۳ث) + کادر پاسخ.
 // heartbeat (~۳۰ث) حضور پشتیبان را تازه نگه می‌دارد → نقطهٔ سبز در چت کاربر.
 // ادمین «همهٔ» پیام‌ها را می‌بیند؛ خط watermark نشان می‌دهد کاربر تا کجا را مخفی کرده.
@@ -183,7 +183,7 @@ export function LiveChatConsole({ canRespond }: Props) {
           </div>
           {canRespond && (
             <Link
-              href="/admin/livechat/settings"
+              href="/admin/settings/livechat"
               className="text-[11px] px-3 py-1.5 rounded-lg text-stone hover:text-ink hover:bg-black/4 transition-colors"
             >
               تنظیمات چت
@@ -196,7 +196,7 @@ export function LiveChatConsole({ canRespond }: Props) {
         {/* ── صفِ گفتگوها ──────────────────────────────────────────────── */}
         <div className="rounded-2xl border border-black/8 bg-white/40 overflow-hidden flex flex-col max-h-[72vh]">
           <div className="px-4 py-3 border-b border-black/6 text-[11px] text-fog shrink-0">گفتگوها</div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto scrollbar-none">
             {!loadedOnce ? (
               <p className="text-xs text-fog text-center py-10">در حال بارگذاری…</p>
             ) : conversations.length === 0 ? (
@@ -263,7 +263,7 @@ export function LiveChatConsole({ canRespond }: Props) {
               <ConvHeader detail={detail} />
 
               {/* پیام‌ها */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+              <div className="flex-1 overflow-y-auto scrollbar-none px-4 py-4 space-y-3">
                 {detail.messages.map((m, i) => (
                   <div key={m.id}>
                     <WatermarkDivider
@@ -283,40 +283,53 @@ export function LiveChatConsole({ canRespond }: Props) {
               </div>
 
               {/* کادر پاسخ */}
-              {canRespond ? (
-                <div className="shrink-0 border-t border-black/6 p-3">
-                  {error && <p className="text-[11px] text-ember text-center pb-2">{error}</p>}
-                  <div className="flex items-end gap-2">
-                    <textarea
-                      value={replyInput}
-                      onChange={(e) => setReplyInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          void sendReply();
-                        }
-                      }}
-                      disabled={sending}
-                      placeholder="پاسخ خود را بنویس…"
-                      rows={1}
-                      maxLength={2000}
-                      className="flex-1 resize-none rounded-xl px-3 py-2.5 text-sm bg-white/70 border border-bone text-ink focus:outline-none focus:border-sage min-h-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => void sendReply()}
-                      disabled={!replyInput.trim() || sending}
-                      className="shrink-0 px-4 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors disabled:opacity-30"
-                    >
-                      ارسال
-                    </button>
+              {(() => {
+                const lastMsgAt = detail.messages.at(-1)?.createdAt ?? null;
+                const isSessionHidden = !!(detail.hiddenUntil && lastMsgAt &&
+                  new Date(detail.hiddenUntil).getTime() >= new Date(lastMsgAt).getTime());
+                if (!canRespond) {
+                  return (
+                    <div className="shrink-0 border-t border-black/6 p-3 text-center">
+                      <p className="text-[11px] text-fog">برای پاسخ‌دادن به دسترسی «پاسخ به تیکت‌ها» نیاز است.</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="shrink-0 border-t border-black/6 p-3">
+                    {error && <p className="text-[11px] text-ember text-center pb-2">{error}</p>}
+                    <div className={`flex items-end gap-2 ${isSessionHidden ? "opacity-40 pointer-events-none" : ""}`}>
+                      <textarea
+                        value={replyInput}
+                        onChange={(e) => setReplyInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            void sendReply();
+                          }
+                        }}
+                        disabled={sending || isSessionHidden}
+                        placeholder="پاسخ خود را بنویس…"
+                        rows={1}
+                        maxLength={2000}
+                        className="flex-1 resize-none rounded-xl px-3 py-2.5 text-sm bg-white/70 border border-bone text-ink focus:outline-none focus:border-sage min-h-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void sendReply()}
+                        disabled={!replyInput.trim() || sending || isSessionHidden}
+                        className="shrink-0 px-4 py-2.5 rounded-xl bg-ink text-paper text-sm font-medium hover:bg-charcoal transition-colors disabled:opacity-30"
+                      >
+                        ارسال
+                      </button>
+                    </div>
+                    {isSessionHidden && (
+                      <p className="text-[10px] text-fog text-center mt-2">
+                        کاربر این گفتگو را نزد خود مخفی کرده — پاسخ در حال حاضر غیرفعال است
+                      </p>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="shrink-0 border-t border-black/6 p-3 text-center">
-                  <p className="text-[11px] text-fog">برای پاسخ‌دادن به دسترسی «پاسخ به تیکت‌ها» نیاز است.</p>
-                </div>
-              )}
+                );
+              })()}
             </>
           )}
         </div>

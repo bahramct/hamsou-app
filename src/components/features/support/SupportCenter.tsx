@@ -13,7 +13,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { toast } from "@/lib/notifications/toast";
 import { Spinner } from "@/components/ui/Spinner";
-import { TICKET_LIMITS } from "@/lib/support/tickets";
+import { TICKET_LIMITS, TICKET_PRIORITIES, DEFAULT_PRIORITY } from "@/lib/support/tickets";
 
 export interface TicketSummary {
   id: string;
@@ -195,6 +195,7 @@ function SupportDrawer({
   // compose
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("technical");
+  const [priority, setPriority] = useState(DEFAULT_PRIORITY);
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -235,12 +236,12 @@ function SupportDrawer({
       const res = await fetch("/api/support/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject: subject.trim(), category, priority: "normal", message: body.trim() }),
+        body: JSON.stringify({ subject: subject.trim(), category, priority, message: body.trim() }),
       });
       const d = await res.json();
       if (!res.ok) { toast.error(d.error ?? "ثبت تیکت ناموفق بود."); return; }
       toast.success("تیکت ثبت شد");
-      setSubject(""); setBody(""); setCategory("technical");
+      setSubject(""); setBody(""); setCategory("technical"); setPriority(DEFAULT_PRIORITY);
       await onRefresh();
       await openThread(d.id);
     } catch { toast.error("اتصال برقرار نشد."); }
@@ -320,7 +321,25 @@ function SupportDrawer({
                       </button>
                     ))}
                   </div>
-                  <textarea className="pf-inp" placeholder="توضیح بده چه کمکی از ما برمی‌آید…" value={body} maxLength={TICKET_LIMITS.messageMax} onChange={(e) => setBody(e.target.value)} />
+                  {/* اولویت */}
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-medium text-stone">اولویت</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {TICKET_PRIORITIES.map((p) => (
+                        <button
+                          type="button"
+                          key={p.key}
+                          onClick={() => setPriority(p.key)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border ${
+                            priority === p.key ? PRIORITY_ACTIVE[p.key] : "border-transparent bg-black/4 text-fog hover:text-stone"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <textarea className="pf-inp" style={{ marginTop: 4 }} placeholder="توضیح بده چه کمکی از ما برمی‌آید…" value={body} maxLength={TICKET_LIMITS.messageMax} onChange={(e) => setBody(e.target.value)} />
                   <button type="submit" className="pf-btn-primary" style={{ width: "100%" }} disabled={!canSubmit || sending}>
                     {sending && <Spinner size={12} />} ارسال تیکت
                   </button>
@@ -366,3 +385,10 @@ function HeadsetIcon() {
     </svg>
   );
 }
+
+const PRIORITY_ACTIVE: Record<string, string> = {
+  low:    "border-stone/30 bg-black/6 text-stone",
+  normal: "border-sage/40 bg-sage/8 text-sage-deep",
+  high:   "border-amber-400/40 bg-amber-50 text-amber-700",
+  urgent: "border-ember/40 bg-ember/8 text-ember",
+};
