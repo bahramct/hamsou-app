@@ -6,7 +6,7 @@ import { TrustBadges } from "@/components/layout/TrustBadges";
 // LandingFooter — فوتر سایت: ۴ ستون (راست به چپ):
 // ۱) برند: لوگو + «آیینه‌ای، برای واقعی‌تر کردن زندگی» + شبکه‌های اجتماعی
 // ۲) محصول: چطور کار می‌کند · آنچه همسو نیست · کاربران (anchorهای لندینگ)
-// ۳) لینک‌های مفید: داستان همسو · درباره ما · تماس با ما · حریم خصوصی
+// ۳) لینک‌های مفید: داستان همسو · حریم خصوصی · قوانین و مقررات
 // ۴) مجوزها: نماد اعتماد + زرین‌پال (هم‌سایز، کنار هم)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -56,9 +56,8 @@ export function LandingFooter() {
             <ColTitle>لینک‌های مفید</ColTitle>
             <ul className="space-y-3 text-stone text-sm" style={{ fontWeight: 300 }}>
               <li><Link href="/story" className="hover:text-ink transition-colors">داستان همسو</Link></li>
-              <li><Link href="/about" className="hover:text-ink transition-colors">درباره ما</Link></li>
-              <li><Link href="/contact" className="hover:text-ink transition-colors">تماس با ما</Link></li>
               <li><Link href="/privacy" className="hover:text-ink transition-colors">حریم خصوصی</Link></li>
+              <li><Link href="/terms" className="hover:text-ink transition-colors">قوانین و مقررات</Link></li>
             </ul>
           </div>
 

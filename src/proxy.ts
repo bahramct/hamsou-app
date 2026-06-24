@@ -22,10 +22,13 @@ const PUBLIC_PATHS = [
   "/blog",
   "/b",
   "/plans",
+  "/terms",
   "/share",
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+  // fallbackِ آفلاینِ PWA (DECISION-121) — باید بدونِ auth سرو شود
+  "/offline",
   "/api/auth",
   "/api/dev",
   "/api/blog",
@@ -40,7 +43,11 @@ const PUBLIC_PATHS = [
 ];
 
 // مسیرهایی که کاملاً بیرون از middleware هستند (static, assets)
-const SKIP_PREFIXES = ["/_next/", "/favicon.ico", "/Fonts/", "/logo.png", "/landing.html"];
+const SKIP_PREFIXES = [
+  "/_next/", "/favicon.ico", "/Fonts/", "/logo.png", "/landing.html",
+  // داراییِ PWA (DECISION-121) — باید مستقیم سرو شوند، نه ریدایرکت به login
+  "/sw.js", "/manifest.webmanifest", "/icons/", "/apple-touch-icon.png",
+];
 
 // مسیرهای ادمینِ عمومی (بدون نیاز به admin session)
 const ADMIN_PUBLIC_PATHS = ["/admin/login", "/api/admin/auth"];

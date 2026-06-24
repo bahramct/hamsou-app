@@ -265,18 +265,18 @@ export function SupportChatWindow({ isOpen, onClose, onSeen }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label="پشتیبانی آنلاین همسو"
-        className="fixed bottom-0 right-0 left-0 sm:left-auto sm:right-6 sm:bottom-6 z-50
-                   w-full sm:w-95 h-[85dvh] sm:h-155 sm:max-h-[calc(100dvh-2rem)]
-                   flex flex-col overflow-hidden
-                   rounded-t-3xl sm:rounded-3xl
-                   bg-paper border border-black/6
-                   shadow-[0_-8px_40px_rgba(46,44,40,0.14),0_0_0_1px_rgba(var(--rgb-card),0.6)_inset]"
+        className="fixed z-50 flex flex-col overflow-hidden bg-paper border border-black/6
+                   inset-x-2.5 bottom-[calc(74px+env(safe-area-inset-bottom))] h-[78dvh] rounded-3xl
+                   md:inset-x-auto md:left-auto md:right-6 md:bottom-6 md:h-155 md:w-95 md:max-h-[calc(100dvh-2rem)]
+                   shadow-[0_24px_70px_rgba(46,44,40,0.34),0_0_0_1px_rgba(var(--rgb-card),0.6)_inset]"
         style={{
-          transform: isOpen ? "translateY(0)" : "translateY(calc(100% + 24px))",
+          // حبابِ کارتی با spring از گوشهٔ FAB — مثل iOS
+          transformOrigin: "bottom right",
+          transform: isOpen ? "scale(1) translateY(0)" : "scale(0.4) translateY(24px)",
           opacity: isOpen ? 1 : 0,
           pointerEvents: isOpen ? "auto" : "none",
           visibility: isOpen ? "visible" : "hidden",
-          transition: "transform 420ms cubic-bezier(0.19,1,0.22,1), opacity 280ms ease",
+          transition: "transform 440ms cubic-bezier(0.34,1.4,0.5,1), opacity 300ms ease, visibility 440ms",
         }}
       >
         {/* ── هدر ─────────────────────────────────────────────────────────── */}

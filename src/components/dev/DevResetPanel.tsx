@@ -58,7 +58,7 @@ export function DevResetPanel() {
   }
 
   return (
-    <div className="fixed bottom-3 z-50" style={{ left: "52px" }}>
+    <div className="hidden md:block fixed bottom-3 z-50" style={{ left: "52px" }}>
       {/* دکمه toggle */}
       <button
         type="button"

@@ -80,7 +80,7 @@ export function RecentHistoryModal({
         aria-label="تاریخچه اخیر"
       >
         <div
-          className="w-full max-w-sm pointer-events-auto overflow-hidden
+          className="w-full max-w-sm max-h-[calc(100dvh-2.5rem)] pointer-events-auto overflow-y-auto
                      rounded-3xl border border-black/8
                      shadow-[0_20px_60px_rgba(26,26,31,0.18),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
           style={{

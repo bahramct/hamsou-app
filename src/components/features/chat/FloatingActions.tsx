@@ -33,6 +33,8 @@ export function FloatingActions({
 }: Props) {
   const pathname = usePathname();
   const [openChat, setOpenChat] = useState<"companion" | "support" | null>(null);
+  // باز/بستهٔ خوشهٔ speed-dial (فقط برای PRO که دو چت دارد) — DECISION-125
+  const [expanded, setExpanded] = useState(false);
   const [unread, setUnread] = useState(0);
   const [supportOnline, setSupportOnline] = useState(false);
 
@@ -75,7 +77,19 @@ export function FloatingActions({
 
   const closeAll = () => {
     setOpenChat(null);
+    setExpanded(false);
     if (isPro) void refreshUnread();
+  };
+
+  // باز کردنِ یک چت از خوشه + جمع‌کردنِ speed-dial
+  const openChatAndCollapse = (which: "companion" | "support") => {
+    setOpenChat(which);
+    setExpanded(false);
+  };
+  // لمسِ دکمهٔ اصلی: رایگان → مستقیم همدم؛ پرو → باز/بستهٔ خوشه
+  const onMainTap = () => {
+    if (!isPro) { setOpenChat("companion"); return; }
+    setExpanded((v) => !v);
   };
 
   // صفحاتِ عمومی/بازاریابی: چت فقط داخل اپلیکیشن در دسترس است
@@ -95,62 +109,103 @@ export function FloatingActions({
 
   return (
     <>
-      {/* ── دکمهٔ پشتیبانی — فقط PRO ──────────────────────────────────────── */}
+      {/* پس‌زمینهٔ محو هنگام بازبودنِ خوشه (فقط PRO) — DECISION-125 */}
       {isPro && (
+        <div
+          aria-hidden
+          onClick={() => setExpanded(false)}
+          className="fixed inset-0 z-30 bg-black/15"
+          style={{
+            opacity: expanded ? 1 : 0,
+            visibility: expanded ? "visible" : "hidden",
+            pointerEvents: expanded ? "auto" : "none",
+            backdropFilter: expanded ? "blur(2px)" : "none",
+            transition: "opacity 300ms ease, visibility 300ms",
+          }}
+        />
+      )}
+
+      {/* خوشهٔ FAB — یک پلاسِ شیشه‌ای که با لمس به چت‌ها گسترش می‌یابد. پنهان وقتی چتی باز است. */}
+      <div
+        className="fixed right-6 z-40 flex flex-col items-center gap-3.5
+                   bottom-[calc(5.25rem+env(safe-area-inset-bottom))] md:bottom-6"
+        style={{
+          opacity: fabsVisible ? undefined : 0,
+          pointerEvents: fabsVisible ? "auto" : "none",
+          transition: "opacity 250ms ease",
+        }}
+      >
+        {/* اکشن‌های PRO — با spring از پلاس بیرون می‌جهند */}
+        {isPro && (
+          <>
+            <div
+              className="relative"
+              style={{
+                opacity: expanded ? 1 : 0,
+                transform: expanded ? "translateY(0) scale(1)" : "translateY(16px) scale(0.6)",
+                pointerEvents: expanded ? "auto" : "none",
+                transition: "transform 420ms cubic-bezier(0.34,1.5,0.5,1) 60ms, opacity 220ms ease 60ms",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => openChatAndCollapse("support")}
+                aria-label="پشتیبانی آنلاین همسو"
+                // رنگِ بژ/طلاییِ پشتیبانی (نه سفید) — شیشه‌ایِ تینت‌دار (DECISION-126)
+                className="fab-glass w-12 h-12 rounded-full flex items-center justify-center text-gold"
+                style={{ background: "rgba(193,154,74,0.22)" }}
+              >
+                <HeadsetIcon />
+              </button>
+              <span className="fab-pill absolute right-full mr-2.5 top-1/2 -translate-y-1/2 rounded-full px-3 py-1.5 text-xs font-medium text-ink whitespace-nowrap">پشتیبانیِ آنلاین</span>
+              {unread > 0 && (
+                <span className="absolute -top-1 -left-1 min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-ember text-paper text-[10px] font-bold flex items-center justify-center fa-num shadow-paper-sm">
+                  {unread > 9 ? toFaDigits("9+") : toFaDigits(String(unread))}
+                </span>
+              )}
+              {supportOnline && (
+                <span aria-hidden className="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full border-2 border-paper bg-sage" />
+              )}
+            </div>
+
+            <div
+              className="relative"
+              style={{
+                opacity: expanded ? 1 : 0,
+                transform: expanded ? "translateY(0) scale(1)" : "translateY(16px) scale(0.6)",
+                pointerEvents: expanded ? "auto" : "none",
+                transition: "transform 420ms cubic-bezier(0.34,1.5,0.5,1) 110ms, opacity 220ms ease 110ms",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => openChatAndCollapse("companion")}
+                aria-label="گفتگو با همدم"
+                className="fab-glass w-12 h-12 rounded-full flex items-center justify-center text-ink"
+              >
+                <BubbleIcon />
+              </button>
+              <span className="fab-pill absolute right-full mr-2.5 top-1/2 -translate-y-1/2 rounded-full px-3 py-1.5 text-xs font-medium text-ink whitespace-nowrap">گفتگو با همدم</span>
+            </div>
+          </>
+        )}
+
+        {/* دکمهٔ اصلی — پلاسِ شیشه‌ای (PRO) یا حبابِ همدم (رایگان) */}
         <button
           type="button"
-          onClick={() => setOpenChat("support")}
-          aria-label="پشتیبانی آنلاین همسو"
-          className="fixed z-40 w-14 h-14 rounded-full bg-gold text-paper
-                     flex items-center justify-center
-                     shadow-[0_4px_20px_rgba(193,154,74,0.36)]
-                     hover:shadow-[0_6px_28px_rgba(193,154,74,0.46)]"
-          style={{
-            bottom: "5.75rem",
-            right: "1.5rem",
-            opacity: fabsVisible ? 1 : 0,
-            transform: fabsVisible ? "scale(1)" : "scale(0.88)",
-            pointerEvents: fabsVisible ? "auto" : "none",
-            transition: "opacity 250ms ease, transform 300ms cubic-bezier(0.19,1,0.22,1), box-shadow 200ms ease",
-          }}
+          onClick={onMainTap}
+          aria-label={isPro ? (expanded ? "بستن" : "چت") : "گفتگو با همدم"}
+          aria-expanded={isPro ? expanded : undefined}
+          className="chat-fab fab-glass relative w-14 h-14 rounded-full flex items-center justify-center text-ink"
         >
-          <HeadsetIcon />
-          {/* badge پیام خوانده‌نشده */}
-          {unread > 0 && (
+          {isPro ? <PlusIcon expanded={expanded} /> : <BubbleIcon />}
+          {isPro && !expanded && unread > 0 && (
             <span className="absolute -top-1 -left-1 min-w-[1.125rem] h-[1.125rem] px-1 rounded-full bg-ember text-paper text-[10px] font-bold flex items-center justify-center fa-num shadow-paper-sm">
               {unread > 9 ? toFaDigits("9+") : toFaDigits(String(unread))}
             </span>
           )}
-          {/* نقطهٔ آنلاین */}
-          {supportOnline && (
-            <span
-              aria-hidden
-              className="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full border-2 border-paper bg-sage"
-            />
-          )}
         </button>
-      )}
-
-      {/* ── دکمهٔ همدم — همهٔ کاربران ────────────────────────────────────────── */}
-      <button
-        type="button"
-        onClick={() => setOpenChat("companion")}
-        aria-label="باز کردن گفتگو با همدم"
-        className="fixed bottom-6 right-6 z-40
-                   w-14 h-14 rounded-full
-                   bg-ink text-paper
-                   flex items-center justify-center
-                   shadow-[0_4px_20px_rgba(26,26,31,0.28)]
-                   hover:shadow-[0_6px_28px_rgba(26,26,31,0.36)]"
-        style={{
-          opacity: fabsVisible ? 1 : 0,
-          transform: fabsVisible ? "scale(1)" : "scale(0.88)",
-          pointerEvents: fabsVisible ? "auto" : "none",
-          transition: "opacity 250ms ease, transform 300ms cubic-bezier(0.19,1,0.22,1), box-shadow 200ms ease",
-        }}
-      >
-        <BubbleIcon />
-      </button>
+      </div>
 
       {/* ── پنجره‌های چت ──────────────────────────────────────────────────────── */}
       <ChatWindow
@@ -167,6 +222,17 @@ export function FloatingActions({
         />
       )}
     </>
+  );
+}
+
+function PlusIcon({ expanded }: { expanded: boolean }) {
+  return (
+    <svg
+      width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden
+      style={{ transform: expanded ? "rotate(135deg)" : "rotate(0deg)", transition: "transform 420ms cubic-bezier(0.34,1.5,0.5,1)" }}
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   );
 }
 

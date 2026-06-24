@@ -4,7 +4,8 @@
    Dark mode variant — منبع حقیقت: اتریبیوت data-theme روی <html>
    (توسط ThemeScript قبل از paint ست می‌شود — بدون فلش)
    ─────────────────────────────────────────────────────────────────────────── */
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+/* ایندیگو هم یک تمِ تیره است → واریانتِ dark: تیلویند روی آن هم اعمال شود (DECISION-128) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, [data-theme="indigo"], [data-theme="indigo"] *));
 
 /* ─────────────────────────────────────────────────────────────────────────────
    فونت PelakFA — از public/Fonts/
@@ -23,43 +24,75 @@
    رنگ‌ها از brand book §12 (Warm Paper system)
    ─────────────────────────────────────────────────────────────────────────── */
 @theme {
-  /* رنگ‌های برند */
-  --color-ink:       #1A1A1F;
-  --color-charcoal:  #2E2C28;
-  --color-stone:     #6B6657;
-  --color-fog:       #BDB6A7;
-  --color-bone:      #EAE4D6;
-  --color-paper:     #F5F2EB;
-  --color-sage:      #7A8471;
-  --color-sage-deep: #5C6555;
+  /* نام‌های رنگِ Tailwind (utilities مثل text-ink/bg-paper) — مقادیر = همیار warm-light.
+     این‌ها در بلوک‌های [data-theme] پایین per-theme فلیپ می‌شوند. (DECISION-130) */
+  --color-ink:       #1A1A1F;  /* = text-primary */
+  --color-charcoal:  #3E3B36;  /* = text-secondary */
+  --color-stone:     #6B6657;  /* = text-tertiary */
+  --color-fog:       #BDB6A7;  /* = text-disabled */
+  --color-bone:      #EAE4D6;  /* = surface-sunken */
+  --color-paper:     #F2EEE4;  /* = surface-canvas */
+  --color-sage:      #7A8471;  /* = accent */
+  --color-sage-deep: #5C6555;  /* = accent-hover */
   --color-ember:     #C75D3C;
   --color-mist:      #9BB4C7;
-  --color-mist-deep: #5E7C93;  /* مِهِ عمیق — اکشن/اکسنتِ فریز با کنتراستِ کافی (DECISION-087) */
+  --color-mist-deep: #6E8FA5;  /* = feedback-info (همیار warm-light) */
   --color-gold:      #C19A4A;
 
   /* فونت */
   --font-pelak: "PelakFA", Tahoma, "Segoe UI", sans-serif;
 
-  /* سایه‌های کاغذی */
-  --shadow-paper-sm: 0 1px 2px rgba(46,44,40,0.04), 0 1px 1px rgba(46,44,40,0.02);
-  --shadow-paper:    0 4px 16px rgba(46,44,40,0.06), 0 1px 2px rgba(46,44,40,0.03);
-  --shadow-paper-md: 0 8px 28px rgba(46,44,40,0.08), 0 2px 4px rgba(46,44,40,0.04);
+  /* سایه‌های لگاسیِ کاغذی — به نردبانِ همیار نگاشته (sm=soft, paper=low, md=mid) */
+  --shadow-paper-sm: 0 1px 2px rgba(46,44,40,0.05);
+  --shadow-paper:    0 2px 10px rgba(46,44,40,0.07);
+  --shadow-paper-md: 0 10px 30px rgba(46,44,40,0.10), 0 2px 8px rgba(46,44,40,0.05);
 
-  /* موشن */
-  --ease-calm: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  /* موشن — ایزینگ‌های همیار */
+  --ease-calm:   cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-expo:   cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-quiet:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    توکن‌های معنایی RGB — برای رنگ‌های inline که آلفا دارند: rgba(var(--rgb-*), a)
    در دارک مود فقط همین مقادیر عوض می‌شوند و همهٔ سطح‌ها/خط‌ها فلیپ می‌شوند.
    ─────────────────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════════
+   سیستمِ توکنِ معناییِ همیار — منبعِ واحدِ استایلِ کلِ پروژه (DECISION-130).
+   مرجع: docs/hamyar-design-system.md. :root = warm-light (فاز۱). dark/indigo پایین.
+   ═══════════════════════════════════════════════════════════════════════════════ */
 :root {
-  --rgb-card:  255,255,255;  /* سطحِ کارت/شیشه */
-  --rgb-line:  26,26,31;     /* خطوط، بوردرها، پرشدگیِ ملایم */
-  --rgb-paper: 245,242,235;  /* همان paper برای veil/چیپ */
-  --rgb-bone:  234,228,214;  /* تینتِ بخش‌ها */
   color-scheme: light;
+  /* surface */
+  --surface-canvas:#F2EEE4; --surface-base:#F7F4ED; --surface-raised:#FFFFFF; --surface-raised-2:#FBFAF5;
+  --surface-overlay:rgba(247,244,237,0.82); --surface-sunken:#EAE4D6;
+  --surface-glass:rgba(255,255,255,0.70); --surface-glass-strong:rgba(255,255,255,0.90);
+  --surface-tint-accent:rgba(122,132,113,0.07); --surface-gradient:linear-gradient(160deg,#FFFFFF,#F2EEE4);
+  /* text */
+  --text-primary:#1A1A1F; --text-secondary:#3E3B36; --text-tertiary:#6B6657; --text-disabled:#BDB6A7;
+  --text-on-accent:#FFFFFF; --text-mirror:#5C6555;
+  /* border */
+  --border-subtle:rgba(26,26,31,0.06); --border-default:rgba(26,26,31,0.10); --border-strong:rgba(26,26,31,0.20);
+  --border-glow:rgba(122,132,113,0.35); --border-focus:#7A8471;
+  /* accent */
+  --accent:#7A8471; --accent-bright:#8C967F; --accent-hover:#5C6555; --accent-pressed:#4D5447; --accent-muted:rgba(122,132,113,0.13);
+  --accent-gradient:linear-gradient(135deg,#8C967F,#5C6555);
+  /* feedback (پالتِ چندرنگیِ هماهنگ) */
+  --feedback-success:#5C6555; --feedback-warning:#9C7B33; --feedback-error:#A04428; --feedback-info:#6E8FA5;
+  /* shadow ladder */
+  --shadow-soft:0 1px 2px rgba(46,44,40,0.05); --shadow-low:0 2px 10px rgba(46,44,40,0.07);
+  --shadow-mid:0 10px 30px rgba(46,44,40,0.10),0 2px 8px rgba(46,44,40,0.05);
+  --shadow-high:0 28px 64px rgba(46,44,40,0.14),0 8px 18px rgba(46,44,40,0.07);
+  --shadow-glow:0 8px 32px rgba(122,132,113,0.22); --shadow-glow-focus:0 0 0 4px rgba(122,132,113,0.22);
+  /* ambient (اوراهای زنده) */
+  --ambient-1:rgba(122,132,113,0.40); --ambient-2:rgba(155,180,199,0.32); --ambient-3:rgba(193,154,74,0.14);
+
+  /* aliasِ توکن‌های لگاسیِ rgb → سیستمِ همیار (تا کامپوننت‌های فعلی نشکنند) */
+  --rgb-card:  255,255,255;  /* surface-raised */
+  --rgb-line:  26,26,31;     /* خطوط/بوردر */
+  --rgb-paper: 242,238,228;  /* surface-canvas */
+  --rgb-bone:  234,228,214;  /* surface-sunken */
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -70,34 +103,103 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* رنگ‌های برند — معکوسِ گرم */
-  --color-ink:       #EDE7DA;  /* متن اصلی — استخوانیِ نرم */
-  --color-charcoal:  #D8D0BF;
-  --color-stone:     #A89F8D;  /* متن ثانویه */
-  --color-fog:       #7B7263;  /* متن کم‌رنگ */
-  --color-bone:      #262119;  /* سطح برجسته */
-  --color-paper:     #161310;  /* پس‌زمینه — زغالیِ گرم */
-  --color-sage:      #97A28A;  /* روشن‌تر و کم‌اشباع‌تر */
-  --color-sage-deep: #ACB89C;  /* در دارک باید روشن‌تر از sage باشد (برای متن) */
-  --color-ember:     #D08A68;
-  --color-mist:      #A7BDCE;
-  --color-mist-deep: #8AA7BC;  /* در شب روشن‌تر — برای کنتراست با متنِ تیره (DECISION-087) */
-  --color-gold:      #CFAE63;
+  /* نام‌های Tailwind — از warm-dark همیار */
+  --color-ink:       #EFE9DB;
+  --color-charcoal:  #BDB6A7;
+  --color-stone:     #BDB6A7;
+  --color-fog:       #8A8472;
+  --color-bone:      #201E18;
+  --color-paper:     #100F0B;
+  --color-sage:      #A4AD9C;
+  --color-sage-deep: #BDC6B4;
+  --color-ember:     #E07A5C;
+  --color-mist:      #B5C9DC;
+  --color-mist-deep: #B5C9DC;
+  --color-gold:      #D4B05E;
+  --color-white:     #201E18;
+  --color-black:     #EFE9DB;
 
-  /* فلیپِ white/black تیلویند — bg-white/40 و border-black/6 خودکار دارک می‌شوند */
-  --color-white:     #211D18;
-  --color-black:     #EDE7DA;
+  /* سیستمِ معناییِ همیار — warm-dark (exact) */
+  --surface-canvas:#100F0B; --surface-base:#16140F; --surface-raised:#201E18; --surface-raised-2:#2A2820;
+  --surface-overlay:rgba(22,20,15,0.82); --surface-sunken:#0A0906;
+  --surface-glass:rgba(32,30,24,0.60); --surface-glass-strong:rgba(32,30,24,0.85);
+  --surface-tint-accent:rgba(164,173,156,0.09); --surface-gradient:linear-gradient(160deg,#252218,#1A1812);
+  --text-primary:#EFE9DB; --text-secondary:#BDB6A7; --text-tertiary:#8A8472; --text-disabled:#4A463D;
+  --text-on-accent:#14130F; --text-mirror:#B0B8A6;
+  --border-subtle:rgba(234,228,214,0.07); --border-default:rgba(234,228,214,0.11); --border-strong:rgba(234,228,214,0.20);
+  --border-glow:rgba(164,173,156,0.40); --border-focus:#A4AD9C;
+  --accent:#A4AD9C; --accent-bright:#BDC6B4; --accent-hover:#BDC6B4; --accent-pressed:#7A8471; --accent-muted:rgba(164,173,156,0.14);
+  --accent-gradient:linear-gradient(135deg,#BDC6B4,#7A8471);
+  --feedback-success:#A4AD9C; --feedback-warning:#D4B05E; --feedback-error:#E07A5C; --feedback-info:#B5C9DC;
+  --shadow-soft:0 1px 3px rgba(0,0,0,0.45); --shadow-low:0 2px 10px rgba(0,0,0,0.40);
+  --shadow-mid:0 10px 30px rgba(0,0,0,0.45),0 2px 8px rgba(0,0,0,0.30);
+  --shadow-high:0 28px 64px rgba(0,0,0,0.55),0 8px 18px rgba(0,0,0,0.40);
+  --shadow-glow:0 8px 32px rgba(122,132,113,0.25); --shadow-glow-focus:0 0 0 4px rgba(164,173,156,0.25);
+  --ambient-1:rgba(164,173,156,0.26); --ambient-2:rgba(155,180,199,0.20); --ambient-3:rgba(193,154,74,0.12);
 
-  /* سایه‌های شب — عمیق‌تر */
-  --shadow-paper-sm: 0 1px 2px rgba(0,0,0,0.30), 0 1px 1px rgba(0,0,0,0.20);
-  --shadow-paper:    0 4px 16px rgba(0,0,0,0.36), 0 1px 2px rgba(0,0,0,0.24);
-  --shadow-paper-md: 0 8px 28px rgba(0,0,0,0.44), 0 2px 4px rgba(0,0,0,0.28);
+  /* سایه‌های لگاسی */
+  --shadow-paper-sm: 0 1px 3px rgba(0,0,0,0.45);
+  --shadow-paper:    0 2px 10px rgba(0,0,0,0.40);
+  --shadow-paper-md: 0 10px 30px rgba(0,0,0,0.45),0 2px 8px rgba(0,0,0,0.30);
 
-  /* توکن‌های RGB */
-  --rgb-card:  41,36,30;
-  --rgb-line:  237,231,218;
-  --rgb-paper: 24,21,17;
-  --rgb-bone:  46,40,33;
+  /* aliasِ rgb لگاسی */
+  --rgb-card:  32,30,24;
+  --rgb-line:  239,233,219;
+  --rgb-paper: 16,15,11;
+  --rgb-bone:  32,30,24;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   🟣 ایندیگو (بنفش) — از indigo-dark همیار (DECISION-128). فقط در اپ نمایش داده
+   می‌شود؛ روی پابلیک/ادمین در lib/theme به دارک تنزل می‌یابد (data-theme آن‌جا
+   هرگز "indigo" نمی‌شود)، پس این بلاک خارج از اپ فعال نیست.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme="indigo"] {
+  color-scheme: dark;
+  /* نام‌های Tailwind — از indigo-dark همیار */
+  --color-ink:       #ECEAF6;
+  --color-charcoal:  #B5AEE4;
+  --color-stone:     #B5AEE4;
+  --color-fog:       #776EA6;
+  --color-bone:      #171533;
+  --color-paper:     #0B0A18;
+  --color-sage:      #8E83D9;
+  --color-sage-deep: #A89FE5;
+  --color-ember:     #E07A5C;
+  --color-mist:      #9BB4C7;
+  --color-mist-deep: #9BB4C7;
+  --color-gold:      #D4B05E;
+  --color-white:     #171533;
+  --color-black:     #ECEAF6;
+
+  /* سیستمِ معناییِ همیار — indigo-dark (exact) */
+  --surface-canvas:#0B0A18; --surface-base:#100E22; --surface-raised:#171533; --surface-raised-2:#1E1B3D;
+  --surface-overlay:rgba(16,14,34,0.82); --surface-sunken:#0A0918;
+  --surface-glass:rgba(23,21,51,0.60); --surface-glass-strong:rgba(23,21,51,0.85);
+  --surface-tint-accent:rgba(142,131,217,0.10); --surface-gradient:linear-gradient(160deg,#1A1740,#131129);
+  --text-primary:#ECEAF6; --text-secondary:#B5AEE4; --text-tertiary:#776EA6; --text-disabled:#403A66;
+  --text-on-accent:#0B0A18; --text-mirror:#9D93E4;
+  --border-subtle:rgba(232,230,240,0.07); --border-default:rgba(232,230,240,0.11); --border-strong:rgba(232,230,240,0.18);
+  --border-glow:rgba(142,131,217,0.40); --border-focus:#8E83D9;
+  --accent:#8E83D9; --accent-bright:#A89FE5; --accent-hover:#A89FE5; --accent-pressed:#6B5DD3; --accent-muted:rgba(142,131,217,0.14);
+  --accent-gradient:linear-gradient(135deg,#8E83D9,#6B5DD3);
+  --feedback-success:#8E83D9; --feedback-warning:#D4B05E; --feedback-error:#E07A5C; --feedback-info:#9BB4C7;
+  --shadow-soft:0 1px 3px rgba(0,0,0,0.50); --shadow-low:0 2px 10px rgba(0,0,0,0.45);
+  --shadow-mid:0 10px 30px rgba(0,0,0,0.50),0 2px 8px rgba(0,0,0,0.35);
+  --shadow-high:0 28px 64px rgba(0,0,0,0.60),0 8px 18px rgba(0,0,0,0.45);
+  --shadow-glow:0 8px 32px rgba(107,93,211,0.30); --shadow-glow-focus:0 0 0 4px rgba(142,131,217,0.28);
+  --ambient-1:rgba(107,93,211,0.40); --ambient-2:rgba(142,131,217,0.28); --ambient-3:rgba(155,180,199,0.14);
+
+  /* سایه‌های لگاسی */
+  --shadow-paper-sm: 0 1px 3px rgba(0,0,0,0.50);
+  --shadow-paper:    0 2px 10px rgba(0,0,0,0.45);
+  --shadow-paper-md: 0 10px 30px rgba(0,0,0,0.55),0 2px 6px rgba(0,0,0,0.36);
+
+  /* aliasِ rgb لگاسی */
+  --rgb-card:  23,21,51;
+  --rgb-line:  236,234,246;
+  --rgb-paper: 11,10,24;
+  --rgb-bone:  30,27,61;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -141,20 +243,21 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 /* ─────────────────────────────────────────────────────────────────────────────
    Glass utilities (از design system)
    ─────────────────────────────────────────────────────────────────────────── */
+/* شیشهٔ همیار — token-driven (منبعِ واحد؛ خودکار per-theme فلیپ می‌شود). DECISION-130 */
 .glass {
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(26,26,31,0.06);
-  box-shadow: 0 12px 40px rgba(46,44,40,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+  background: var(--surface-glass);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-low), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .glass-strong {
-  background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(26,26,31,0.06);
-  box-shadow: 0 18px 50px rgba(46,44,40,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+  background: var(--surface-glass-strong);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-mid), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -228,9 +331,10 @@ input, textarea, select { font-feature-settings: "ss01" on; }
    ─────────────────────────────────────────────────────────────────────────── */
 .app-stage { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .app-blob  { position: absolute; border-radius: 50%; filter: blur(100px); will-change: transform; }
-.app-blob-1 { width: 560px; height: 560px; top: -200px; right: -150px; background: radial-gradient(circle, rgba(122,132,113,0.20), transparent 70%); animation: drift1 34s ease-in-out infinite; }
-.app-blob-2 { width: 500px; height: 500px; bottom: -220px; left: -170px; background: radial-gradient(circle, rgba(155,180,199,0.18), transparent 70%); animation: drift2 40s ease-in-out infinite; }
-.app-blob-3 { width: 360px; height: 360px; top: 46%; left: 58%; background: radial-gradient(circle, rgba(193,154,74,0.10), transparent 70%); animation: drift3 48s ease-in-out infinite; }
+/* اوراهای محیطیِ همیار — token-driven (--ambient-* per-theme). DECISION-130 */
+.app-blob-1 { width: 560px; height: 560px; top: -200px; right: -150px; background: radial-gradient(circle, var(--ambient-1), transparent 70%); animation: drift1 34s ease-in-out infinite; }
+.app-blob-2 { width: 500px; height: 500px; bottom: -220px; left: -170px; background: radial-gradient(circle, var(--ambient-2), transparent 70%); animation: drift2 40s ease-in-out infinite; }
+.app-blob-3 { width: 360px; height: 360px; top: 46%; left: 58%; background: radial-gradient(circle, var(--ambient-3), transparent 70%); animation: drift3 48s ease-in-out infinite; }
 
 /* وینیِتِ بسیار ملایم — عمقِ نور از مرکز، بدون جلب توجه */
 .app-vignette { position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -279,8 +383,9 @@ input, textarea, select { font-feature-settings: "ss01" on; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: .625rem; padding: .95rem 1.75rem; border-radius: 9999px; font-weight: 500; font-size: 15px; transition: all 350ms var(--ease-expo); white-space: nowrap; line-height: 1; cursor: pointer; border: none; font-family: inherit; text-decoration: none; }
-.btn-primary { background: var(--color-sage); color: var(--color-paper); box-shadow: 0 10px 28px rgba(122,132,113,0.32); }
-.btn-primary:hover { background: var(--color-sage-deep); box-shadow: 0 14px 38px rgba(122,132,113,0.42); transform: translateY(-1px); }
+/* دکمهٔ اصلی — گرادیانِ اکسنتِ همیار + هاله (token-driven، per-theme). DECISION-130 */
+.btn-primary { background: var(--accent-gradient); color: #fff; box-shadow: var(--shadow-glow); }
+.btn-primary:hover { filter: brightness(1.06); box-shadow: var(--shadow-high); transform: translateY(-1px); }
 .btn-ghost { background: transparent; color: var(--color-ink); border: 1px solid rgba(26,26,31,0.14); }
 .btn-ghost:hover { background: rgba(26,26,31,0.04); border-color: rgba(26,26,31,0.22); }
 .btn-glass { background: rgba(255,255,255,0.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(26,26,31,0.08); color: var(--color-ink); }
@@ -636,17 +741,7 @@ input, textarea, select { font-feature-settings: "ss01" on; }
    هر کلاس با رنگ literal روشن، اینجا نسخهٔ شب می‌گیرد. توکن‌های var() خودکارند.
    ─────────────────────────────────────────────────────────────────────────── */
 
-/* شیشه‌ها — در شب: سطحِ زغالیِ نیمه‌شفاف + لبهٔ مهتابیِ بسیار ملایم */
-[data-theme="dark"] .glass {
-  background: rgba(41,36,30,0.55);
-  border-color: rgba(237,231,218,0.08);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(237,231,218,0.06);
-}
-[data-theme="dark"] .glass-strong {
-  background: rgba(41,36,30,0.78);
-  border-color: rgba(237,231,218,0.09);
-  box-shadow: 0 18px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(237,231,218,0.06);
-}
+/* .glass و .glass-strong حالا token-driven‌اند (var(--surface-glass)) → override حذف شد (DECISION-130) */
 [data-theme="dark"] .glass-tinted {
   background: linear-gradient(135deg, rgba(122,132,113,0.13), rgba(155,180,199,0.05));
   border-color: rgba(151,162,138,0.16);
@@ -670,15 +765,7 @@ input, textarea, select { font-feature-settings: "ss01" on; }
   background: radial-gradient(120% 80% at 50% 0%, rgba(237,231,218,0.045), transparent 55%);
 }
 
-/* دکمه‌ها */
-[data-theme="dark"] .btn-primary {
-  color: #14110E; /* متنِ تیره روی sage روشن‌شده — کنتراست درست */
-  box-shadow: 0 10px 28px rgba(122,132,113,0.20);
-}
-[data-theme="dark"] .btn-primary:hover {
-  background: #A4AF96;
-  box-shadow: 0 14px 38px rgba(122,132,113,0.28);
-}
+/* دکمه‌ها — .btn-primary حالا token-driven (var(--accent-gradient)+--shadow-glow) → override حذف */
 [data-theme="dark"] .btn-ghost { border-color: rgba(237,231,218,0.16); }
 [data-theme="dark"] .btn-ghost:hover {
   background: rgba(237,231,218,0.05);
@@ -765,6 +852,183 @@ input, textarea, select { font-feature-settings: "ss01" on; }
   background: linear-gradient(to left, transparent, rgba(237,231,218,0.14), transparent);
 }
 [data-theme="dark"] .prose-article a { border-bottom-color: rgba(172,184,156,0.35); }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   🟣 ایندیگو — اعمالِ عمیقِ تم (DECISION-129). مشکلِ ریشه‌ایِ «تمِ کم‌رنگ»: بلوکِ
+   بالا فقط روی [data-theme="dark"] اعمال می‌شد، پس در ایندیگو همهٔ کلاس‌های literal
+   (glass, blobها، دکمه‌ها، …) به مقدارِ پیش‌فرضِ روشن (rgba(255,255,255,…)) برمی‌گشتند
+   → کارت‌های شیشه‌ایِ سفید روی زمینهٔ تیره = ظاهرِ شسته/تخت. اینجا همان override ها را
+   با هویتِ بنفش می‌سازیم؛ فقط scopeِ ایندیگو → روی لایت/دارک/ادمین هیچ اثری ندارد.
+   پالت: violet #8E83D9 / deep #6B5DD3 / light #A89FE5 · surface #171533 (rgb 23,21,51)
+   · canvas #0B0A18 · highlight لَوَندری rgb 236,234,246 · glow rgba(107,93,211,…)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* .glass و .glass-strong حالا token-driven (var(--surface-glass)) → override حذف (DECISION-130) */
+[data-theme="indigo"] .glass-tinted {
+  background: linear-gradient(135deg, rgba(142,131,217,0.18), rgba(107,93,211,0.07));
+  border-color: rgba(142,131,217,0.24);
+  box-shadow: 0 18px 44px rgba(0,0,0,0.5), inset 0 1px 0 rgba(236,234,246,0.05);
+}
+[data-theme="indigo"] .glass-nav {
+  background: rgba(11,10,24,0.78);
+  border-bottom-color: rgba(142,131,217,0.12);
+}
+[data-theme="indigo"] .grain::after { mix-blend-mode: screen; opacity: 0.32; }
+
+/* blobها token-driven (--ambient-* per-theme) → رنگ‌ها حذف؛ فقط opacity/vignette می‌ماند */
+[data-theme="indigo"] .blob { opacity: 0.5; }
+[data-theme="indigo"] .app-blob { opacity: 0.85; }
+[data-theme="indigo"] .app-vignette {
+  background: radial-gradient(120% 80% at 50% 0%, rgba(142,131,217,0.10), transparent 55%);
+}
+
+/* .btn-primary حالا token-driven (var(--accent-gradient)) → override حذف */
+[data-theme="indigo"] .btn-ghost { border-color: rgba(236,234,246,0.16); }
+[data-theme="indigo"] .btn-ghost:hover {
+  background: rgba(142,131,217,0.08);
+  border-color: rgba(142,131,217,0.32);
+}
+[data-theme="indigo"] .btn-glass {
+  background: rgba(23,21,51,0.72);
+  border-color: rgba(236,234,246,0.10);
+}
+[data-theme="indigo"] .btn-glass:hover {
+  background: rgba(30,27,61,0.9);
+  border-color: rgba(142,131,217,0.24);
+}
+[data-theme="indigo"] .hr-line { background: rgba(236,234,246,0.09); }
+[data-theme="indigo"] .pill {
+  background: rgba(23,21,51,0.6);
+  border-color: rgba(142,131,217,0.14);
+}
+[data-theme="indigo"] .step-num {
+  background: linear-gradient(135deg, rgba(30,27,61,0.9), rgba(23,21,51,0.6));
+  border-color: rgba(236,234,246,0.09);
+}
+[data-theme="indigo"] .float-card {
+  background: rgba(23,21,51,0.72);
+  border-color: rgba(142,131,217,0.12);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.55), 0 10px 40px rgba(107,93,211,0.14), inset 0 1px 0 rgba(236,234,246,0.06);
+}
+[data-theme="indigo"] .hover-rise:hover { box-shadow: 0 26px 60px rgba(0,0,0,0.55), 0 8px 30px rgba(107,93,211,0.16); }
+
+/* Share modal — بنفش */
+[data-theme="indigo"] .sharem-overlay { background: rgba(6,5,14,0.82); }
+[data-theme="indigo"] .sharem-panel {
+  background: #15132E;
+  border-color: rgba(142,131,217,0.14);
+  box-shadow: 0 32px 72px rgba(0,0,0,0.65), 0 8px 30px rgba(107,93,211,0.18);
+}
+[data-theme="indigo"] .sharem-close {
+  background: rgba(23,21,51,0.7);
+  border-color: rgba(236,234,246,0.10);
+  box-shadow: inset 0 1px 0 rgba(236,234,246,0.05);
+}
+[data-theme="indigo"] .sharem-close:hover { background: rgba(30,27,61,0.9); }
+[data-theme="indigo"] .sharem-preview {
+  background: rgba(23,21,51,0.5);
+  border-color: rgba(142,131,217,0.12);
+  box-shadow: inset 0 1px 0 rgba(236,234,246,0.05);
+}
+[data-theme="indigo"] .sharem-preview-img::after {
+  background: linear-gradient(105deg, transparent 30%, rgba(236,234,246,0.10) 50%, transparent 70%);
+}
+[data-theme="indigo"] .sharem-seg {
+  background: rgba(236,234,246,0.06);
+  border-color: rgba(236,234,246,0.07);
+}
+[data-theme="indigo"] .sharem-seg button.active {
+  background: rgba(30,27,61,0.95);
+  color: var(--color-ink);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+[data-theme="indigo"] .sharem-field {
+  background: rgba(23,21,51,0.6);
+  border-color: rgba(142,131,217,0.12);
+}
+[data-theme="indigo"] .sharem-tile {
+  background: rgba(23,21,51,0.7);
+  border-color: rgba(142,131,217,0.12);
+  box-shadow: inset 0 1px 0 rgba(236,234,246,0.05);
+}
+[data-theme="indigo"] .sharem-tile:hover {
+  background: rgba(30,27,61,0.9);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.45), inset 0 1px 0 rgba(236,234,246,0.05);
+}
+
+/* داشبورد/سفر — هگزهای گرمِ هاردکدشده (sage/fog) که توکن نیستند → بنفش در ایندیگو */
+[data-theme="indigo"] .app-bn-home .bn-ring {
+  box-shadow: 0 10px 26px rgba(107,93,211,0.5), 0 2px 6px rgba(0,0,0,0.3);
+}
+[data-theme="indigo"] .app-bn-home.active .bn-ring {
+  box-shadow: 0 10px 26px rgba(107,93,211,0.6), 0 0 0 4px rgba(142,131,217,0.2);
+}
+[data-theme="indigo"] .dsh-tl-link.done { background: rgba(142,131,217,0.5); }
+[data-theme="indigo"] .dsh-tl-pop,
+[data-theme="indigo"] .jp-tip { box-shadow: 0 16px 44px rgba(0,0,0,0.55); }
+[data-theme="indigo"] .dsh-legend .sw.wrote,
+[data-theme="indigo"] .dsh-rh-pill.wrote { background: rgba(142,131,217,0.55); }
+[data-theme="indigo"] .dsh-plan-badge.plus { color: var(--color-sage-deep); background: rgba(142,131,217,0.18); }
+[data-theme="indigo"] .jp-line-done { background: rgba(142,131,217,0.5); }
+[data-theme="indigo"] .jp-st-done,
+[data-theme="indigo"] .jp-st-left { background: rgba(11,10,24,0.55); }
+[data-theme="indigo"] .jp-jcard:hover { box-shadow: 0 22px 50px rgba(0,0,0,0.5), 0 8px 24px rgba(107,93,211,0.14); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   حذفِ گرم (ember/gold) از دارک+ایندیگو در داشبورد/هدف (DECISION-130، فاز۲/۳).
+   قاعدهٔ مالک: در دارک/بنفش رنگِ گرم ممنوع. today→accent-bright، همراه(gold)→accent.
+   فقط دارک/ایندیگو؛ لایت گرمِ هماهنگ را نگه می‌دارد (دست‌نخورده).
+   ═══════════════════════════════════════════════════════════════════════════════ */
+/* ── today (نقطه/هفته/ریتم/راهنما) ── */
+[data-theme="dark"] .dsh-tl-node.today, [data-theme="indigo"] .dsh-tl-node.today,
+[data-theme="dark"] .jp-pdot.today,     [data-theme="indigo"] .jp-pdot.today {
+  background: var(--accent-bright); border-color: var(--accent-bright); box-shadow: 0 0 0 4px var(--accent-muted);
+}
+[data-theme="dark"] .dsh-wcell.today, [data-theme="indigo"] .dsh-wcell.today { background: var(--accent-muted); }
+[data-theme="dark"] .dsh-wcell.today .wn, [data-theme="indigo"] .dsh-wcell.today .wn,
+[data-theme="dark"] .dsh-wcell.today .wd, [data-theme="indigo"] .dsh-wcell.today .wd { color: var(--accent-bright); }
+[data-theme="dark"] .dsh-rh.today .dsh-rh-pill, [data-theme="indigo"] .dsh-rh.today .dsh-rh-pill {
+  box-shadow: 0 0 0 2px var(--color-paper), 0 0 0 4px var(--accent);
+}
+[data-theme="dark"] .dsh-rh.today .dsh-rh-day, [data-theme="indigo"] .dsh-rh.today .dsh-rh-day,
+[data-theme="dark"] .jp-pnode.is-today .jp-pday, [data-theme="indigo"] .jp-pnode.is-today .jp-pday { color: var(--accent-bright); }
+[data-theme="dark"] .dsh-lg .sw.today, [data-theme="indigo"] .dsh-lg .sw.today {
+  box-shadow: 0 0 0 2px var(--color-paper), 0 0 0 3px var(--accent);
+}
+[data-theme="dark"] .jp-chev-today, [data-theme="indigo"] .jp-chev-today,
+[data-theme="dark"] .jp-leg-chev.today, [data-theme="indigo"] .jp-leg-chev.today { background: var(--accent); }
+[data-theme="dark"] .jp-cv-today, [data-theme="indigo"] .jp-cv-today { filter: drop-shadow(0 2px 12px var(--accent-muted)); }
+
+/* ── همراه (gold→accent) + chip/ember-link ── */
+[data-theme="dark"] .dsh-cp-av, [data-theme="indigo"] .dsh-cp-av,
+[data-theme="dark"] .dsh-cp-glyph, [data-theme="indigo"] .dsh-cp-glyph,
+[data-theme="dark"] .jp-comp-av, [data-theme="indigo"] .jp-comp-av,
+[data-theme="dark"] .jp-cm, [data-theme="indigo"] .jp-cm,
+[data-theme="dark"] .jp-cv-cm, [data-theme="indigo"] .jp-cv-cm,
+[data-theme="dark"] .jp-cv-cm-sm, [data-theme="indigo"] .jp-cv-cm-sm,
+[data-theme="dark"] .jp-path-foot .dg, [data-theme="indigo"] .jp-path-foot .dg {
+  color: var(--accent); background: var(--accent-muted); border-color: var(--accent-muted);
+}
+[data-theme="dark"] .dsh-chip-pro, [data-theme="indigo"] .dsh-chip-pro,
+[data-theme="dark"] .jp-comp-chip, [data-theme="indigo"] .jp-comp-chip,
+[data-theme="dark"] .dsh-plan-badge.pro, [data-theme="indigo"] .dsh-plan-badge.pro {
+  color: var(--accent-bright); background: var(--accent-muted); border-color: var(--accent-muted);
+}
+[data-theme="dark"] .dsh-cp-name, [data-theme="indigo"] .dsh-cp-name { color: var(--accent-bright); }
+[data-theme="dark"] .jp-comp, [data-theme="indigo"] .jp-comp,
+[data-theme="dark"] .jp-thread-comp, [data-theme="indigo"] .jp-thread-comp { background: var(--accent-muted); border-color: var(--accent-muted); }
+[data-theme="dark"] .jp-thread-comp .h, [data-theme="indigo"] .jp-thread-comp .h { color: var(--accent-bright); }
+[data-theme="dark"] .jp-tip.gold, [data-theme="indigo"] .jp-tip.gold { border-color: var(--accent-muted); }
+[data-theme="dark"] .jp-tip.gold .d, [data-theme="indigo"] .jp-tip.gold .d { color: var(--accent-bright); }
+[data-theme="dark"] .dsh-cp-more, [data-theme="indigo"] .dsh-cp-more,
+[data-theme="dark"] .dsh-cp-link, [data-theme="indigo"] .dsh-cp-link,
+[data-theme="dark"] .jp-comp-more, [data-theme="indigo"] .jp-comp-more { color: var(--accent); }
+
+/* ── ember-hoverها و «بیشتر» (نارنجی→accent) ── */
+[data-theme="dark"] .dsh-cta:hover, [data-theme="indigo"] .dsh-cta:hover,
+[data-theme="dark"] .dsh-plan-links a:hover, [data-theme="indigo"] .dsh-plan-links a:hover,
+[data-theme="dark"] .dsh-plan-links button:hover, [data-theme="indigo"] .dsh-plan-links button:hover,
+[data-theme="dark"] .dsh-tl-pop .more, [data-theme="indigo"] .dsh-tl-pop .more { color: var(--accent-bright); }
 
 /* گذارِ نرمِ تعویض تم — کلاسِ گذرا که ThemeToggle برای ~۵۰۰ms روی <html> می‌گذارد */
 html.theme-anim,
@@ -952,6 +1216,191 @@ input, textarea, select, [contenteditable="true"], [contenteditable=""] {
 .t-pulse .dsh-legend { margin-bottom: 9px; }
 .t-pulse .dsh-rhythm { margin: 2px 0 10px; }
 .t-pulse .dsh-rh-pill { height: 40px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-116 — هاردنینگِ ریسپانسیوِ داشبورد (فاز A؛ مرجعِ زیبایی = همیار، تمِ
+   warm-light/warm-dark آن = Warm Paperِ همسو). معضل: زیرِ ۷۶۸ و به‌ویژه ۴۳۰px،
+   بِنتوی قابِ‌ثابت (grid-auto-rows:206px) + تنها یک نقطه‌شکستِ ۷۶۰ + اندازه‌های px
+   ثابت → سرریزِ افقیِ ردیف‌های ۷خانه‌ای و برشِ محتوا.
+   راهکار (افزایشی و برگشت‌پذیر — قواعدِ دسکتاپ بالا دست‌نخورده‌اند):
+     ۱) واحدهای سیّال clamp() که سقفشان = مقدارِ فعلیِ دسکتاپ → دسکتاپ بی‌تغییر.
+     ۲) نردبانِ نقطه‌شکست: ≤۶۳۹ تک‌ستونه · ۶۴۰–۹۸۰ دو‌ستونهٔ محتوا‌محور · ≥۹۸۱ بِنتوی فعلی.
+     ۳) تورِ ضدِسرریز: min-width:0 روی فرزندانِ فلکس/گرید + اسکرولِ نرمِ تایم‌لاین.
+   اسکوپ‌شده به .dsh-* → هیچ اثری بر پنل ادمین یا صفحاتِ دیگر ندارد (هم‌ترازی حفظ).
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* (الف) سیّال‌سازیِ کانتینر و تایل‌ها — سقفِ clamp = مقدارِ دسکتاپ، پس دسکتاپ ثابت می‌ماند */
+.dsh-wrap { padding-inline: clamp(14px, 4vw, 24px); }
+.dsh-bento > .dsh-tile { min-width: 0; padding: clamp(15px, 4vw, 20px); }
+
+/* (ب) نردبانِ نقطه‌شکست — تبلتِ میانی (۶۴۰–۹۸۰): دو‌ستونهٔ محتوا‌محور به‌جای قابِ
+   ۱۲ستونهٔ ۲۰۶px که در این بازه فشرده/بریده می‌شد. minmax(0,1fr) = ضدِ سرریز. */
+@media (min-width: 640px) and (max-width: 980px) {
+  .dsh-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; }
+  .dsh-bento > .dsh-tile,
+  .dsh-bento > .t-goal,
+  .dsh-bento > .t-pulse,
+  .dsh-bento > .t-week,
+  .dsh-bento > .t-hist,
+  .dsh-bento > .t-report,
+  .dsh-bento > .t-plan { grid-column: auto; grid-row: auto; overflow: visible; min-height: 0; }
+}
+
+/* (ج) موبایل ≤۷۶۰ — امن‌سازیِ ردیف‌های افقیِ پرخطر (ریشهٔ آنارشیِ ۴۳۰px) */
+@media (max-width: 760px) {
+  /* نوارِ هفته و ریتمِ نبض: ۷ خانه باید جا شوند، نه سرریز.
+     min-width:0 اجازهٔ کوچک‌شدنِ آیتم‌های فلکس را می‌دهد؛ gap سیّال. */
+  .dsh-week, .dsh-rhythm { gap: clamp(3px, 1.4vw, 8px); }
+  .dsh-rh, .dsh-wcell { min-width: 0; }
+  .dsh-rh-pill { height: clamp(34px, 9vw, 40px); }
+
+  /* ساعت + بلوکِ زمان: فاصلهٔ سیّال + ساعتِ سیّال تا در عرضِ کم نشکند */
+  .t-week .dsh-clockzone { gap: clamp(10px, 4vw, 14px); }
+  .t-week .dsh-clock { width: clamp(50px, 14vw, 60px); height: clamp(50px, 14vw, 60px); }
+  .dsh-digi { font-size: clamp(21px, 6vw, 26px); }
+
+  /* تایم‌لاین: overflow حذف شد (DECISION-126). `overflow-x:auto` باعثِ القای
+     `overflow-y:auto` می‌شد و پاپ‌اوورِ استوری را که بالای نقطه می‌نشیند عمودی کلیپ
+     می‌کرد → حباب روی موبایل دیده نمی‌شد. نقاط windowed‌اند (≤۸) و بدونِ اسکرول جا می‌شوند. */
+
+  /* عنوان/تیترها کمی فشرده‌تر تا در عرضِ موبایل تراز بماند */
+  .dsh-goal-title { font-size: clamp(15px, 4.4vw, 17px); }
+  .dsh-sec { margin-top: clamp(28px, 7vw, 46px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-118 — هاردنینگِ ریسپانسیوِ صفحاتِ هدف (jp-) و پروفایل (pf-) + نوارِ تبِ پایین.
+   ادامهٔ DECISION-116/117 با همان اصول (مرجع: همیار). افزایشی و اسکوپ‌شده؛ دسکتاپ ثابت.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* (الف) سیّال‌سازیِ کانتینر/تایل‌ها — سقفِ clamp = مقدارِ دسکتاپ، پس دسکتاپ بی‌تغییر */
+.jp-wrap, .pf-wrap { padding-inline: clamp(14px, 4vw, 24px); }
+.jp-tile { padding: clamp(15px, 4vw, 20px); }
+.pf-tile { padding: clamp(16px, 4.5vw, 22px); }
+
+/* (ب) گریدِ «کتابخانهٔ مسیرها»: min(240px,100%) → در عرضِ کم به‌جای سرریز، تک‌ستونه می‌شود */
+.jp-journeys { grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+
+/* (ج) کفِ صفحات روی موبایل: کم می‌شود چون فاصلهٔ نوارِ تب را AppShell (pb) می‌دهد
+   → جلوگیری از فاصلهٔ مضاعف؛ محتوا تمیز بالای تب می‌نشیند */
+@media (max-width: 760px) {
+  .dsh-wrap, .jp-wrap, .pf-wrap { padding-bottom: 20px; }
+  .jp-hero-title { font-size: clamp(17px, 5vw, 20px); }
+  .pf-plan-now .name { font-size: clamp(16px, 4.6vw, 18px); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-119 — نوارِ ناوبریِ پایینِ یکپارچه (موبایل) — سبکِ همیار + ۵ تب.
+   راست→چپ: مسیر · گزارش · [خانه = مرکزِ برجسته] · همیار(به‌زودی) · پروفایل.
+   دکمهٔ مرکزیِ raised عینِ bnav-home همیار. دارک‌اگاه (var(--rgb-paper/line)).
+   ادغامِ آینده: تبِ همیار درگاهِ دنیای شبکهٔ اجتماعی است؛ همین نوار آن‌جا هم می‌ماند.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.app-botnav {
+  position: fixed; bottom: 0; inset-inline: 0; z-index: 50;
+  display: flex; align-items: flex-end; justify-content: space-around;
+  padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(var(--rgb-paper), 0.82);
+  -webkit-backdrop-filter: blur(24px) saturate(140%); backdrop-filter: blur(24px) saturate(140%);
+  border-top: 1px solid rgba(var(--rgb-line), 0.08);
+}
+@media (min-width: 768px) { .app-botnav { display: none; } }
+
+.app-bn {
+  position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 6px 0 2px; color: var(--color-stone); background: none; border: none; cursor: pointer;
+  font-family: inherit; text-decoration: none; transition: color 0.25s;
+}
+.app-bn svg { width: 23px; height: 23px; stroke-width: 1.7; }
+.app-bn span { font-size: 10px; line-height: 1; }
+.app-bn.active { color: var(--color-ember); }
+.app-bn.active svg { stroke-width: 2; }
+.app-bn.is-disabled { color: var(--color-fog); cursor: not-allowed; }
+.app-bn .bn-soon {
+  position: absolute; top: 0; inset-inline-end: calc(50% - 26px);
+  font-size: 8px; color: var(--color-gold); background: rgba(193, 154, 74, 0.14);
+  border: 1px solid rgba(193, 154, 74, 0.3); border-radius: 999px; padding: 1px 5px;
+}
+
+/* ★ مرکزِ برجسته — خانه */
+.app-bn-home { flex: 0 0 auto; width: 64px; align-self: stretch; justify-content: flex-end; gap: 5px; }
+.app-bn-home .bn-ring {
+  width: 56px; height: 56px; margin-top: -22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+  background: linear-gradient(135deg, var(--color-sage), var(--color-sage-deep));
+  border: 3px solid var(--color-paper);
+  box-shadow: 0 10px 26px rgba(122, 132, 113, 0.42), 0 2px 6px rgba(46, 44, 40, 0.2);
+  transition: transform 0.3s var(--ease-expo);
+}
+.app-bn-home .bn-ring svg { width: 26px; height: 26px; stroke-width: 2; }
+.app-bn-home span { color: var(--color-sage-deep); font-weight: 500; }
+.app-bn-home.active .bn-ring { box-shadow: 0 10px 26px rgba(122, 132, 113, 0.5), 0 0 0 4px rgba(122, 132, 113, 0.16); }
+.app-bn-home:hover .bn-ring { transform: scale(1.06); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-120 — رفعِ «grid blowout» در موبایل (ریشهٔ سرریزِ افقیِ صفحهٔ goal).
+   `grid-template-columns:1fr` = `minmax(auto,1fr)`؛ کفِ auto اجازه می‌دهد فرزندِ عریض
+   (ریلِ سفرِ jp با width:max-content، تایم‌لاین، …) ستون را تا عرضِ محتوا منبسط کند →
+   کلِ گرید از viewport پهن‌تر و کارت‌ها جابه‌جا/بریده می‌شوند. راهِ قطعی: minmax(0,1fr)
+   + min-width:0 روی فرزندان (تا اسکرولِ داخلیِ ریل فعال شود، نه سرریزِ صفحه).
+   ═══════════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  .dsh-bento, .jp-bento { grid-template-columns: minmax(0, 1fr); }
+  .jp-bento > .jp-tile { min-width: 0; }
+  .jp-rail-outer, .jp-rail-vp { min-width: 0; max-width: 100%; }
+}
+@media (max-width: 860px) {
+  .pf-bento-cols { grid-template-columns: minmax(0, 1fr); }
+  .pf-bento-cols .pf-col { min-width: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-123 — پاپ‌اوورِ استوریِ تایم‌لاینِ داشبورد: لمس‌محور (موبایل tap نه hover).
+   کلاسِ .is-open از JS (GoalTile) ست می‌شود؛ rule آینهٔ همان :hover دسکتاپ است.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.dsh-tl-item.is-open .dsh-tl-pop {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(50%) translateY(0) scale(1);
+}
+.dsh-tl-item { cursor: pointer; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-124 — FABهای چت روی دستگاهِ لمسی تا لمس‌نشده کم‌رنگ‌اند (سکوتِ بصری)،
+   هنگامِ لمس پررنگ. opacity در حالتِ نمایان از اینجا می‌آید (inline آن را undefined
+   می‌گذارد)؛ روی دسکتاپ (hover) همیشه پررنگ.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+@media (hover: none) {
+  .chat-fab { opacity: 0.6; }
+  .chat-fab:active { opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DECISION-125 — FABِ پلاسِ شیشه‌ایِ گسترش‌یابنده (سبکِ iOS «Liquid Glass»).
+   یک دکمه به‌جای دو؛ با لمس به چت‌ها (همدم/پشتیبانی) گسترش می‌یابد. دارک‌اگاه.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.fab-glass {
+  /* شیشه‌ایِ واقعی: پس‌زمینهٔ بسیار کم‌کدورت تا محتوای زیر پیدا باشد؛ بلورِ قوی کارِ
+     «فراستِ» شیشه را می‌کند (نه پُرکردنِ سفید). DECISION-126. */
+  background: rgba(var(--rgb-card), 0.22);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(var(--rgb-line), 0.10);
+  box-shadow: 0 10px 28px rgba(46, 44, 40, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: opacity 0.3s ease, box-shadow 0.25s ease;
+}
+[data-theme="dark"] .fab-glass {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+[data-theme="indigo"] .fab-glass {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 6px 24px rgba(107, 93, 211, 0.18), inset 0 1px 0 rgba(236, 234, 246, 0.06);
+}
+.fab-pill {
+  background: rgba(var(--rgb-card), 0.7);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(var(--rgb-line), 0.08);
+  box-shadow: 0 6px 18px rgba(46, 44, 40, 0.12);
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    قانون قطعی: اسکرول‌بار در هیچ عنصری (کارت، مودال، صفحه) نمایش داده نمی‌شود

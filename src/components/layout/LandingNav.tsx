@@ -25,6 +25,7 @@ const NAV_LINKS = [
   { href: "/", label: "صفحه اصلی" },
   { href: "/about", label: "درباره ما" },
   { href: "/contact", label: "تماس با ما" },
+  { href: "/plans", label: "پلن‌ها" },
   { href: "/blog", label: "بلاگ" },
 ] as const;
 

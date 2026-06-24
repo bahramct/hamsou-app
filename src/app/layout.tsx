@@ -4,7 +4,9 @@ import { DevModeBadge } from "@/components/dev/DevModeBadge";
 import { DevResetPanel } from "@/components/dev/DevResetPanel";
 import { FloatingActions } from "@/components/features/chat/FloatingActions";
 import { DisableAutofill } from "@/components/system/DisableAutofill";
+import { ServiceWorkerRegistrar } from "@/components/system/ServiceWorkerRegistrar";
 import { ThemeScript } from "@/components/theme/ThemeScript";
+import { ThemeRouteSync } from "@/components/theme/ThemeRouteSync";
 import { ToastHost } from "@/components/notifications/ToastHost";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { getAppBaseUrl } from "@/lib/utils/app-url";
@@ -17,12 +19,19 @@ export const metadata: Metadata = {
   metadataBase: new URL(getAppBaseUrl()),
   title: "همسو — برای واقعی‌تر زندگی کردن",
   description: "یک تعهد در روز. یک پرسش آرام فردا. همسو، آینه‌ای برای صادق ماندن با خود.",
-  icons: { icon: "/logo.png" },
+  applicationName: "همسو",
+  icons: { icon: "/logo.png", apple: "/apple-touch-icon.png" },
+  // نصب‌پذیریِ iOS (Add to Home Screen) — DECISION-121.
+  // manifest خودکار از app/manifest.ts لینک می‌شود.
+  appleWebApp: { capable: true, title: "همسو", statusBarStyle: "default" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // رنگِ نوارِ مرورگر/استتوس‌بار در حالتِ نصب‌شده — warm-light canvas همیار (DECISION-130)
+  themeColor: "#F2EEE4",
 };
 
 export default async function RootLayout({
@@ -63,6 +72,10 @@ export default async function RootLayout({
       <body className="min-h-full font-pelak antialiased">
         {/* قانون سراسری: بدون حباب پیشنهاد/autofill در هیچ ورودی (سایت + پنل) */}
         <DisableAutofill />
+        {/* ثبتِ Service Worker — فقط production؛ نصب‌پذیریِ PWA (DECISION-121) */}
+        <ServiceWorkerRegistrar />
+        {/* همگام‌سازیِ تم با مسیر — ایندیگو فقط در اپ (DECISION-128) */}
+        <ThemeRouteSync />
         {children}
         {/* لایهٔ گذرای toast — روی سایت و پنل (DECISION-046) */}
         <ToastHost />

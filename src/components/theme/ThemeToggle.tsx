@@ -1,13 +1,14 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ThemeToggle — دکمهٔ چرخه‌ای تم: system → light → dark → system (DECISION-067)
-// یک دکمهٔ گردِ آرام؛ آیکونِ ترجیحِ فعلی را نشان می‌دهد. بدون متن، بدون جشن.
-// تغییرِ تم با گذارِ نرم (theme-anim) اعمال می‌شود؛ toggleِ «حالت» است نه اکشن
-// — پس تغییرِ آیکون مجاز است (استثنای DECISION-053).
+// ThemeToggle — دکمهٔ چرخه‌ای تم (DECISION-128)
+//   اپ (allowIndigo):   light → dark → indigo
+//   پابلیک/ادمین:        light → dark   (بدونِ ایندیگو)
+// «system» حذف شد. toggleِ «حالت» است (تغییرِ آیکون مجاز — استثنای DECISION-053).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   type ThemePref,
   readThemePref,
@@ -15,12 +16,10 @@ import {
   saveThemePref,
 } from "@/lib/theme";
 
-const ORDER: ThemePref[] = ["system", "light", "dark"];
-
 const LABELS: Record<ThemePref, string> = {
-  system: "تم: هماهنگ با سیستم",
   light: "تم: روشن",
   dark: "تم: تاریک",
+  indigo: "تم: ایندیگو",
 };
 
 function SunIcon() {
@@ -31,7 +30,6 @@ function SunIcon() {
     </svg>
   );
 }
-
 function MoonIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -39,42 +37,43 @@ function MoonIcon() {
     </svg>
   );
 }
-
-function AutoIcon() {
+function IndigoIcon() {
+  // قطرهٔ نیمه‌پر — اشاره به تمِ بنفش (بدون متن)
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      {/* نیم‌خورشید/نیم‌ماه — حالت خودکار */}
-      <circle cx="12" cy="12" r="8" />
-      <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none" opacity="0.45" />
+      <path d="M12 3c3.5 4 6 7 6 10a6 6 0 0 1-12 0c0-3 2.5-6 6-10z" />
+      <path d="M12 3c3.5 4 6 7 6 10a6 6 0 0 1-6 6z" fill="currentColor" stroke="none" opacity="0.45" />
     </svg>
   );
 }
 
-export function ThemeToggle({ className = "" }: { className?: string }) {
-  // تا mount، ترجیح را نمی‌دانیم (localStorage) — placeholder بدون آیکونِ قطعی
+export function ThemeToggle({
+  className = "",
+  allowIndigo = false,
+}: {
+  className?: string;
+  allowIndigo?: boolean;
+}) {
+  const pathname = usePathname();
   const [pref, setPref] = useState<ThemePref | null>(null);
 
   useEffect(() => {
     setPref(readThemePref());
   }, []);
 
-  // در حالتِ system، با تغییرِ تمِ سیستم‌عامل، زنده هماهنگ شو
-  useEffect(() => {
-    if (pref !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [pref]);
+  const ORDER: ThemePref[] = allowIndigo ? ["light", "dark", "indigo"] : ["light", "dark"];
 
   function cycle() {
-    const current = pref ?? "system";
+    let current = pref ?? "light";
+    if (!ORDER.includes(current)) current = "light"; // ایندیگوی ذخیره‌شده روی تاگلِ ۲تایی
     const next = ORDER[(ORDER.indexOf(current) + 1) % ORDER.length];
     setPref(next);
     saveThemePref(next);
-    applyTheme(next);
+    applyTheme(next, pathname);
   }
 
+  // آیکونِ نمایش‌داده‌شده = تمِ مؤثر (ایندیگو روی جایی که مجاز نیست = تاریک)
+  const shown: ThemePref = pref === "indigo" && !allowIndigo ? "dark" : (pref ?? "light");
   const label = pref ? LABELS[pref] : "تم";
 
   return (
@@ -89,7 +88,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
         bg-white/40 hover:bg-white/70
         transition-all duration-300 ${className}`}
     >
-      {pref === "light" ? <SunIcon /> : pref === "dark" ? <MoonIcon /> : <AutoIcon />}
+      {shown === "light" ? <SunIcon /> : shown === "indigo" ? <IndigoIcon /> : <MoonIcon />}
     </button>
   );
 }

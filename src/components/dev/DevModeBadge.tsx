@@ -15,6 +15,7 @@ export function DevModeBadge() {
       <div
         aria-hidden="true"
         className="
+          hidden md:block
           fixed bottom-3 left-3 z-50 select-none
           px-2 py-0.5 rounded-md
           bg-ember/90 text-paper text-[10px] font-semibold tracking-wider

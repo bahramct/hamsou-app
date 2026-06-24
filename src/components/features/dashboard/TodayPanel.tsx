@@ -71,7 +71,9 @@ export function TodayPanel({ days, dateLabel, monthLabel, userName, compact }: P
     return () => clearInterval(id);
   }, [userName]);
 
-  function showTip(e: React.MouseEvent, d: WeekDayActivity) {
+  // نمایشِ حباب: دسکتاپ با hover (pointerenter ماوس)، موبایل با نگه‌داشتنِ انگشت
+  // (pointerdown لمسی). با رهاکردن/خروجِ انگشت/شروعِ اسکرول، حباب فوراً ناپدید می‌شود.
+  function showTip(e: React.PointerEvent, d: WeekDayActivity) {
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     setTip({
       show: true,
@@ -120,8 +122,12 @@ export function TodayPanel({ days, dateLabel, monthLabel, userName, compact }: P
             <div
               key={d.dateIso}
               className={`dsh-wcell ${cls}${has ? " has" : ""}`}
-              onMouseEnter={(e) => showTip(e, d)}
-              onMouseLeave={hideTip}
+              style={{ touchAction: "pan-y" }}
+              onPointerDown={(e) => { if (e.pointerType === "touch") showTip(e, d); }}
+              onPointerEnter={(e) => { if (e.pointerType !== "touch") showTip(e, d); }}
+              onPointerUp={hideTip}
+              onPointerLeave={hideTip}
+              onPointerCancel={hideTip}
             >
               <span className="wd">{d.weekdayShort}</span>
               <span className="wn fa-num">{fa(d.jalaliDay)}</span>

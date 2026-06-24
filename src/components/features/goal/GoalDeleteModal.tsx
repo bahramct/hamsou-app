@@ -98,7 +98,7 @@ export function GoalDeleteModal({
         aria-label="حذف هدف"
       >
         <div
-          className="pointer-events-auto w-full max-w-md overflow-hidden rounded-3xl border border-black/8 shadow-[0_20px_60px_rgba(26,26,31,0.22),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
+          className="pointer-events-auto w-full max-w-md max-h-[calc(100dvh-2.5rem)] overflow-y-auto rounded-3xl border border-black/8 shadow-[0_20px_60px_rgba(26,26,31,0.22),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
           style={{
             background: "rgba(var(--rgb-paper),0.96)",
             backdropFilter: "blur(28px) saturate(150%)",

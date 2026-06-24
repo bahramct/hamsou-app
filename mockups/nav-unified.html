@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ماکاپ — نوارِ ناوبریِ پایینِ یکپارچه (همسو ⇄ همیار)</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31; --rgb-paper:245,242,235;
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1);
+  --ease-spring:cubic-bezier(.34,1.3,.64,1);
+  color-scheme:light;
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218; --rgb-paper:24,21,17;
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased;}
+body{font-family:"PelakFA",Tahoma,sans-serif; background:var(--paper); color:var(--ink);
+  font-weight:400; min-height:100vh; overflow-x:hidden; font-feature-settings:"ss01" on;
+  transition:background .4s ease,color .4s ease;}
+body::before{content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 82% 6%, rgba(193,154,74,.10), transparent 60%),
+            radial-gradient(55% 45% at 10% 20%, rgba(155,180,199,.10), transparent 60%);}
+
+/* ───── قابِ گوشی (فقط برای دمو) ───── */
+.stage{min-height:100vh; display:flex; flex-direction:column; align-items:center; gap:18px; padding:26px 14px;}
+.controls{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; position:relative; z-index:10;}
+.ctl{font-family:inherit; font-size:12.5px; cursor:pointer; border:1px solid var(--line);
+  background:rgba(var(--rgb-card),.7); color:var(--stone); padding:8px 14px; border-radius:999px; backdrop-filter:blur(10px);}
+.ctl.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+.phone{position:relative; z-index:5; width:390px; max-width:100%; height:780px; border-radius:42px; overflow:hidden;
+  background:var(--paper); border:1px solid var(--line); box-shadow:0 40px 90px rgba(46,44,40,.22);
+  display:flex; flex-direction:column;}
+.notch{position:absolute; top:10px; left:50%; transform:translateX(-50%); width:120px; height:26px; background:#0c0b0a; border-radius:0 0 16px 16px; z-index:60;}
+
+/* ───── نوارِ بالا ───── */
+.topbar{flex-shrink:0; height:56px; padding:0 18px; display:flex; align-items:center; justify-content:space-between;
+  background:rgba(var(--rgb-paper),.8); backdrop-filter:blur(18px); border-bottom:1px solid var(--line); padding-top:18px;}
+.brand{display:flex; align-items:center; gap:8px; font-weight:700; font-size:18px;}
+.brand .dot{width:8px; height:8px; border-radius:50%; background:var(--ember);}
+.tb-acts{display:flex; gap:6px; color:var(--stone);}
+.tb-acts button{width:34px; height:34px; border:none; background:transparent; color:inherit; cursor:pointer; display:flex; align-items:center; justify-content:center;}
+
+/* ───── بدنه (نمونه محتوا) ───── */
+.body{flex:1; overflow:auto; padding:16px 16px 96px; scrollbar-width:none;}
+.body::-webkit-scrollbar{display:none;}
+.worldlabel{font-size:11px; color:var(--fog); text-align:center; margin-bottom:12px;}
+.card{background:rgba(var(--rgb-card),.6); border:1px solid var(--line); border-radius:20px; padding:18px; margin-bottom:12px; backdrop-filter:blur(14px);}
+.card h3{font-size:15px; font-weight:600; margin-bottom:8px;}
+.card p{font-size:13px; line-height:2; color:var(--stone);}
+.feedrow{display:flex; gap:10px; align-items:flex-start;}
+.av{width:38px; height:38px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:15px;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ★ نوارِ ناوبریِ پایینِ یکپارچه — سبکِ همیار، پوستِ همسو
+   ۵ تب (راست→چپ): مسیر · گزارش · [خانه — مرکزِ برجسته] · همیار(به‌زودی) · پروفایل
+   ═══════════════════════════════════════════════════════════════════════════ */
+.botnav{position:absolute; bottom:0; inset-inline:0; z-index:50; height:auto;
+  display:flex; align-items:flex-end; justify-content:space-around;
+  padding:8px 8px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(var(--rgb-paper),.82); backdrop-filter:blur(24px) saturate(140%);
+  border-top:1px solid var(--line);}
+.bn{position:relative; flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  border:none; background:transparent; cursor:pointer; font-family:inherit; color:var(--stone);
+  padding:6px 0 2px; text-decoration:none; transition:color .25s;}
+.bn svg{width:23px; height:23px; stroke-width:1.7;}
+.bn span{font-size:10px; line-height:1;}
+.bn.active{color:var(--ember);}
+.bn.active svg{stroke-width:2;}
+.bn .badge{position:absolute; top:2px; inset-inline-end:calc(50% - 18px); min-width:15px; height:15px; padding:0 4px;
+  border-radius:8px; background:var(--gold); color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center;}
+
+/* تبِ غیرفعال (همیار — به‌زودی) */
+.bn.disabled{color:var(--fog); cursor:not-allowed;}
+.bn.disabled .soon{position:absolute; top:0; inset-inline-end:calc(50% - 26px); font-size:8px; color:var(--gold);
+  background:rgba(193,154,74,.14); border:1px solid rgba(193,154,74,.3); border-radius:999px; padding:1px 5px;}
+
+/* ★ دکمهٔ مرکزیِ برجسته — خانه (مثل bnav-home همیار) */
+.bn-home{flex:0 0 auto; width:64px; align-self:stretch; justify-content:flex-end; gap:5px;}
+.bn-home .ring{width:56px; height:56px; margin-top:-22px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:#fff;
+  background:linear-gradient(135deg, var(--sage), var(--sage-deep));
+  border:3px solid var(--paper);
+  box-shadow:0 10px 26px rgba(122,132,113,.42), 0 2px 6px rgba(46,44,40,.2);
+  transition:transform .3s var(--ease-spring);}
+.bn-home .ring svg{width:26px; height:26px; stroke-width:2;}
+.bn-home:hover .ring{transform:scale(1.07);}
+.bn-home.active .ring{box-shadow:0 10px 26px rgba(122,132,113,.5), 0 0 0 4px rgba(122,132,113,.16);}
+.bn-home span{font-size:10px; color:var(--sage-deep); font-weight:500;}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+</style>
+</head>
+<body data-theme="light">
+<div class="stage">
+
+  <div class="controls">
+    <button class="ctl on" id="cHamsoo">نمای همسو (خانه)</button>
+    <button class="ctl" id="cHamyar">نمای همیار «به‌زودی»</button>
+    <button class="ctl" id="cTheme">☾ تم</button>
+  </div>
+
+  <div class="phone">
+    <div class="notch"></div>
+
+    <!-- نوار بالا -->
+    <div class="topbar">
+      <div class="brand"><span class="dot"></span><span id="brandName">همسو</span></div>
+      <div class="tb-acts">
+        <button title="اعلان‌ها"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <button title="تم"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      </div>
+    </div>
+
+    <!-- بدنه: همسو -->
+    <div class="body" id="bodyHamsoo">
+      <div class="worldlabel">— دنیای همسو (مسیرِ شخصی) —</div>
+      <div class="card"><h3>تعهدِ امروز</h3><p>امروز نیم‌ساعت بدونِ گوشی می‌نشینم و فقط می‌نویسم.</p></div>
+      <div class="card"><h3>مسیرِ من</h3><p>هدفِ فعال · نبضِ هفته · تاریخچه — همه آرام، بی‌قضاوت.</p></div>
+    </div>
+
+    <!-- بدنه: همیار (به‌زودی) -->
+    <div class="body" id="bodyHamyar" style="display:none">
+      <div class="worldlabel">— دنیای همیار (شبکهٔ رشد) · همان نوارِ پایین —</div>
+      <div class="card"><div class="feedrow"><span class="av" style="background:linear-gradient(135deg,#7A8471,#5C6555)">م</span><div><h3 style="margin-bottom:3px">مهدی رستمی</h3><p style="margin:0">سه هفته پیش حتی ده دقیقه تمرکز برایم سخت بود — حالا یک ساعت می‌نشینم.</p></div></div></div>
+      <div class="card"><div class="feedrow"><span class="av" style="background:linear-gradient(135deg,#C19A4A,#9C7B33)">ن</span><div><h3 style="margin-bottom:3px">نگار احمدی</h3><p style="margin:0">امشب انجامش دادم. ده دقیقه نوشتن، ذهنم آرام می‌گیرد.</p></div></div></div>
+    </div>
+
+    <!-- ★ نوارِ پایینِ یکپارچه -->
+    <nav class="botnav">
+      <!-- راست‌ترین: مسیر (goal) -->
+      <a href="#" class="bn" data-tab="goal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h7"/></svg>
+        <span>مسیر</span>
+      </a>
+      <!-- گزارش -->
+      <a href="#" class="bn" data-tab="report">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
+        <span>گزارش</span>
+      </a>
+      <!-- ★ مرکز: خانه (برجسته) -->
+      <a href="#" class="bn bn-home active" data-tab="home">
+        <span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span>
+        <span>خانه</span>
+      </a>
+      <!-- همیار (به‌زودی، غیرفعال) -->
+      <button class="bn disabled" data-tab="hamyar" disabled aria-disabled="true">
+        <span class="soon">به‌زودی</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <span>همیار</span>
+      </button>
+      <!-- چپ‌ترین: پروفایل -->
+      <a href="#" class="bn" data-tab="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5"/></svg>
+        <span>پروفایل</span>
+      </a>
+    </nav>
+  </div>
+
+  <p style="font-size:11.5px; color:var(--stone); max-width:390px; text-align:center; line-height:1.9; position:relative; z-index:10;">
+    دکمهٔ مرکزیِ برجسته = «خانه» (سبکِ همیار). تبِ «همیار» با نشانِ «به‌زودی» غیرفعال است تا وقتی شبکهٔ اجتماعی منتقل شود.
+    وقتی فعال شود، با همان نوارِ پایین واردِ دنیای همیار می‌شوی (دکمهٔ «نمای همیار» را بزن تا پیش‌نمایش ببینی).
+  </p>
+</div>
+
+<script>
+  const bH=document.getElementById('bodyHamsoo'), bY=document.getElementById('bodyHamyar');
+  const cH=document.getElementById('cHamsoo'), cY=document.getElementById('cHamyar');
+  const brand=document.getElementById('brandName');
+  const homeBtn=document.querySelector('[data-tab="home"]');
+  const hamyarBtn=document.querySelector('[data-tab="hamyar"]');
+
+  cH.onclick=()=>{ bH.style.display='block'; bY.style.display='none'; cH.classList.add('on'); cY.classList.remove('on');
+    brand.textContent='همسو'; homeBtn.classList.add('active'); hamyarBtn.classList.remove('active'); };
+  cY.onclick=()=>{ // پیش‌نمایشِ آینده: همیار فعال
+    bH.style.display='none'; bY.style.display='block'; cY.classList.add('on'); cH.classList.remove('on');
+    brand.textContent='همیار'; homeBtn.classList.remove('active'); hamyarBtn.classList.add('active');
+    hamyarBtn.classList.remove('disabled'); hamyarBtn.querySelector('.soon').style.display='none'; };
+
+  document.getElementById('cTheme').onclick=()=>{
+    const b=document.body, n=b.getAttribute('data-theme')==='dark'?'light':'dark';
+    b.setAttribute('data-theme',n); document.documentElement.setAttribute('data-theme',n);
+  };
+</script>
+</body>
+</html>

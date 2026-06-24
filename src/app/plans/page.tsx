@@ -1,11 +1,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// /plans — مقایسهٔ پلن‌ها (DECISION-040) — کاملاً پویا از DB
+// /plans — مقایسهٔ پلن‌ها (DECISION-040 + DECISION-115)
+//
+// Layout دوگانه:
+//   - بدونِ لاگین → CmsPageShell (صفحاتِ عمومی) + PricingPublicView (فقط مقایسه، بدون خرید)
+//   - لاگین‌کرده   → AppShell + PlansPricing (مدیریت کامل با خرید)
 //
 // قیمت‌ها/امکانات/bulletها از «مدیریت پلن‌ها» می‌آیند. کاربر لاگین → پلن فعلی highlight.
-// Public: بدون نیاز به ورود. سوییچ ماهانه/سالانه و کد تخفیف در PlansPricing (client).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { AppShell } from "@/components/layout/AppShell";
+import { CmsPageShell } from "@/components/cms/CmsPageShell";
 import { getSessionUser } from "@/lib/utils/auth-server";
 import { prisma } from "@/lib/db/client";
 import {
@@ -15,8 +19,15 @@ import {
   type PlanKey,
 } from "@/lib/plans/features";
 import { PlansPricing, type PublicPlan, type PublicFeature } from "@/components/features/plans/PlansPricing";
+import { PricingPublicView } from "@/components/features/plans/PricingPublicView";
 import { PlanReturnToast } from "@/components/features/plans/PlanReturnToast";
 import { getEffectivePlan } from "@/lib/plans/effective";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "پلن‌ها — همسو",
+  description: "مقایسهٔ پلن‌های همسو: رایگان، پلاس و پرو. امکانات و قیمت‌های ماهانه و سالانه.",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +133,28 @@ export default async function PlansPage() {
     };
   });
 
+  // ── بدونِ لاگین → نمایشِ عمومی با صفحاتِ عمومی ──────────────────────────
+  if (!user) {
+    return (
+      <CmsPageShell blobOpacity={0.5} blobCount={3}>
+        <div className="min-h-[calc(100dvh-64px)] pt-24 pb-20 px-6 lg:px-10">
+          <div className="max-w-5xl mx-auto">
+            {/* هدر */}
+            <div className="text-center mb-12 space-y-3">
+              <h1 className="text-2xl font-semibold text-ink">پلن‌های همسو</h1>
+              <p className="text-sm text-stone max-w-sm mx-auto leading-relaxed">
+                مسیرِ خودشناسی را با پلنی شروع کن که برایت مناسب‌تر است.
+                رایگان برای همیشه، ارتقا هر وقت خواستی.
+              </p>
+            </div>
+            <PricingPublicView plans={plans} />
+          </div>
+        </div>
+      </CmsPageShell>
+    );
+  }
+
+  // ── لاگین‌کرده → نمایشِ کامل با AppShell ─────────────────────────────────
   return (
     <AppShell>
       <PlanReturnToast />
@@ -138,7 +171,7 @@ export default async function PlansPage() {
 
         <PlansPricing
           plans={plans}
-          isLoggedIn={Boolean(user)}
+          isLoggedIn={true}
           walletBalance={walletBalance}
           currentPlanKey={currentPlan}
           planDaysLeft={planDaysLeft}

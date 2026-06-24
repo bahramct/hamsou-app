@@ -17,7 +17,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* اتمسفرِ نرمِ پس‌زمینه — fixed، زیرِ همه‌چیز */}
       <AmbientField />
 
-      <div className="relative z-10 flex flex-1 flex-col">
+      {/* pb موبایل = فضای نوارِ تبِ پایین (DECISION-118) تا محتوای هیچ صفحه‌ای
+          زیرِ تبِ fixed پنهان نشود؛ روی دسکتاپ (md+) تبِ پایین نیست → pb صفر. */}
+      <div className="relative z-10 flex flex-1 flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <AppNav />
         {children}
       </div>

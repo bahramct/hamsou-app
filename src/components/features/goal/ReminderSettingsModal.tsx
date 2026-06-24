@@ -121,7 +121,7 @@ export function ReminderSettingsModal({
       />
       <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center px-5" role="dialog" aria-modal="true" aria-label="یادآوری">
         <div
-          className="pointer-events-auto w-full max-w-md overflow-hidden rounded-3xl border border-black/8 shadow-[0_20px_60px_rgba(26,26,31,0.18),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
+          className="pointer-events-auto w-full max-w-md max-h-[calc(100dvh-2.5rem)] overflow-y-auto rounded-3xl border border-black/8 shadow-[0_20px_60px_rgba(26,26,31,0.18),0_0_0_1px_rgba(255,255,255,0.5)_inset]"
           style={{
             background: "rgba(var(--rgb-paper),0.94)",
             backdropFilter: "blur(28px) saturate(150%)",

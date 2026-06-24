@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>همسو × DNA همیار — داشبورد (۳ تم)</title>
+<style>
+/* ═══════════════ پایهٔ توکنِ معناییِ همیار (سازگارشده با همسو) ═══════════════
+   اصل: surface/accent/shadow-glow/ambient مثل همیار. گرم (gold/ember/red) در
+   دارک/ایندیگو کاملاً حذف؛ لایت فقط نجوای گرمای کارکردی. */
+:root{
+  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:26px;--r-2xl:34px;--r-pill:9999px;
+  --ease-calm:cubic-bezier(0.25,0.46,0.45,0.94);--ease-expo:cubic-bezier(0.19,1,0.22,1);
+  --ease-spring:cubic-bezier(0.34,1.3,0.64,1);
+  --dur-fast:220ms;--dur-base:360ms;--dur-slow:500ms;
+}
+/* ── لایت (warm-light، اکسنت sage، گرمای حداقلی) ── */
+[data-theme="light"]{
+  color-scheme:light;
+  --surface-canvas:#F2EEE4;--surface-base:#F7F4ED;--surface-raised:#FFFFFF;--surface-raised-2:#FBFAF5;
+  --surface-glass:rgba(255,255,255,0.70);--surface-glass-strong:rgba(255,255,255,0.9);
+  --surface-tint-accent:rgba(122,132,113,0.07);--surface-gradient:linear-gradient(160deg,#FFFFFF,#F2EEE4);
+  --text-primary:#1A1A1F;--text-secondary:#3E3B36;--text-tertiary:#6B6657;--text-on-accent:#FFFFFF;
+  --border-subtle:rgba(26,26,31,0.06);--border-default:rgba(26,26,31,0.10);--border-strong:rgba(26,26,31,0.18);--border-glow:rgba(122,132,113,0.30);
+  --accent:#7A8471;--accent-bright:#8C967F;--accent-hover:#5C6555;--accent-pressed:#4D5447;--accent-muted:rgba(122,132,113,0.14);
+  --accent-gradient:linear-gradient(135deg,#8C967F,#5C6555);
+  --shadow-soft:0 1px 2px rgba(46,44,40,0.05);--shadow-low:0 2px 10px rgba(46,44,40,0.07);
+  --shadow-mid:0 10px 30px rgba(46,44,40,0.10),0 2px 8px rgba(46,44,40,0.05);--shadow-high:0 28px 64px rgba(46,44,40,0.14);
+  --shadow-glow:0 8px 32px rgba(122,132,113,0.22);
+  --ambient-1:rgba(122,132,113,0.38);--ambient-2:rgba(155,180,199,0.30);--ambient-3:rgba(193,154,74,0.14);
+  /* پالتِ معناییِ هماهنگ (از همیار warm-light) — چندرنگیِ کارکردی */
+  --feedback-success:#5C6555;--feedback-warning:#9C7B33;--feedback-error:#A04428;--feedback-info:#6E8FA5;
+  --accent-today:#C75D3C; /* امروز/اکنون — گرمای کارکردی، هماهنگ با کاغذ */
+}
+/* ── دارک (warm-dark base، اکسنت sage سرد، صفرِ گرم) ── */
+[data-theme="dark"]{
+  color-scheme:dark;
+  --surface-canvas:#100F0B;--surface-base:#16140F;--surface-raised:#201E18;--surface-raised-2:#2A2820;
+  --surface-glass:rgba(32,30,24,0.60);--surface-glass-strong:rgba(32,30,24,0.85);
+  --surface-tint-accent:rgba(164,173,156,0.09);--surface-gradient:linear-gradient(160deg,#252218,#1A1812);
+  --text-primary:#EFE9DB;--text-secondary:#BDB6A7;--text-tertiary:#8A8472;--text-on-accent:#14130F;
+  --border-subtle:rgba(234,228,214,0.07);--border-default:rgba(234,228,214,0.11);--border-strong:rgba(234,228,214,0.20);--border-glow:rgba(164,173,156,0.34);
+  --accent:#A4AD9C;--accent-bright:#BDC6B4;--accent-hover:#BDC6B4;--accent-pressed:#7A8471;--accent-muted:rgba(164,173,156,0.16);
+  --accent-gradient:linear-gradient(135deg,#BDC6B4,#7A8471);
+  --shadow-soft:0 1px 3px rgba(0,0,0,0.45);--shadow-low:0 2px 10px rgba(0,0,0,0.4);
+  --shadow-mid:0 10px 30px rgba(0,0,0,0.45),0 2px 8px rgba(0,0,0,0.3);--shadow-high:0 28px 64px rgba(0,0,0,0.55);
+  --shadow-glow:0 8px 32px rgba(122,132,113,0.28);
+  --ambient-1:rgba(164,173,156,0.26);--ambient-2:rgba(155,180,199,0.20);--ambient-3:rgba(212,176,94,0.12);
+  /* پالتِ هماهنگ با warm-dark (از همیار) — گرمِ ملایم مجاز چون با زمینهٔ گرم می‌نشیند */
+  --feedback-success:#A4AD9C;--feedback-warning:#D4B05E;--feedback-error:#E07A5C;--feedback-info:#B5C9DC;
+  --accent-today:#D4B05E; /* امروز = طلاییِ ملایم، هماهنگ با شبِ گرم (نه قرمزِ تند) */
+}
+/* ── ایندیگو (violet، صفرِ گرم) ── */
+[data-theme="indigo"]{
+  color-scheme:dark;
+  --surface-canvas:#0B0A18;--surface-base:#100E22;--surface-raised:#171533;--surface-raised-2:#1E1B3D;
+  --surface-glass:rgba(23,21,51,0.60);--surface-glass-strong:rgba(23,21,51,0.85);
+  --surface-tint-accent:rgba(142,131,217,0.10);--surface-gradient:linear-gradient(160deg,#1A1740,#131129);
+  --text-primary:#ECEAF6;--text-secondary:#B5AEE4;--text-tertiary:#776EA6;--text-on-accent:#0B0A18;
+  --border-subtle:rgba(232,230,240,0.07);--border-default:rgba(232,230,240,0.11);--border-strong:rgba(232,230,240,0.18);--border-glow:rgba(142,131,217,0.40);
+  --accent:#8E83D9;--accent-bright:#A89FE5;--accent-hover:#A89FE5;--accent-pressed:#6B5DD3;--accent-muted:rgba(142,131,217,0.16);
+  --accent-gradient:linear-gradient(135deg,#8E83D9,#6B5DD3);
+  --shadow-soft:0 1px 3px rgba(0,0,0,0.5);--shadow-low:0 2px 10px rgba(0,0,0,0.45);
+  --shadow-mid:0 10px 30px rgba(0,0,0,0.5),0 2px 8px rgba(0,0,0,0.35);--shadow-high:0 28px 64px rgba(0,0,0,0.6);
+  --shadow-glow:0 8px 32px rgba(107,93,211,0.34);
+  --ambient-1:rgba(107,93,211,0.40);--ambient-2:rgba(142,131,217,0.28);--ambient-3:rgba(155,180,199,0.14);
+  /* پالتِ هماهنگ با بنفش (از همیار indigo-dark) — قرمزِ تند حذف، گرمِ ملایمِ هماهنگ می‌ماند */
+  --feedback-success:#8E83D9;--feedback-warning:#D4B05E;--feedback-error:#E07A5C;--feedback-info:#9BB4C7;
+  --accent-today:#A89FE5; /* امروز = بنفشِ روشن (قرمز/نارنجی در بنفش ناهماهنگ است) */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Tahoma,sans-serif;background:var(--surface-canvas);color:var(--text-primary);min-height:100vh;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background var(--dur-base) var(--ease-calm),color var(--dur-base) var(--ease-calm)}
+
+/* ── اوراهای متحرک (گرادیانِ زندهٔ همیار) ── */
+.stage{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.aura{position:absolute;border-radius:50%;filter:blur(90px)}
+.aura-1{width:560px;height:560px;top:-200px;inset-inline-end:-120px;background:radial-gradient(circle,var(--ambient-1),transparent 70%);animation:aura-float 20s var(--ease-calm) infinite alternate}
+.aura-2{width:480px;height:480px;bottom:-200px;inset-inline-start:-140px;background:radial-gradient(circle,var(--ambient-2),transparent 70%);animation:aura-float 26s var(--ease-calm) infinite alternate-reverse}
+.aura-3{width:320px;height:320px;top:44%;inset-inline-start:54%;background:radial-gradient(circle,var(--ambient-3),transparent 70%);animation:aura-float 30s var(--ease-calm) infinite alternate}
+@keyframes aura-float{0%{transform:translate(0,0) scale(1)}100%{transform:translate(34px,-26px) scale(1.14)}}
+
+/* ── theme switcher (فقط دمو) ── */
+.sw{position:fixed;top:14px;inset-inline-start:14px;z-index:99;display:flex;gap:6px;background:var(--surface-glass-strong);backdrop-filter:blur(14px);border:1px solid var(--border-default);border-radius:var(--r-pill);padding:5px}
+.sw button{border:none;background:none;color:var(--text-secondary);font-family:inherit;font-size:12px;padding:6px 12px;border-radius:var(--r-pill);cursor:pointer}
+.sw button.on{background:var(--accent-gradient);color:#fff}
+
+/* ── shell ── */
+.wrap{position:relative;z-index:10;max-width:980px;margin:0 auto;padding:30px 22px 110px}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-bright)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:.8rem 1.5rem;border-radius:var(--r-pill);font-weight:500;font-size:14px;border:none;cursor:pointer;font-family:inherit;transition:all var(--dur-fast) var(--ease-calm)}
+.btn-primary{background:var(--accent-gradient);color:#fff;box-shadow:var(--shadow-glow)}
+.btn-primary:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:var(--shadow-high)}
+
+/* ── glass card (شیشهٔ واقعیِ همیار: saturate + border-glow + inset) ── */
+.card{background:var(--surface-glass);backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);border:1px solid var(--border-subtle);border-radius:var(--r-xl);box-shadow:var(--shadow-low),inset 0 1px 0 rgba(255,255,255,0.05)}
+.tile{padding:20px;display:flex;flex-direction:column}
+.lbl{text-transform:uppercase;letter-spacing:1.4px;color:var(--text-tertiary);font-size:10px;margin-bottom:10px}
+
+.bento{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media(max-width:760px){.bento{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:16px}
+
+/* ── goal tile + تایم‌لاینِ گرادیانِ زنده ── */
+.goal-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.goal-day{align-self:flex-start;color:var(--text-secondary);background:var(--surface-tint-accent);border:1px solid var(--border-subtle);border-radius:var(--r-pill);padding:4px 12px;font-size:12px;margin-bottom:18px}
+.tl{display:flex;align-items:center;margin:6px 0 16px}
+.tl-node{width:13px;height:13px;border:2px solid var(--border-strong);background:var(--surface-base);border-radius:50%;position:relative;flex-shrink:0;transition:transform var(--dur-fast) var(--ease-spring)}
+.tl-node.done{background:var(--accent);border-color:var(--accent)}
+.tl-node.today{width:16px;height:16px;background:var(--accent-gradient);border:none;box-shadow:var(--shadow-glow)}
+.tl-node.today::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:var(--accent);opacity:.25;filter:blur(7px);z-index:-1;animation:pulse-soft 3s var(--ease-calm) infinite}
+@keyframes pulse-soft{0%,100%{opacity:.16}50%{opacity:.4}}
+.tl-link{flex:1;height:2.5px;min-width:8px;border-radius:99px;background:var(--border-default)}
+.tl-link.done{background:linear-gradient(to left,var(--accent),var(--accent-muted))}
+.story{color:var(--text-secondary);background:var(--surface-tint-accent);border:1px solid var(--border-subtle);border-radius:var(--r-md);padding:12px 14px;font-size:13px;line-height:1.9}
+.story .q{color:var(--text-tertiary);font-size:11px;margin-bottom:4px}
+
+/* ── companion (سرد، نه طلایی) ── */
+.cp{margin-top:14px;border:1px solid var(--accent-muted);background:var(--surface-tint-accent);border-radius:var(--r-md);padding:14px}
+.cp-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.cp-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--accent-gradient);color:#fff;font-size:14px;box-shadow:var(--shadow-soft)}
+.cp-name{color:var(--accent-bright);font-size:12.5px;font-weight:600}
+.cp-text{color:var(--text-primary);font-size:13px;line-height:1.95}
+
+/* ── stat / pulse ── */
+.muted{color:var(--text-secondary);font-size:13px;line-height:1.85}
+.stat-num{font-weight:300;font-size:30px;color:var(--accent-bright);line-height:1}
+.stat-lbl{color:var(--text-tertiary);font-size:12px;margin-top:3px}
+.rhythm{display:flex;gap:6px;margin:10px 0 8px}
+.rh{flex:1;height:40px;border-radius:9px}
+.rh.wrote{background:color-mix(in srgb,var(--feedback-success) 78%,transparent)}
+.rh.soft{background:var(--accent-muted)}
+.rh.freeze{background:color-mix(in srgb,var(--feedback-info) 40%,transparent);border:1px solid color-mix(in srgb,var(--feedback-info) 55%,transparent)}
+.rh.empty{background:var(--surface-base);border:1px dashed var(--border-default)}
+.rh.today{box-shadow:0 0 0 2px var(--surface-canvas),0 0 0 4px var(--accent-today)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:10.5px;color:var(--text-tertiary)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.lg-wrote{background:var(--feedback-success)}
+.lg-freeze{background:color-mix(in srgb,var(--feedback-info) 55%,transparent);border:1px solid var(--feedback-info)}
+.lg-today{background:var(--accent-today)}
+.tl-node.today{width:16px;height:16px;background:var(--accent-gradient);border:none;box-shadow:var(--shadow-glow)}
+
+/* ── plan ── */
+.badge{align-self:flex-start;border-radius:var(--r-pill);padding:4px 12px;font-size:12px;font-weight:600;color:var(--accent-bright);background:var(--accent-muted)}
+.wallet{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+.wallet .amt{font-size:22px;font-weight:600}
+.wallet .unit{color:var(--text-tertiary);font-size:11px}
+
+.sec{display:flex;align-items:center;gap:14px;margin:30px 2px 14px}
+.sec h2{color:var(--text-secondary);font-size:13px;font-weight:600;white-space:nowrap}
+.sec .rule{flex:1;height:1px;background:var(--border-subtle)}
+
+/* ── bottom nav (شیشه) ── */
+.botnav{position:fixed;bottom:0;inset-inline:0;z-index:50;display:flex;align-items:flex-end;justify-content:space-around;padding:8px 10px 12px;background:var(--surface-glass-strong);backdrop-filter:blur(24px) saturate(140%);border-top:1px solid var(--border-subtle)}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--text-tertiary);font-size:10px}
+.bn.active{color:var(--accent-bright)}
+.bn-home{flex:0 0 auto;width:64px}
+.bn-ring{width:56px;height:56px;margin-top:-22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;background:var(--accent-gradient);border:3px solid var(--surface-canvas);box-shadow:var(--shadow-glow)}
+.bn-home span{margin-top:5px;color:var(--accent-bright)}
+</style>
+</head>
+<body>
+<div class="stage"><div class="aura aura-1"></div><div class="aura aura-2"></div><div class="aura aura-3"></div></div>
+
+<div class="sw">
+  <button data-t="light">لایت</button>
+  <button data-t="dark" class="on">دارک</button>
+  <button data-t="indigo">ایندیگو</button>
+</div>
+
+<div class="wrap">
+  <div class="head">
+    <div><div class="eyebrow">◇ امروز · چهارشنبه ۳ تیر</div><div style="font-weight:300;font-size:26px;margin-top:4px">سلام، سارا</div></div>
+    <button class="btn btn-primary">ثبت تعهد امروز</button>
+  </div>
+
+  <div class="bento">
+    <div class="card tile">
+      <div class="lbl">هدفِ فعال</div>
+      <div class="goal-title">هفت روز، هر روز یک صفحه نوشتن</div>
+      <span class="goal-day">روز ۴ از ۷</span>
+      <div class="tl">
+        <div class="tl-node done"></div><div class="tl-link done"></div>
+        <div class="tl-node done"></div><div class="tl-link done"></div>
+        <div class="tl-node done"></div><div class="tl-link done"></div>
+        <div class="tl-node today"></div><div class="tl-link"></div>
+        <div class="tl-node"></div><div class="tl-link"></div>
+        <div class="tl-node"></div><div class="tl-link"></div>
+        <div class="tl-node"></div>
+      </div>
+      <div class="story"><div class="q">دیروز</div>صبح زود نشستم و نیم‌ساعت نوشتم؛ سخت‌تر از آن بود که فکر می‌کردم، اما تمامش کردم.</div>
+      <div class="cp">
+        <div class="cp-h"><span class="cp-av">◆</span><span class="cp-name">همراهِ تو</span></div>
+        <div class="cp-text">سه روزِ پیوسته نوشتی. این تداوم بیش از حجمِ نوشته اهمیت دارد — همین که هر روز برمی‌گردی، خودش مسیر است.</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card tile">
+        <div class="lbl">نبضِ این هفته</div>
+        <div class="rhythm">
+          <div class="rh wrote"></div><div class="rh wrote"></div><div class="rh freeze"></div>
+          <div class="rh wrote today"></div><div class="rh empty"></div><div class="rh empty"></div><div class="rh empty"></div>
+        </div>
+        <div class="legend">
+          <span><i class="lg-wrote"></i>نوشته‌شده</span>
+          <span><i class="lg-freeze"></i>فاصله</span>
+          <span><i class="lg-today"></i>امروز</span>
+        </div>
+      </div>
+      <div class="card tile">
+        <div class="lbl">پلن و کیف‌پول</div>
+        <span class="badge">پلاس</span>
+        <div class="wallet"><span class="amt">۱۲۰٬۰۰۰</span><span class="unit">تومان</span></div>
+        <div class="muted" style="font-size:11px;color:var(--text-tertiary)">۳۵۶ روز مانده</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec"><h2>تاریخچهٔ اخیر</h2><div class="rule"></div></div>
+  <div class="bento">
+    <div class="card tile"><div class="lbl">آخرین گزارشِ هفتگی</div><div class="muted" style="margin-top:6px">«مسیرت این هفته آرام اما پیوسته بود.»</div></div>
+    <div class="card tile"><div class="lbl">تعهدهای اخیر</div><div class="muted" style="margin-top:6px">۳ تعهدِ انجام‌شده در ۵ روزِ گذشته.</div></div>
+  </div>
+</div>
+
+<nav class="botnav">
+  <div class="bn"><span>مسیر</span></div>
+  <div class="bn"><span>گزارش</span></div>
+  <div class="bn bn-home"><div class="bn-ring">⌂</div><span>خانه</span></div>
+  <div class="bn"><span>همیار</span></div>
+  <div class="bn active"><span>پروفایل</span></div>
+</nav>
+
+<script>
+document.querySelectorAll('.sw button').forEach(b=>b.onclick=()=>{
+  document.documentElement.dataset.theme=b.dataset.t;
+  document.querySelectorAll('.sw button').forEach(x=>x.classList.toggle('on',x===b));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ماکاپ — FABِ پلاسِ شیشه‌ایِ گسترش‌یابنده (سبکِ iOS)</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+:root{
+  --ink:#1A1A1F;--stone:#6B6657;--fog:#BDB6A7;--paper:#F5F2EB;--sage:#7A8471;--sage-deep:#5C6555;
+  --ember:#C75D3C;--gold:#C19A4A;--rgb-card:255,255,255;--rgb-line:26,26,31;--rgb-paper:245,242,235;
+  --line:rgba(26,26,31,.06);--spring:cubic-bezier(.34,1.5,.5,1);--expo:cubic-bezier(.19,1,.22,1);color-scheme:light;
+}
+[data-theme="dark"]{--ink:#EDE7DA;--stone:#A89F8D;--fog:#7B7263;--paper:#161310;--sage:#97A28A;--sage-deep:#ACB89C;--ember:#D08A68;--gold:#CFAE63;--rgb-card:41,36,30;--rgb-line:237,231,218;--rgb-paper:24,21,17;--line:rgba(237,231,218,.08);color-scheme:dark;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"PelakFA",Tahoma,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-feature-settings:"ss01" on;-webkit-font-smoothing:antialiased;}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px 12px;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ctl{font-family:inherit;font-size:12.5px;cursor:pointer;border:1px solid var(--line);background:rgba(var(--rgb-card),.7);color:var(--stone);padding:8px 14px;border-radius:999px;}
+.ctl.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+.phone{position:relative;width:390px;max-width:100%;height:760px;border-radius:42px;overflow:hidden;background:var(--paper);border:1px solid var(--line);box-shadow:0 40px 90px rgba(46,44,40,.22);}
+.bg{position:absolute;inset:0;padding:60px 16px 76px;}
+.bg-card{background:rgba(var(--rgb-card),.55);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px;}
+.bg-card h3{font-size:14px;font-weight:600;margin-bottom:5px;}.bg-card p{font-size:12.5px;color:var(--stone);line-height:1.9;}
+.topbar{position:absolute;top:0;inset-inline:0;height:50px;display:flex;align-items:center;padding:0 18px;background:rgba(var(--rgb-paper),.8);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:4;font-weight:700;font-size:16px;}
+.botnav{position:absolute;bottom:0;inset-inline:0;height:56px;display:flex;align-items:center;justify-content:space-around;background:rgba(var(--rgb-paper),.85);backdrop-filter:blur(20px);border-top:1px solid var(--line);z-index:5;color:var(--fog);font-size:10px;}
+
+/* backdrop هنگام باز بودن */
+.dim{position:absolute;inset:0;z-index:20;background:rgba(15,14,12,.18);opacity:0;visibility:hidden;transition:opacity .3s var(--expo),visibility .3s;}
+.dim.open{opacity:1;visibility:visible;}
+
+/* ════════ خوشهٔ FAB ════════ */
+.fab-wrap{position:absolute;inset-inline-end:18px;bottom:74px;z-index:30;display:flex;flex-direction:column;align-items:center;gap:14px;}
+
+/* اکشن‌ها (شیشه‌ای) — از پلاس بیرون می‌جهند */
+.fab-action{display:flex;align-items:center;gap:10px;
+  opacity:0;transform:translateY(18px) scale(.6);pointer-events:none;
+  transition:transform .42s var(--spring),opacity .25s var(--expo);}
+.fab-wrap.open .fab-action{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
+.fab-wrap.open .fab-action.a2{transition-delay:.05s;}
+.fab-wrap.open .fab-action.a1{transition-delay:.10s;}
+.fab-label{font-size:12px;font-weight:500;color:var(--ink);background:rgba(var(--rgb-card),.7);backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px;box-shadow:0 6px 18px rgba(46,44,40,.12);white-space:nowrap;}
+.fab-btn{width:50px;height:50px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  /* شیشه‌ای — Liquid Glass */
+  background:rgba(var(--rgb-card),.5);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+  border:1px solid rgba(255,255,255,.4);box-shadow:0 8px 24px rgba(46,44,40,.18),inset 0 1px 0 rgba(255,255,255,.5);}
+.fab-btn.companion{color:var(--ink);}
+.fab-btn.support{color:var(--gold);}
+
+/* دکمهٔ اصلی (+) — شیشه‌ای، کم‌رنگِ ۶۰٪ تا لمس */
+.fab-main{width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  background:rgba(var(--rgb-card),.5);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid rgba(255,255,255,.45);box-shadow:0 10px 28px rgba(46,44,40,.22),inset 0 1px 0 rgba(255,255,255,.55);
+  color:var(--ink);transition:opacity .3s var(--expo),transform .4s var(--spring);}
+@media (hover:none){ .fab-main{opacity:.6;} }
+.fab-main:active{opacity:1;}
+.fab-main svg{transition:transform .42s var(--spring);}
+.fab-wrap.open .fab-main{opacity:1;}
+.fab-wrap.open .fab-main svg{transform:rotate(135deg);} /* + → × */
+</style>
+</head>
+<body data-theme="light">
+<div class="stage">
+  <div class="controls">
+    <button class="ctl on" id="cPro">کاربرِ پرو (۲ چت)</button>
+    <button class="ctl" id="cFree">کاربرِ رایگان (۱ چت)</button>
+    <button class="ctl" id="cTheme">☾ تم</button>
+  </div>
+
+  <div class="phone" id="phone">
+    <div class="topbar">همسو</div>
+    <div class="bg">
+      <div class="bg-card"><h3>تعهدِ امروز</h3><p>امروز نیم‌ساعت بدونِ گوشی می‌نشینم و فقط می‌نویسم.</p></div>
+      <div class="bg-card"><h3>مسیرِ من</h3><p>هدفِ فعال · نبضِ هفته · تاریخچه.</p></div>
+    </div>
+
+    <div class="dim" id="dim"></div>
+
+    <div class="fab-wrap" id="wrap">
+      <!-- اکشن: پشتیبانی (فقط پرو) -->
+      <div class="fab-action a1" id="actSupport">
+        <span class="fab-label">پشتیبانیِ آنلاین</span>
+        <button class="fab-btn support" title="پشتیبانی"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13a8 8 0 0 1 16 0M4 13v3a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2Zm16 0v3a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2Z"/></svg></button>
+      </div>
+      <!-- اکشن: همدم -->
+      <div class="fab-action a2" id="actCompanion">
+        <span class="fab-label">گفتگو با همدم</span>
+        <button class="fab-btn companion" title="همدم"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+      </div>
+      <!-- دکمهٔ اصلی + -->
+      <button class="fab-main" id="main" aria-label="چت">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <div class="botnav"><span>پروفایل</span><span>همیار</span><span style="color:var(--ember)">خانه</span><span>گزارش</span><span>مسیر</span></div>
+  </div>
+
+  <p style="font-size:11.5px;color:var(--stone);max-width:390px;text-align:center;line-height:1.9;">
+    یک دکمهٔ <b>پلاسِ شیشه‌ای</b> (Liquid Glass، کم‌رنگِ ۶۰٪ تا لمس). با لمس، + به × می‌چرخد و چت‌ها با spring بیرون می‌جهند
+    (پرو: همدم + پشتیبانی · رایگان: مستقیم همدم باز می‌شود، بدونِ گسترش). بستن = جمع‌شدنِ نرم به همان +.
+  </p>
+</div>
+
+<script>
+  const wrap=document.getElementById('wrap'), main=document.getElementById('main'), dim=document.getElementById('dim');
+  const actSupport=document.getElementById('actSupport');
+  let isPro=true, open=false;
+  function setOpen(v){ open=v; wrap.classList.toggle('open',v); dim.classList.toggle('open',v); }
+  main.onclick=()=>{
+    if(!isPro){ alert('کاربرِ رایگان: مستقیم چتِ همدم باز می‌شود (بدونِ گسترش).'); return; }
+    setOpen(!open);
+  };
+  dim.onclick=()=>setOpen(false);
+  document.getElementById('cPro').onclick=(e)=>{isPro=true;actSupport.style.display='';e.target.classList.add('on');document.getElementById('cFree').classList.remove('on');setOpen(false);};
+  document.getElementById('cFree').onclick=(e)=>{isPro=false;actSupport.style.display='none';e.target.classList.add('on');document.getElementById('cPro').classList.remove('on');setOpen(false);};
+  document.getElementById('cTheme').onclick=()=>{const b=document.body,n=b.getAttribute('data-theme')==='dark'?'light':'dark';b.setAttribute('data-theme',n);};
+</script>
+</body>
+</html>

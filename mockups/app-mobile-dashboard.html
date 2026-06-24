@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ماکاپ — داشبوردِ موبایلِ همسو (ری‌دیزاینِ ریسپانسیو، مرجع = همیار)</title>
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   فونت PelakFA — مسیرِ نسبی به public/Fonts
+   ───────────────────────────────────────────────────────────────────────── */
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-light.woff2") format("woff2"); font-weight:300; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   توکن‌ها — پالتِ واقعیِ Warm Paper همسو (هم‌سان با globals.css)
+   ───────────────────────────────────────────────────────────────────────── */
+:root{
+  --ink:#1A1A1F; --charcoal:#2E2C28; --stone:#6B6657; --fog:#BDB6A7;
+  --bone:#EAE4D6; --paper:#F5F2EB; --sage:#7A8471; --sage-deep:#5C6555;
+  --ember:#C75D3C; --mist:#9BB4C7; --mist-deep:#5E7C93; --gold:#C19A4A;
+  --rgb-card:255,255,255; --rgb-line:26,26,31; --rgb-paper:245,242,235;
+  --line:rgba(26,26,31,.06); --ease-expo:cubic-bezier(.19,1,.22,1);
+  color-scheme:light;
+
+  /* ★ تایپوگرافیِ سیّال — قلبِ ریسپانسیو بودن (همان DNAی همیار).
+     اندازه بین کفِ موبایل و سقفِ دسکتاپ نرم اسکیل می‌شود. */
+  --t-h1:      clamp(20px, 5.2vw, 26px);
+  --t-tile-h:  clamp(15px, 4vw, 17px);
+  --t-body:    clamp(13px, 3.6vw, 14px);
+  --t-sm:      clamp(11px, 3.1vw, 12.5px);
+  --t-xs:      clamp(10px, 2.7vw, 11px);
+
+  /* فاصله‌گذاریِ سیّال — پدینگِ کارت‌ها با عرض اسکیل می‌شود */
+  --pad-card:  clamp(16px, 4.5vw, 22px);
+  --gap-bento: clamp(12px, 3.5vw, 16px);
+  --radius:    clamp(18px, 5vw, 22px);
+}
+[data-theme="dark"]{
+  --ink:#EDE7DA; --charcoal:#D8D0BF; --stone:#A89F8D; --fog:#7B7263;
+  --bone:#262119; --paper:#161310; --sage:#97A28A; --sage-deep:#ACB89C;
+  --ember:#D08A68; --mist:#A7BDCE; --mist-deep:#8AA7BC; --gold:#CFAE63;
+  --rgb-card:41,36,30; --rgb-line:237,231,218; --rgb-paper:24,21,17;
+  --line:rgba(237,231,218,.08); color-scheme:dark;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+body{
+  font-family:"PelakFA",Tahoma,"Segoe UI",sans-serif;
+  background:var(--paper); color:var(--ink); font-weight:400;
+  min-height:100vh; position:relative;
+  font-feature-settings:"ss01" on;
+  /* ★ تورِ ایمنی — هیچ‌گاه اسکرول افقی (مثل overflow-x:clip در globals) */
+  overflow-x:hidden;
+  transition:background .4s ease,color .4s ease;
+}
+/* اتمسفرِ نرمِ پس‌زمینه — مثل app-stage واقعی */
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 82% 6%, rgba(193,154,74,.10), transparent 60%),
+    radial-gradient(55% 45% at 10% 20%, rgba(155,180,199,.10), transparent 60%),
+    radial-gradient(50% 40% at 50% 102%, rgba(122,132,113,.09), transparent 65%);
+}
+[data-theme="dark"] body::before{
+  background:
+    radial-gradient(60% 50% at 82% 6%, rgba(207,174,99,.10), transparent 60%),
+    radial-gradient(55% 45% at 10% 20%, rgba(138,167,188,.08), transparent 60%),
+    radial-gradient(50% 40% at 50% 102%, rgba(151,162,138,.07), transparent 65%);
+}
+
+.glass{background:rgba(var(--rgb-card),.55); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--line); box-shadow:0 12px 40px rgba(46,44,40,.07), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass{box-shadow:0 12px 40px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.04);}
+.glass-strong{background:rgba(var(--rgb-card),.72); backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+  border:1px solid var(--line); box-shadow:0 18px 50px rgba(46,44,40,.10), inset 0 1px 0 rgba(255,255,255,.5);}
+[data-theme="dark"] .glass-strong{box-shadow:0 18px 50px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.04);}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   نوارِ بالا — لوگو + ناقوس + تم. روی موبایل ناوبریِ اصلی پایین است،
+   پس بالا فقط برند و اکشن‌های سبک می‌ماند (سبک‌تر و خلوت‌تر).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.topbar{position:sticky; top:0; z-index:40; background:rgba(var(--rgb-paper),.78);
+  backdrop-filter:blur(20px) saturate(120%); -webkit-backdrop-filter:blur(20px) saturate(120%);
+  border-bottom:1px solid var(--line); padding-top:env(safe-area-inset-top);}
+.topbar-inner{max-width:1024px; margin:0 auto; height:58px;
+  padding:0 clamp(14px,4vw,24px); display:flex; align-items:center; justify-content:space-between; gap:16px;}
+.brand{display:flex; align-items:center; gap:9px; font-weight:700; font-size:clamp(17px,4.5vw,20px); color:var(--ink);}
+.brand .dot{width:9px; height:9px; border-radius:50%; background:var(--ember); flex-shrink:0;}
+.brand .sub{font-size:10px; color:var(--fog); font-weight:400;}
+
+/* ناوبریِ افقیِ مرکز — فقط دسکتاپ (≥ tablet) */
+.topnav{display:none; gap:4px; flex:1; justify-content:center;}
+.topnav a{position:relative; padding:8px 15px; border-radius:12px; font-size:14px; color:var(--stone); text-decoration:none; transition:.25s;}
+.topnav a:hover{color:var(--ink);}
+.topnav a.active{color:var(--ink); font-weight:500;}
+.topnav a.active::after{content:""; position:absolute; bottom:-1px; right:50%; transform:translateX(50%); width:20px; height:2px; border-radius:2px; background:rgba(199,93,60,.7);}
+
+.topbar-actions{display:flex; align-items:center; gap:4px;}
+.icon-btn{width:38px; height:38px; border-radius:12px; border:none; background:transparent; color:var(--stone); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.25s;}
+.icon-btn:hover{background:rgba(var(--rgb-line),.05); color:var(--ink);}
+.icon-btn svg{width:19px; height:19px;}
+.bell-wrap{position:relative;}
+.bell-badge{position:absolute; top:6px; left:7px; min-width:15px; height:15px; padding:0 3px; border-radius:8px; background:var(--ember); color:#fff; font-size:9px; display:flex; align-items:center; justify-content:center;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   کانتینرِ صفحه — عرضِ امن، پدینگِ سیّال، فضای پایین برای نوارِ تب
+   ═══════════════════════════════════════════════════════════════════════════ */
+.wrap{position:relative; z-index:10; width:min(1024px,100%); margin:0 auto;
+  padding:clamp(20px,5vw,40px) clamp(14px,4vw,24px);
+  /* فضای پایین = ارتفاعِ نوارِ تب + safe-area (تا محتوا زیرِ نوار نرود) */
+  padding-bottom:calc(76px + env(safe-area-inset-bottom) + 24px);}
+
+/* سرستونِ «امروز» */
+.day-head{text-align:center; margin-bottom:clamp(14px,4vw,18px);}
+.day-head .greet{font-size:var(--t-sm); color:var(--fog);}
+.day-head .date{font-size:var(--t-body); color:var(--stone); margin-top:3px;}
+
+/* ── کارتِ هیروِ «تعهدِ امروز» — تمام‌عرض، ارتفاع از محتوا ── */
+.hero{margin:0 auto clamp(26px,6vw,38px); max-width:560px;}
+.hero-card{border-radius:var(--radius); padding:clamp(20px,5.5vw,28px);}
+.hero-top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;}
+.hero-label{font-size:var(--t-body); font-weight:500; color:var(--stone);}
+.chip{font-size:var(--t-xs); padding:4px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;}
+.chip-sage{color:var(--sage-deep); background:rgba(122,132,113,.14);}
+.chip-ember{color:var(--ember); background:rgba(199,93,60,.12);}
+.hero-text{font-size:var(--t-body); line-height:2.05; color:var(--ink);}
+.hero-foot{display:flex; align-items:center; gap:10px; margin-top:18px; padding-top:16px; border-top:1px solid var(--line);}
+.hero-foot .meta{font-size:var(--t-xs); color:var(--fog); flex:1;}
+.btn{border:none; cursor:pointer; font-family:inherit; border-radius:14px; font-size:var(--t-sm); font-weight:500;
+  padding:11px 18px; display:inline-flex; align-items:center; gap:7px; transition:.25s var(--ease-expo);}
+.btn-primary{background:var(--ink); color:var(--paper);}
+.btn-primary:hover{background:var(--charcoal);}
+
+/* عنوانِ بخش «مسیرِ من» */
+.sec{display:flex; align-items:center; gap:12px; margin:0 2px clamp(14px,4vw,18px);}
+.sec h2{font-size:var(--t-body); font-weight:600; color:var(--stone); white-space:nowrap; letter-spacing:.3px;}
+.sec .rule{flex:1; height:1px; background:rgba(var(--rgb-line),.07);}
+.sec .hint{font-size:var(--t-xs); color:var(--fog); white-space:nowrap;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ★★★ بِنتوی ریسپانسیو — کلیدِ کلِ راهکار ★★★
+   • موبایل‌اول: تک‌ستونه، ارتفاع از محتوا (نه grid-auto-rows ثابت).
+   • تبلت (≥640): دو ستونه با minmax(0,1fr) — جلوگیریِ سرریز.
+   • دسکتاپ (≥960): بِنتوی غنی‌تر (هدف عریض‌تر).
+   هیچ تایلی ارتفاعِ ثابت ندارد؛ پس هیچ کوپلینگِ ارتفاعی نیست،
+   و محتوا هرگز بریده/سرریز نمی‌شود.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.bento{display:grid; grid-template-columns:1fr; gap:var(--gap-bento); align-items:start;}
+
+.tile{border-radius:var(--radius); padding:var(--pad-card); display:flex; flex-direction:column;
+  min-width:0; /* ★ ضدِ سرریزِ فرزندِ گرید */
+  transition:transform .35s var(--ease-expo);}
+.tile-head{display:flex; align-items:center; gap:9px; margin-bottom:13px;}
+.tile-ic{width:32px; height:32px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+.tile-ic svg{width:16px; height:16px;}
+.ic-sage{color:var(--sage-deep); background:rgba(122,132,113,.16);}
+.ic-gold{color:var(--gold); background:rgba(193,154,74,.16);}
+.ic-mist{color:var(--mist-deep); background:rgba(94,124,147,.14);}
+.ic-ember{color:var(--ember); background:rgba(199,93,60,.13);}
+.tile-head .ht{font-size:var(--t-tile-h); font-weight:600; color:var(--ink); min-width:0;}
+.tile-head .hs{font-size:var(--t-xs); color:var(--fog); margin-top:1px;}
+.tile-lbl{font-size:var(--t-xs); text-transform:uppercase; letter-spacing:1.4px; color:var(--fog); margin-bottom:9px;}
+
+/* تایلِ هدف */
+.goal-title{font-size:var(--t-tile-h); font-weight:600; color:var(--ink); margin-bottom:9px;}
+.goal-meta{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:14px;}
+.goal-day{font-size:var(--t-xs); color:var(--stone); background:rgba(var(--rgb-line),.05); padding:4px 11px; border-radius:999px;}
+/* خطِ سفر — افقی، در صورتِ زیادشدنِ نقاط روی موبایل به‌نرمی اسکرول می‌شود (نه سرریز) */
+.path{display:flex; align-items:center; gap:0; padding:6px 0 2px; overflow-x:auto; scrollbar-width:none;}
+.path::-webkit-scrollbar{display:none;}
+.pnode{flex:0 0 auto; width:12px; height:12px; border-radius:50%; border:2px solid var(--fog); background:transparent;}
+.pnode.done{background:var(--sage); border-color:var(--sage);}
+.pnode.today{background:var(--ember); border-color:var(--ember); width:14px; height:14px; box-shadow:0 0 0 4px rgba(199,93,60,.16);}
+.pnode.future{border-color:rgba(189,182,167,.5);}
+.plink{flex:1 0 18px; min-width:14px; height:2px; background:rgba(var(--rgb-line),.07);}
+.plink.done{background:rgba(122,132,113,.45);}
+.goal-story{margin-top:14px; padding:12px 14px; border-radius:14px; background:rgba(var(--rgb-line),.03); border:1px solid var(--line);
+  font-size:var(--t-sm); line-height:1.95; color:var(--stone);}
+.goal-story .q{font-size:var(--t-xs); color:var(--fog); margin-bottom:4px;}
+
+/* تایلِ نبضِ هفته */
+.legend{display:flex; flex-wrap:wrap; gap:8px 14px; margin-bottom:11px;}
+.lg{display:flex; align-items:center; gap:5px; font-size:var(--t-xs); color:var(--stone);}
+.lg .sw{width:12px; height:12px; border-radius:4px; flex-shrink:0;}
+.sw.wrote{background:rgba(122,132,113,.55);}
+.sw.empty{background:rgba(189,182,167,.16); border:1px dashed rgba(189,182,167,.6);}
+.sw.freeze{background:rgba(94,124,147,.28); border:1px solid rgba(94,124,147,.45);}
+.sw.today{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--ember); background:transparent;}
+.rhythm{display:flex; gap:7px; margin:4px 0 12px;}
+.rh{flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0;}
+.rh-pill{width:100%; height:clamp(36px,10vw,44px); border-radius:11px;}
+.rh-pill.wrote{background:rgba(122,132,113,.55);}
+.rh-pill.empty{background:rgba(189,182,167,.16); border:1px dashed rgba(189,182,167,.55);}
+.rh-pill.freeze{background:rgba(94,124,147,.28); border:1px solid rgba(94,124,147,.4);}
+.rh-pill.future{background:rgba(189,182,167,.08); border:1px dashed rgba(189,182,167,.3);}
+.rh.today .rh-pill{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--ember);}
+.rh-day{font-size:var(--t-xs); color:var(--fog);}
+.rh.today .rh-day{color:var(--ember); font-weight:600;}
+.pulse-line{font-size:var(--t-sm); color:var(--stone); line-height:1.85; margin-top:2px;}
+
+/* تایلِ ساعت + تاریخ (کادر سبزِ سابق) */
+.clockzone{display:flex; align-items:center; justify-content:space-evenly; gap:14px; padding:6px 0;}
+.clock{width:clamp(58px,16vw,72px); aspect-ratio:1; position:relative; flex-shrink:0;}
+.clock .ring{position:absolute; inset:0; border-radius:50%; border:1.5px solid rgba(var(--rgb-line),.10);}
+.hand{position:absolute; bottom:50%; right:50%; transform-origin:bottom; border-radius:999px;}
+.hand.h{width:2.5px; height:24%; background:var(--ink); opacity:.8; transform:translateX(50%) rotate(40deg);}
+.hand.m{width:2px;   height:34%; background:var(--stone); transform:translateX(50%) rotate(180deg);}
+.hand.s{width:1.5px; height:36%; background:var(--sage); transform:translateX(50%) rotate(110deg);}
+.pin{position:absolute; top:50%; right:50%; transform:translate(50%,-50%); width:5px; height:5px; border-radius:50%; background:var(--sage);}
+.timeblock{text-align:right;}
+.digi{font-size:clamp(22px,6vw,26px); font-weight:500; color:var(--ink); line-height:1; letter-spacing:.5px; direction:ltr;}
+.digi .mer{font-size:12px; color:var(--stone); margin-right:4px;}
+.jd{font-size:var(--t-xs); color:var(--stone); margin-top:7px;}
+
+/* تایلِ تاریخچه */
+.hist-item{display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+.hist-item:last-child{border-bottom:none;}
+.hist-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:6px;}
+.hist-dot.done{background:var(--sage);} .hist-dot.miss{background:var(--fog);}
+.hist-body{min-width:0; flex:1;}
+.hist-date{font-size:var(--t-xs); color:var(--fog); margin-bottom:1px;}
+.hist-text{font-size:var(--t-sm); color:var(--stone); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+/* تایلِ گزارش */
+.report-week{display:flex; align-items:center; gap:8px; font-size:var(--t-sm); color:var(--stone); margin-bottom:10px;}
+.report-quote{font-size:var(--t-sm); font-weight:500; color:var(--ink); line-height:2;}
+.report-cats{display:flex; flex-wrap:wrap; gap:6px; margin-top:14px;}
+.cat{font-size:var(--t-xs); color:var(--stone); background:rgba(var(--rgb-line),.05); padding:4px 11px; border-radius:999px;}
+
+/* تایلِ پلن/کیف */
+.plan-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+.plan-badge{font-size:var(--t-sm); font-weight:600; padding:4px 12px; border-radius:999px;}
+.plan-badge.pro{color:var(--ember); background:rgba(199,93,60,.12);}
+.plan-left{font-size:var(--t-xs); color:var(--stone);}
+.plan-wallet{display:flex; align-items:baseline; gap:6px;}
+.plan-wallet .amt{font-size:clamp(18px,5vw,20px); font-weight:600; color:var(--ink); direction:ltr;}
+.plan-wallet .unit{font-size:var(--t-xs); color:var(--fog);}
+.plan-links{display:flex; gap:14px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+.plan-links a{font-size:var(--t-sm); color:var(--sage-deep); text-decoration:none;}
+
+.cta{margin-top:auto; padding-top:14px;}
+.cta a{font-size:var(--t-sm); color:var(--sage-deep); text-decoration:none; display:inline-flex; align-items:center; gap:4px;}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ★ نوارِ تبِ پایین (bottom-tab) — فقط موبایل. در thumb-zone، شست‌محور.
+   با safe-area-inset برای PWA (نواحیِ خانهٔ آیفون).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.tabbar{position:fixed; bottom:0; left:0; right:0; z-index:50;
+  background:rgba(var(--rgb-paper),.85); backdrop-filter:blur(24px) saturate(130%); -webkit-backdrop-filter:blur(24px) saturate(130%);
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+  display:flex; justify-content:space-around; align-items:stretch;}
+.tab{flex:1; border:none; background:transparent; cursor:pointer; font-family:inherit;
+  display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 4px 9px; color:var(--stone); text-decoration:none;
+  position:relative; transition:color .25s;}
+.tab svg{width:22px; height:22px; stroke-width:1.7;}
+.tab span{font-size:10.5px;}
+.tab.active{color:var(--ember);}
+.tab.active::before{content:""; position:absolute; top:0; right:50%; transform:translateX(50%); width:26px; height:2.5px; border-radius:0 0 3px 3px; background:var(--ember);}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   نقطه‌شکست‌ها — «نردبان»، نه «پرتگاه»
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (min-width:640px){
+  .bento{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .t-goal{grid-column:1 / -1;}            /* هدف تمام‌عرض در تبلت */
+  .tabbar{display:none;}                  /* تب پایین فقط موبایل */
+  .topnav{display:flex;}                  /* ناوبریِ بالا از تبلت */
+  .wrap{padding-bottom:clamp(40px,8vw,90px);}
+}
+@media (min-width:960px){
+  /* دسکتاپ: بِنتوی غنی‌تر — هدف عریض، بقیه دو ستون */
+  .bento{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+@media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important;} }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   نوارِ ابزارِ ماکاپ (فقط برای دمو — در اپ واقعی نیست)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.demo-bar{position:fixed; top:calc(env(safe-area-inset-top) + 64px); left:14px; z-index:200;
+  display:flex; flex-direction:column; gap:6px;}
+.demo-btn{width:40px; height:40px; border-radius:12px; border:1px solid var(--line); background:rgba(var(--rgb-card),.85);
+  backdrop-filter:blur(12px); color:var(--stone); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 18px rgba(46,44,40,.10);}
+.demo-w{position:fixed; bottom:calc(env(safe-area-inset-bottom) + 88px); left:14px; z-index:200;
+  font-size:11px; color:var(--stone); background:rgba(var(--rgb-card),.85); backdrop-filter:blur(12px);
+  border:1px solid var(--line); border-radius:999px; padding:6px 12px; box-shadow:0 6px 18px rgba(46,44,40,.10); direction:ltr;}
+@media (min-width:640px){ .demo-w{bottom:14px;} }
+</style>
+</head>
+<body data-theme="light">
+
+<!-- ابزارِ دمو (در اپ واقعی وجود ندارد) -->
+<div class="demo-bar">
+  <button class="demo-btn" id="themeBtn" title="تم روشن/تاریک">☾</button>
+</div>
+<div class="demo-w" id="widthTag">width: …</div>
+
+<!-- ───────────────── نوارِ بالا ───────────────── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#"><span class="dot"></span><span>همسو<span class="sub" style="display:block">مسیرِ تو</span></span></a>
+
+    <nav class="topnav">
+      <a href="#" class="active">داشبورد</a>
+      <a href="#">برنامه‌ریزی و چالش</a>
+      <a href="#">گزارش هفتگی</a>
+      <a href="#">پلن‌ها</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="icon-btn bell-wrap" title="اعلان‌ها">
+        <span class="bell-badge">۲</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      </button>
+      <button class="icon-btn" id="themeBtn2" title="تم">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ───────────────── محتوا ───────────────── -->
+<main class="wrap">
+
+  <!-- سرستونِ امروز -->
+  <div class="day-head">
+    <div class="greet">سلام، سارا</div>
+    <div class="date">پنجشنبه، ۲ تیر ۱۴۰۵</div>
+  </div>
+
+  <!-- هیروِ تعهدِ امروز -->
+  <section class="hero">
+    <div class="hero-card glass-strong">
+      <div class="hero-top">
+        <span class="hero-label">تعهدِ امروز</span>
+        <span class="chip chip-sage">در بازهٔ ویرایش</span>
+      </div>
+      <p class="hero-text">امروز نیم‌ساعت بدونِ گوشی می‌نشینم و فقط می‌نویسم — هرچه آمد، بی‌قضاوت.</p>
+      <div class="hero-foot">
+        <span class="meta">ثبت‌شده ۰۸:۲۰ · تا ۱۰:۲۰ قابلِ ویرایش</span>
+        <button class="btn btn-primary">ویرایش</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- بخشِ مسیرِ من -->
+  <div class="sec"><h2>مسیرِ من</h2><span class="rule"></span><span class="hint">یک نگاهِ آرام</span></div>
+
+  <div class="bento">
+
+    <!-- هدف -->
+    <section class="tile t-goal glass">
+      <div class="tile-head">
+        <span class="tile-ic ic-sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></span>
+        <div style="min-width:0"><div class="ht">هدفِ فعال</div><div class="hs">روزِ ۹ از ۲۱</div></div>
+      </div>
+      <div class="goal-title">نوشتنِ روزانه، آرام اما پیوسته</div>
+      <div class="goal-meta"><span class="goal-day">۹ روزِ سپری‌شده</span><span class="goal-day">۱۲ روز تا پایان</span></div>
+      <div class="path">
+        <span class="pnode done"></span><span class="plink done"></span>
+        <span class="pnode done"></span><span class="plink done"></span>
+        <span class="pnode done"></span><span class="plink done"></span>
+        <span class="pnode done"></span><span class="plink done"></span>
+        <span class="pnode today"></span><span class="plink"></span>
+        <span class="pnode future"></span><span class="plink"></span>
+        <span class="pnode future"></span><span class="plink"></span>
+        <span class="pnode future"></span>
+      </div>
+      <div class="goal-story"><div class="q">امروز نوشتی:</div>صبح زود بیدار شدم و قبل از هر کاری چند خط نوشتم؛ ذهنم سبک‌تر شد.</div>
+    </section>
+
+    <!-- ساعت + تاریخ -->
+    <section class="tile t-week glass">
+      <div class="tile-lbl">امروز</div>
+      <div class="clockzone">
+        <div class="clock"><span class="ring"></span><span class="hand h"></span><span class="hand m"></span><span class="hand s"></span><span class="pin"></span></div>
+        <div class="timeblock"><div class="digi">۰۹:۴۱<span class="mer">ق.ظ</span></div><div class="jd">۲ تیر ۱۴۰۵</div></div>
+      </div>
+    </section>
+
+    <!-- نبضِ هفته -->
+    <section class="tile t-pulse glass">
+      <div class="tile-head">
+        <span class="tile-ic ic-sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-7 4 14 2-7h6"/></svg></span>
+        <div><div class="ht">نبضِ این هفته</div></div>
+      </div>
+      <div class="legend">
+        <span class="lg"><span class="sw wrote"></span>نوشتی</span>
+        <span class="lg"><span class="sw empty"></span>خالی</span>
+        <span class="lg"><span class="sw freeze"></span>فریز</span>
+        <span class="lg"><span class="sw today"></span>امروز</span>
+      </div>
+      <div class="rhythm">
+        <div class="rh"><span class="rh-pill wrote"></span><span class="rh-day">ش</span></div>
+        <div class="rh"><span class="rh-pill wrote"></span><span class="rh-day">ی</span></div>
+        <div class="rh"><span class="rh-pill empty"></span><span class="rh-day">د</span></div>
+        <div class="rh"><span class="rh-pill freeze"></span><span class="rh-day">س</span></div>
+        <div class="rh"><span class="rh-pill wrote"></span><span class="rh-day">چ</span></div>
+        <div class="rh today"><span class="rh-pill wrote"></span><span class="rh-day">پ</span></div>
+        <div class="rh"><span class="rh-pill future"></span><span class="rh-day">ج</span></div>
+      </div>
+      <p class="pulse-line">این هفته بیشترِ روزها کنارِ خودت بودی؛ یک روز هم آرام گرفتی.</p>
+    </section>
+
+    <!-- تاریخچهٔ اخیر -->
+    <section class="tile t-hist glass">
+      <div class="tile-head">
+        <span class="tile-ic ic-mist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg></span>
+        <div><div class="ht">تاریخچهٔ اخیر</div></div>
+      </div>
+      <div class="hist-item"><span class="hist-dot done"></span><div class="hist-body"><div class="hist-date">دیروز</div><div class="hist-text">نیم‌ساعت کتاب خواندم بدونِ حواس‌پرتی.</div></div></div>
+      <div class="hist-item"><span class="hist-dot miss"></span><div class="hist-body"><div class="hist-date">۲ روز پیش</div><div class="hist-text">پیاده‌رویِ عصر — نشد، اما اشکالی ندارد.</div></div></div>
+      <div class="hist-item"><span class="hist-dot done"></span><div class="hist-body"><div class="hist-date">۳ روز پیش</div><div class="hist-text">یک ساعت زودتر خوابیدم.</div></div></div>
+      <div class="cta"><a href="#">۳۰ روزِ اخیر ←</a></div>
+    </section>
+
+    <!-- گزارش هفتگی -->
+    <section class="tile t-report glass">
+      <div class="tile-head">
+        <span class="tile-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg></span>
+        <div><div class="ht">آخرین گزارش</div></div>
+      </div>
+      <div class="report-week">۲۶ خرداد — ۱ تیر</div>
+      <p class="report-quote">«پیوستگی‌ات این هفته از جنسِ آرامش بود، نه فشار. همین کافی‌ست.»</p>
+      <div class="report-cats"><span class="cat">تمرکز</span><span class="cat">آرامش</span><span class="cat">نوشتن</span></div>
+      <div class="cta"><a href="#">خواندنِ کامل ←</a></div>
+    </section>
+
+    <!-- پلن / کیف‌پول -->
+    <section class="tile t-plan glass">
+      <div class="plan-top"><span class="plan-badge pro">پرو</span><span class="plan-left">۱۸ روز مانده</span></div>
+      <div class="plan-wallet"><span class="amt">۱۲۰٬۰۰۰</span><span class="unit">تومان</span></div>
+      <div class="plan-links"><a href="#">کیف‌پول</a><a href="#">پشتیبانی</a><a href="#">ارتقا</a></div>
+    </section>
+
+  </div>
+</main>
+
+<!-- ───────────────── نوارِ تبِ پایین (موبایل) ───────────────── -->
+<nav class="tabbar">
+  <a href="#" class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>خانه</span></a>
+  <a href="#" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>چالش</span></a>
+  <a href="#" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span>گزارش</span></a>
+  <a href="#" class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.3 3.1-5.5 7-5.5s7 2.2 7 5.5"/></svg><span>پروفایل</span></a>
+</nav>
+
+<script>
+  // تمِ روشن/تاریک
+  function toggleTheme(){
+    const h=document.documentElement, b=document.body;
+    const next=(b.getAttribute('data-theme')==='dark')?'light':'dark';
+    b.setAttribute('data-theme',next); h.setAttribute('data-theme',next);
+    document.getElementById('themeBtn').textContent = next==='dark'?'☀':'☾';
+  }
+  document.getElementById('themeBtn').addEventListener('click',toggleTheme);
+  document.getElementById('themeBtn2').addEventListener('click',toggleTheme);
+
+  // نشانگرِ عرض (فقط دمو) — اثباتِ «در هر سایزی تمیز»
+  const wt=document.getElementById('widthTag');
+  function upd(){ wt.textContent='width: '+window.innerWidth+'px'; }
+  upd(); window.addEventListener('resize',upd);
+
+  // ساعتِ زنده
+  function tick(){
+    const now=new Date();
+    const s=now.getSeconds(), m=now.getMinutes(), h=now.getHours()%12;
+    const hs=document.querySelector('.hand.s'), hm=document.querySelector('.hand.m'), hh=document.querySelector('.hand.h');
+    if(hs) hs.style.transform='translateX(50%) rotate('+(s*6)+'deg)';
+    if(hm) hm.style.transform='translateX(50%) rotate('+(m*6)+'deg)';
+    if(hh) hh.style.transform='translateX(50%) rotate('+(h*30+m*0.5)+'deg)';
+  }
+  tick(); setInterval(tick,1000);
+</script>
+</body>
+</html>

@@ -1,10 +1,14 @@
+"use client";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // GoalTile — تایلِ «هدفِ فعال» در بِنتوی داشبورد (TASK-28؛ مو‌به‌موی dashboard-unified.html)
-// شاملِ تایم‌لاینِ ریزِ نقطه‌ای (با پاپ‌اوورِ hover)، استوریِ امروز و پنلِ همراه (پرو/رایگان).
+// شاملِ تایم‌لاینِ ریزِ نقطه‌ای، استوریِ امروز و پنلِ همراه (پرو/رایگان).
+// پاپ‌اوورِ استوری: لمس‌محور (tap) — چون موبایل hover ندارد؛ روی دسکتاپ hover هم کار می‌کند.
 // در ستونِ راستِ بِنتو دو ردیف را می‌گیرد و کف‌اش با CTA «بازکردنِ هدف» لنگر می‌شود.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import Link from "next/link";
+import { useState } from "react";
 import type { GoalType } from "@/types/goal";
 
 export interface GoalTimelineNode {
@@ -70,6 +74,8 @@ export function GoalTile({ data }: { data: GoalTileData }) {
   }
 
   const today = data.dayNumber;
+  // پاپ‌اوورِ استوری: نمایش تا وقتی انگشت روی نقطه است (press-hold)؛ رها = پنهان.
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
     <div className="dsh-tile t-goal glass">
@@ -90,7 +96,14 @@ export function GoalTile({ data }: { data: GoalTileData }) {
               {i > 0 && (
                 <span className={`dsh-tl-link${data.timeline[i - 1].dayNumber < today ? " done" : ""}`} />
               )}
-              <div className="dsh-tl-item">
+              <div
+                className={`dsh-tl-item${openIdx === i ? " is-open" : ""}`}
+                style={{ touchAction: "pan-y" }}
+                onPointerDown={(e) => { if (e.pointerType === "touch") setOpenIdx(i); }}
+                onPointerUp={() => setOpenIdx(null)}
+                onPointerLeave={() => setOpenIdx(null)}
+                onPointerCancel={() => setOpenIdx(null)}
+              >
                 <span className={`dsh-tl-node ${n.kind === "today" ? "today" : n.kind === "future" ? "future" : "filled"}`} />
                 <div className="dsh-tl-pop">
                   {n.kind === "future" ? (

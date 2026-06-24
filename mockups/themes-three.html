@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>ماکاپ — سه تمِ همسو (لایت/دارک/ایندیگو) از روی همیار</title>
+<style>
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Regular.woff2") format("woff2"); font-weight:400; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Medium.woff2") format("woff2"); font-weight:500; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-SemiBold.woff2") format("woff2"); font-weight:600; font-display:swap; }
+@font-face { font-family:"PelakFA"; src:url("../public/Fonts/Pelak FontFamily/webfonts/woff2/Pelak-Bold.woff2") format("woff2"); font-weight:700; font-display:swap; }
+
+/* ───── لایت = warm-light همیار ───── */
+:root{
+  --ink:#1A1A1F; --stone:#6B6657; --fog:#BDB6A7; --bone:#EAE4D6; --paper:#F2EEE4;
+  --sage:#7A8471; --sage-deep:#5C6555; --ember:#C75D3C; --gold:#C19A4A; --mist-deep:#5E7C93;
+  --rgb-card:255,255,255; --rgb-line:26,26,31; color-scheme:light;
+}
+/* ───── دارک = warm-dark همیار ───── */
+[data-theme="dark"]{
+  --ink:#EFE9DB; --stone:#BDB6A7; --fog:#8A8472; --bone:#201E18; --paper:#100F0B;
+  --sage:#A4AD9C; --sage-deep:#BDC6B4; --ember:#E07A5C; --gold:#D4B05E; --mist-deep:#8AA7BC;
+  --rgb-card:32,30,24; --rgb-line:239,233,219; color-scheme:dark;
+}
+/* ───── ایندیگو = indigo-dark همیار (فقط در اپ، نه پابلیک/ادمین) ───── */
+[data-theme="indigo"]{
+  --ink:#ECEAF6; --stone:#B5AEE4; --fog:#776EA6; --bone:#171533; --paper:#0B0A18;
+  --sage:#8E83D9; --sage-deep:#A89FE5; --ember:#E07A5C; --gold:#D4B05E; --mist-deep:#9BB4C7;
+  --rgb-card:23,21,51; --rgb-line:236,234,246; color-scheme:dark;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"PelakFA",Tahoma,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;font-feature-settings:"ss01" on;-webkit-font-smoothing:antialiased;transition:background .4s,color .4s;}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px 12px;}
+.controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ctl{font-family:inherit;font-size:12.5px;cursor:pointer;border:1px solid rgba(var(--rgb-line),.12);background:rgba(var(--rgb-card),.7);color:var(--stone);padding:8px 14px;border-radius:999px;}
+
+.phone{position:relative;width:390px;max-width:100%;height:760px;border-radius:42px;overflow:hidden;background:var(--paper);border:1px solid rgba(var(--rgb-line),.08);box-shadow:0 40px 90px rgba(0,0,0,.28);}
+.bg::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 50% at 82% 6%, rgba(var(--rgb-line),.05), transparent 60%),
+            radial-gradient(55% 45% at 10% 22%, rgba(var(--rgb-line),.04), transparent 60%);}
+.topbar{position:relative;z-index:2;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;background:rgba(var(--rgb-card),.5);backdrop-filter:blur(16px);border-bottom:1px solid rgba(var(--rgb-line),.07);}
+.brand{font-weight:700;font-size:17px;color:var(--ink);}
+.tdot{width:8px;height:8px;border-radius:50%;background:var(--ember);display:inline-block;margin-left:6px;}
+.body{position:relative;z-index:1;padding:16px 16px 80px;}
+.daterow{text-align:center;margin-bottom:14px;}
+.daterow .g{font-size:12px;color:var(--fog);} .daterow .d{font-size:13px;color:var(--stone);margin-top:2px;}
+
+.tile{background:rgba(var(--rgb-card),.55);border:1px solid rgba(var(--rgb-line),.08);border-radius:22px;padding:18px;margin-bottom:13px;backdrop-filter:blur(14px);}
+.tlbl{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--fog);margin-bottom:8px;}
+.ttitle{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:8px;}
+.ttext{font-size:13px;line-height:2;color:var(--stone);}
+.chip{display:inline-block;font-size:11px;padding:4px 11px;border-radius:999px;background:rgba(var(--sage),.16);color:var(--sage-deep);}
+.tline{display:flex;align-items:center;gap:0;margin:16px 0 6px;}
+.tnode{width:12px;height:12px;border-radius:50%;border:2px solid var(--fog);background:transparent;flex:0 0 auto;}
+.tnode.done{background:var(--sage);border-color:var(--sage);}
+.tnode.today{background:var(--ember);border-color:var(--ember);width:14px;height:14px;box-shadow:0 0 0 4px rgba(var(--rgb-line),.06);}
+.tlink{flex:1;height:2px;background:rgba(var(--rgb-line),.10);min-width:14px;}
+.tlink.done{background:rgba(var(--sage),.5);}
+.cp{margin-top:14px;padding:14px;border-radius:16px;background:rgba(var(--gold),.08);border:1px solid rgba(var(--gold),.28);}
+.cp .h{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gold);margin-bottom:6px;}
+.cp p{font-size:12.5px;color:var(--stone);line-height:1.9;}
+.btn{display:block;width:100%;text-align:center;padding:13px;border-radius:14px;background:var(--ink);color:var(--paper);font-size:14px;font-weight:500;margin-top:6px;}
+
+.botnav{position:absolute;bottom:0;inset-inline:0;height:58px;display:flex;align-items:center;justify-content:space-around;background:rgba(var(--rgb-card),.6);backdrop-filter:blur(22px);border-top:1px solid rgba(var(--rgb-line),.08);z-index:5;color:var(--fog);font-size:10px;}
+.botnav .active{color:var(--ember);}
+.center{width:48px;height:48px;border-radius:50%;margin-top:-18px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--sage),var(--sage-deep));box-shadow:0 8px 22px rgba(0,0,0,.3);border:3px solid var(--paper);}
+.fab{position:absolute;bottom:74px;inset-inline-end:18px;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink);z-index:6;
+  background:rgba(var(--rgb-card),.22);backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(var(--rgb-line),.10);box-shadow:0 10px 28px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.4);}
+</style>
+</head>
+<body data-theme="light">
+<div class="stage">
+  <div class="controls">
+    <button class="ctl" id="cTheme">تمِ بعدی ⟳ (لایت/دارک/ایندیگو)</button>
+    <span id="tname" style="font-size:12.5px;color:var(--stone);align-self:center">تم: لایت</span>
+  </div>
+
+  <div class="phone">
+    <div class="bg" style="position:absolute;inset:0;"></div>
+    <div class="topbar"><span class="brand">همسو<span class="tdot"></span></span><span style="color:var(--fog)">⌄ ☾ ◔</span></div>
+    <div class="body">
+      <div class="daterow"><div class="g">سلام، شیرین</div><div class="d">پنجشنبه، ۳ تیر ۱۴۰۵</div></div>
+
+      <div class="tile">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span class="ttitle" style="margin:0">تعهدِ امروز</span><span class="chip">در بازهٔ ویرایش</span></div>
+        <p class="ttext">امروز نیم‌ساعت بدونِ گوشی می‌نشینم و فقط می‌نویسم.</p>
+      </div>
+
+      <div class="tile">
+        <div class="tlbl">هدفِ فعال</div>
+        <div class="ttitle">زبان بخونم</div>
+        <div style="font-size:12px;color:var(--stone);margin-bottom:4px">روز ۳ از ۳۰</div>
+        <div class="tline">
+          <span class="tnode done"></span><span class="tlink done"></span>
+          <span class="tnode done"></span><span class="tlink done"></span>
+          <span class="tnode today"></span><span class="tlink"></span>
+          <span class="tnode"></span><span class="tlink"></span>
+          <span class="tnode"></span><span class="tlink"></span>
+          <span class="tnode"></span>
+        </div>
+        <div class="cp">
+          <div class="h">✦ همراه</div>
+          <p>«همراه» در روزهای پیشِ رو نگاهی تازه به مسیرت می‌نویسد.</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+
+    <div class="botnav"><span>پروفایل</span><span>همیار</span><span class="center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></span><span>گزارش</span><span>مسیر</span></div>
+  </div>
+
+  <p style="font-size:11.5px;color:var(--stone);max-width:390px;text-align:center;line-height:1.9;">
+    سه تم از <b>توکن‌های همیار</b>: لایت=warm-light · دارک=warm-dark · ایندیگو=indigo-dark.
+    ایندیگو فقط در اپ نمایش داده می‌شود (نه پابلیک/ادمین). دکمهٔ بالا تم را چرخه می‌زند.
+  </p>
+</div>
+<script>
+  const order=["light","dark","indigo"], names={light:"لایت",dark:"دارک",indigo:"ایندیگو (بنفش)"};
+  let i=0;
+  document.getElementById('cTheme').onclick=()=>{i=(i+1)%3;const t=order[i];document.body.setAttribute('data-theme',t);document.documentElement.setAttribute('data-theme',t);document.getElementById('tname').textContent="تم: "+names[t];};
+</script>
+</body>
+</html>
